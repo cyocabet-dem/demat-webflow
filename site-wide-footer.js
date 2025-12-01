@@ -20,10 +20,8 @@ document.addEventListener("DOMContentLoaded", function () {
   closers.forEach(el => el.addEventListener("click", close));
   console.log("✅ Filter menu initialized");
 });
-</script>
 
-<!-- Modal Control Scripts -->
-<script>
+// Modal Control Scripts
 console.log("🚀 Modal scripts loading...");
 
 // ===== AUTH MODAL FUNCTIONS =====
@@ -255,10 +253,9 @@ window.testOnboardingModal = function() {
 };
 
 console.log("✅ All modal scripts loaded successfully!");
-</script>
 
-<!-- NEW: Added by Courtney on 25/11/25 -->
-<script>
+
+// NEW: Added by Courtney on 25/11/25
 console.log("🔐 Auth UI controller loading...");
 
 // Function to update UI based on authentication state
@@ -283,8 +280,8 @@ function updateAuthUI(isAuthenticated) {
 window.updateAuthUI = updateAuthUI;
 
 console.log("✅ Auth UI controller ready");
-</script>
-<script>
+
+
 // ============================================
 // CART UTILITIES (API + sessionStorage hybrid)
 // ============================================
@@ -461,27 +458,27 @@ window.CartManager = {
       const mergedMap = new Map();
       
     // Add API items first (these are authoritative)
-apiCart.forEach(item => {
-  // Extract front image from images array
-  let frontImage = '';
-  if (item.images && item.images.length > 0) {
-    const frontImg = item.images.find(img => 
-      img.image_type === 'front' || 
-      (img.image_name && img.image_name.toLowerCase().includes('front'))
-    );
-    frontImage = frontImg?.object_url || item.images[0]?.object_url || '';
-  }
-  
-  mergedMap.set(item.id, {
-    id: item.id,
-    sku: item.sku,
-    name: item.name,
-    brand: item.brand?.brand_name || item.brand || '',
-    size: item.size?.size || item.size || '',
-    image: frontImage || item.front_image || item.frontImage || item.image || '',
-    addedAt: item.started_at || new Date().toISOString()
-  });
-});
+    apiCart.forEach(item => {
+      // Extract front image from images array
+      let frontImage = '';
+      if (item.images && item.images.length > 0) {
+        const frontImg = item.images.find(img => 
+          img.image_type === 'front' || 
+          (img.image_name && img.image_name.toLowerCase().includes('front'))
+        );
+        frontImage = frontImg?.object_url || item.images[0]?.object_url || '';
+      }
+      
+      mergedMap.set(item.id, {
+        id: item.id,
+        sku: item.sku,
+        name: item.name,
+        brand: item.brand?.brand_name || item.brand || '',
+        size: item.size?.size || item.size || '',
+        image: frontImage || item.front_image || item.frontImage || item.image || '',
+        addedAt: item.started_at || new Date().toISOString()
+      });
+    });
       
       // Find local items not in API (need to upload)
       const localOnlyItems = localCart.filter(
@@ -645,21 +642,7 @@ apiCart.forEach(item => {
 document.addEventListener('DOMContentLoaded', function() {
   CartManager.init();
 });
-</script>
 
-<style>
-/* Global checkbox style */
-input[type="checkbox"] {
-  -webkit-appearance: auto;
-  appearance: auto;
-  accent-color: #000;
-  width: 16px;
-  height: 16px;
-  margin: 0;
-}
-</style>
-
-<script>
 // ============================================
 // CART OVERLAY FUNCTIONS (updated for async API)
 // ============================================
@@ -842,46 +825,46 @@ async function confirmReservation() {
     
     console.log('📤 Calling reservation API...');
     
-// Get item IDs from cart
-const cart = CartManager.getCart();
-const clothingItemIds = cart.map(item => item.id);
+  // Get item IDs from cart
+  const cart = CartManager.getCart();
+  const clothingItemIds = cart.map(item => item.id);
 
-console.log('📤 Creating reservation with items:', clothingItemIds);
+  console.log('📤 Creating reservation with items:', clothingItemIds);
 
-// Create reservation via API
-const response = await fetch('https://api.dematerialized.nl/private_clothing_items/reservations', {
-  method: 'POST',
-  headers: {
-    'Authorization': `Bearer ${token}`,
-    'Content-Type': 'application/json',
-    'Accept': 'application/json'
-  },
-  body: JSON.stringify({
-    clothing_item_ids: clothingItemIds
-  })
-});
+  // Create reservation via API
+  const response = await fetch('https://api.dematerialized.nl/private_clothing_items/reservations', {
+    method: 'POST',
+    headers: {
+      'Authorization': `Bearer ${token}`,
+      'Content-Type': 'application/json',
+      'Accept': 'application/json'
+    },
+    body: JSON.stringify({
+      clothing_item_ids: clothingItemIds
+    })
+  });
     
-  if (!response.ok) {
-  const errorData = await response.json().catch(() => ({}));
-  console.error('❌ API Error Response:', errorData);
-  
-  // Handle different error formats
-  let errorMessage = `Reservation failed (${response.status})`;
-  
-  if (typeof errorData.detail === 'string') {
-    errorMessage = errorData.detail;
-  } else if (typeof errorData.detail === 'object' && errorData.detail !== null) {
-    // Handle nested error objects (e.g., { detail: { message: "..." } })
-    errorMessage = errorData.detail.message || errorData.detail.msg || JSON.stringify(errorData.detail);
-  } else if (typeof errorData.message === 'string') {
-    errorMessage = errorData.message;
-  } else if (Array.isArray(errorData.detail)) {
-    // Handle validation errors array (FastAPI format)
-    errorMessage = errorData.detail.map(e => e.msg || e.message || String(e)).join(', ');
+    if (!response.ok) {
+    const errorData = await response.json().catch(() => ({}));
+    console.error('❌ API Error Response:', errorData);
+    
+    // Handle different error formats
+    let errorMessage = `Reservation failed (${response.status})`;
+    
+    if (typeof errorData.detail === 'string') {
+      errorMessage = errorData.detail;
+    } else if (typeof errorData.detail === 'object' && errorData.detail !== null) {
+      // Handle nested error objects (e.g., { detail: { message: "..." } })
+      errorMessage = errorData.detail.message || errorData.detail.msg || JSON.stringify(errorData.detail);
+    } else if (typeof errorData.message === 'string') {
+      errorMessage = errorData.message;
+    } else if (Array.isArray(errorData.detail)) {
+      // Handle validation errors array (FastAPI format)
+      errorMessage = errorData.detail.map(e => e.msg || e.message || String(e)).join(', ');
+    }
+    
+    throw new Error(errorMessage);
   }
-  
-  throw new Error(errorMessage);
-}
     
     const reservation = await response.json();
     console.log('✅ Reservation created:', reservation);
@@ -1082,8 +1065,8 @@ window.addEventListener('load', function() {
     }
   }, 1500);
 });
-</script>
-<script>
+
+
 // Cart handler - using capture phase for all pages
 (function() {
   console.log('🛒 [Site-wide] Cart script starting...');
@@ -1142,8 +1125,7 @@ window.addEventListener('load', function() {
   });
 })();
   
-</script>
-<script>
+
 // Membership signup handler
 document.addEventListener('DOMContentLoaded', function() {
   console.log('🎫 Membership script loading...');
