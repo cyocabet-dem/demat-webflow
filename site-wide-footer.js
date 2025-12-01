@@ -644,6 +644,82 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 // ============================================
+// USER MEMBERSHIP HELPER
+// ============================================
+window.UserMembership = {
+  _cache: null,
+  _cacheTime: null,
+  CACHE_DURATION: 5 * 60 * 1000, // 5 minutes
+  API_BASE: 'https://api.dematerialized.nl',
+  
+  PREMIUM_ID: 6,
+  BASIC_ID: 7,
+  
+  async fetch() {
+    if (this._cache && this._cacheTime && (Date.now() - this._cacheTime < this.CACHE_DURATION)) {
+      console.log('👤 Using cached membership data');
+      return this._cache;
+    }
+    
+    try {
+      if (!window.auth0Client) return null;
+      
+      const isAuthenticated = await window.auth0Client.isAuthenticated();
+      if (!isAuthenticated) return null;
+      
+      const token = await window.auth0Client.getTokenSilently();
+      
+      const response = await fetch(`${this.API_BASE}/users/me`, {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Accept': 'application/json'
+        }
+      });
+      
+      if (!response.ok) {
+        console.error('👤 Failed to fetch user:', response.status);
+        return null;
+      }
+      
+      const userData = await response.json();
+      console.log('👤 User data fetched:', userData);
+      
+      this._cache = userData;
+      this._cacheTime = Date.now();
+      
+      return userData;
+    } catch (err) {
+      console.error('👤 Error fetching user:', err);
+      return null;
+    }
+  },
+  
+  async getMembershipId() {
+    const user = await this.fetch();
+    return user?.membership_id || user?.membership?.id || null;
+  },
+  
+  async isPremium() {
+    const membershipId = await this.getMembershipId();
+    return membershipId === this.PREMIUM_ID;
+  },
+  
+  async isBasic() {
+    const membershipId = await this.getMembershipId();
+    return membershipId === this.BASIC_ID;
+  },
+  
+  async canReserveOnline() {
+    return await this.isPremium();
+  },
+  
+  clearCache() {
+    this._cache = null;
+    this._cacheTime = null;
+  }
+};
+
+// ============================================
 // CART OVERLAY FUNCTIONS (updated for async API)
 // ============================================
 
@@ -913,7 +989,7 @@ Thank you for shopping with Dematerialized!`;
   // window.location.href = '/account/reservations';
 }
 
-// Updated handleReserveClick - now opens confirmation modal
+// Updated handleReserveClick - checks membership before showing confirmation modal
 async function handleReserveClick() {
   console.log('🛒 Reserve button clicked');
   
@@ -931,7 +1007,17 @@ async function handleReserveClick() {
     return;
   }
   
-  // User is logged in - show confirmation modal
+  // Check if user has Premium membership
+  const canReserve = await UserMembership.canReserveOnline();
+  
+  if (!canReserve) {
+    // Show upgrade modal for Basic members
+    console.log('⭐ User is not Premium, showing upgrade modal');
+    openUpgradeModal();
+    return;
+  }
+  
+  // User is Premium - show confirmation modal
   openReservationModal();
 }
 
@@ -942,6 +1028,38 @@ window.removeCartOverlayItem = removeCartOverlayItem;
 window.openReservationModal = openReservationModal;
 window.closeReservationModal = closeReservationModal;
 window.confirmReservation = confirmReservation;
+
+// ============================================
+// UPGRADE MODAL FUNCTIONS
+// ============================================
+
+function openUpgradeModal() {
+  console.log('⭐ Opening upgrade modal');
+  
+  const modal = document.getElementById('upgrade-modal');
+  const backdrop = document.getElementById('upgrade-modal-backdrop');
+  
+  if (!modal || !backdrop) {
+    console.error('❌ Upgrade modal not found');
+    return;
+  }
+  
+  backdrop.style.display = 'block';
+  modal.style.display = 'block';
+}
+
+function closeUpgradeModal() {
+  console.log('⭐ Closing upgrade modal');
+  
+  const modal = document.getElementById('upgrade-modal');
+  const backdrop = document.getElementById('upgrade-modal-backdrop');
+  
+  if (modal) modal.style.display = 'none';
+  if (backdrop) backdrop.style.display = 'none';
+}
+
+window.openUpgradeModal = openUpgradeModal;
+window.closeUpgradeModal = closeUpgradeModal;
 
 // Event listeners
 document.addEventListener('DOMContentLoaded', function() {
@@ -959,7 +1077,14 @@ document.addEventListener('DOMContentLoaded', function() {
 // Escape key handling
 document.addEventListener('keydown', function(e) {
   if (e.key === 'Escape') {
-    // Close reservation modal first if open
+    // Close upgrade modal first if open
+    const upgradeModal = document.getElementById('upgrade-modal');
+    if (upgradeModal && upgradeModal.style.display === 'block') {
+      closeUpgradeModal();
+      return;
+    }
+    
+    // Close reservation modal if open
     const reservationModal = document.getElementById('reservation-modal');
     if (reservationModal && reservationModal.style.display === 'block') {
       closeReservationModal();
@@ -974,10 +1099,13 @@ document.addEventListener('keydown', function(e) {
   }
 });
 
-// Close reservation modal on backdrop click
+// Close modals on backdrop click
 document.addEventListener('click', function(e) {
   if (e.target.id === 'reservation-modal-backdrop') {
     closeReservationModal();
+  }
+  if (e.target.id === 'upgrade-modal-backdrop') {
+    closeUpgradeModal();
   }
 });
 
@@ -1012,6 +1140,17 @@ function moveCartToBody() {
   }
   if (resModal && resModal.parentElement !== document.body) {
     document.body.appendChild(resModal);
+  }
+  
+  // Also move upgrade modal
+  const upgradeBackdrop = document.getElementById('upgrade-modal-backdrop');
+  const upgradeModal = document.getElementById('upgrade-modal');
+  
+  if (upgradeBackdrop && upgradeBackdrop.parentElement !== document.body) {
+    document.body.appendChild(upgradeBackdrop);
+  }
+  if (upgradeModal && upgradeModal.parentElement !== document.body) {
+    document.body.appendChild(upgradeModal);
   }
   
   if (backdrop && overlay) {
