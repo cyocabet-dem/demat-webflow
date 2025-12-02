@@ -230,14 +230,6 @@ window.ReservationsManager = {
         </div>
       </div>
       
-      <!-- Cancel button for pending -->
-      ${reservation.status === 'pending' ? `
-        <div style="margin-top: 24px; padding-top: 16px; border-top: 1px solid #e5e5e5;">
-          <button onclick="ReservationsManager.cancelReservation(${reservation.id})" style="width: 100%; padding: 12px 16px; background: transparent; color: #991b1b; border: 1px solid #fca5a5; font-family: 'Urbanist', sans-serif; font-size: 13px; cursor: pointer;">
-            Cancel Reservation
-          </button>
-        </div>
-      ` : ''}
     `;
   },
   
@@ -322,17 +314,6 @@ window.ReservationsManager = {
     modal.style.display = 'flex';
     document.body.style.overflow = 'hidden';
   },
-  
-  async cancelReservation(reservationId) {
-    if (!confirm('Are you sure you want to cancel this reservation? This action cannot be undone.')) {
-      return;
-    }
-    
-    console.log('📋 Cancelling reservation:', reservationId);
-    // TODO: Implement cancel API call when endpoint is available
-    alert('Cancel functionality coming soon! Please contact us to cancel your reservation.');
-  }
-};
 
 // Close detail modal function
 function closeReservationDetailModal() {
