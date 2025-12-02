@@ -1160,7 +1160,16 @@ function moveCartToBody() {
   if (resModal && resModal.parentElement !== document.body) {
     document.body.appendChild(resModal);
   }
-  
+  // Also move reservation detail modal
+const detailBackdrop = document.getElementById('reservation-detail-backdrop');
+const detailModal = document.getElementById('reservation-detail-modal');
+
+if (detailBackdrop && detailBackdrop.parentElement !== document.body) {
+  document.body.appendChild(detailBackdrop);
+}
+if (detailModal && detailModal.parentElement !== document.body) {
+  document.body.appendChild(detailModal);
+}
   // Also move upgrade modal
   const upgradeBackdrop = document.getElementById('upgrade-modal-backdrop');
   const upgradeModal = document.getElementById('upgrade-modal');
