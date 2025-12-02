@@ -319,3 +319,90 @@ window.ReservationsManager = {
     }
     
     if (modalContent) {
+      modalContent.innerHTML = this.renderDetailModalContent(reservation);
+    }
+    
+    // Show modal
+    backdrop.style.display = 'block';
+    modal.style.display = 'flex';
+    document.body.style.overflow = 'hidden';
+  },
+  
+  async cancelReservation(reservationId) {
+    if (!confirm('Are you sure you want to cancel this reservation? This action cannot be undone.')) {
+      return;
+    }
+    
+    console.log('📋 Cancelling reservation:', reservationId);
+    // TODO: Implement cancel API call when endpoint is available
+    alert('Cancel functionality coming soon! Please contact us to cancel your reservation.');
+  }
+};
+
+// Close detail modal function
+function closeReservationDetailModal() {
+  console.log('📋 Closing detail modal');
+  
+  const modal = document.getElementById('reservation-detail-modal');
+  const backdrop = document.getElementById('reservation-detail-backdrop');
+  
+  if (modal) modal.style.display = 'none';
+  if (backdrop) backdrop.style.display = 'none';
+  document.body.style.overflow = '';
+}
+
+window.closeReservationDetailModal = closeReservationDetailModal;
+
+// Add to escape key handler and backdrop click
+document.addEventListener('keydown', function(e) {
+  if (e.key === 'Escape') {
+    const detailModal = document.getElementById('reservation-detail-modal');
+    if (detailModal && detailModal.style.display === 'flex') {
+      closeReservationDetailModal();
+      return;
+    }
+  }
+});
+
+document.addEventListener('click', function(e) {
+  if (e.target.id === 'reservation-detail-backdrop') {
+    closeReservationDetailModal();
+  }
+});
+
+// Auto-initialize on reservations page
+document.addEventListener('DOMContentLoaded', function() {
+  if (document.getElementById('reservations-container')) {
+    console.log('📋 Reservations page detected, initializing...');
+    
+    const initReservations = async () => {
+      let attempts = 0;
+      while (!window.auth0Client && attempts < 50) {
+        await new Promise(resolve => setTimeout(resolve, 100));
+        attempts++;
+      }
+      
+      if (window.auth0Client) {
+        const isAuth = await window.auth0Client.isAuthenticated();
+        if (isAuth) {
+          ReservationsManager.renderReservationsPage();
+        } else {
+          const container = document.getElementById('reservations-container');
+          if (container) {
+            container.innerHTML = `
+              <div style="text-align: center; padding: 60px 20px;">
+                <h2 style="font-size: 20px; margin-bottom: 12px;">Sign in to view your reservations</h2>
+                <p style="color: #666; margin-bottom: 20px;">You need to be logged in to see your reservations.</p>
+                <button onclick="openAuthModal()" style="padding: 12px 24px; background: #000; color: #fff; border: none; font-family: 'Urbanist', sans-serif; cursor: pointer;">
+                  Sign In
+                </button>
+              </div>
+            `;
+          }
+        }
+      }
+    };
+    
+    initReservations();
+  }
+});
