@@ -973,22 +973,37 @@ closeCartOverlay();
 }
 
 function showReservationSuccess(reservation) {
-  // You can customize this or redirect to a confirmation page
-  // For now, show a nice alert with details
+  console.log('🎉 Showing success modal');
   
-  const message = `Your reservation has been confirmed!
-
-We'll notify you by email when your items are ready for pickup.
-
-Reservation ID: ${reservation.hash_id || reservation.id}
-
-Thank you for shopping with Dematerialized!`;
+  const modal = document.getElementById('success-modal');
+  const backdrop = document.getElementById('success-modal-backdrop');
+  const reservationIdEl = document.getElementById('success-reservation-id');
   
-  alert(message);
+  if (!modal || !backdrop) {
+    console.warn('Success modal not found, using alert fallback');
+    alert(`Reservation confirmed! ID: ${reservation.hash_id || reservation.id}`);
+    return;
+  }
   
-  // Optional: Redirect to account/reservations page
-  // window.location.href = '/account/reservations';
+  if (reservationIdEl) {
+    reservationIdEl.textContent = reservation.hash_id || reservation.id;
+  }
+  
+  backdrop.style.display = 'block';
+  modal.style.display = 'block';
 }
+
+function closeSuccessModal() {
+  console.log('🎉 Closing success modal');
+  
+  const modal = document.getElementById('success-modal');
+  const backdrop = document.getElementById('success-modal-backdrop');
+  
+  if (modal) modal.style.display = 'none';
+  if (backdrop) backdrop.style.display = 'none';
+}
+
+window.closeSuccessModal = closeSuccessModal;
 
 // Updated handleReserveClick - checks membership before showing confirmation modal
 async function handleReserveClick() {
