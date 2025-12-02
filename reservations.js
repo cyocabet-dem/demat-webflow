@@ -279,7 +279,7 @@ window.ReservationsManager = {
     console.log('📋 Reservations page rendered');
   },
   
-  viewReservation(reservationId) {
+viewReservation(reservationId) {
     console.log('📋 View reservation:', reservationId);
     
     // Find reservation in cache
@@ -313,11 +313,11 @@ window.ReservationsManager = {
     backdrop.style.display = 'block';
     modal.style.display = 'flex';
     document.body.style.overflow = 'hidden';
-  },
+  }
+};  //
 
 // Close detail modal function
 function closeReservationDetailModal() {
-  console.log('📋 Closing detail modal');
   
   const modal = document.getElementById('reservation-detail-modal');
   const backdrop = document.getElementById('reservation-detail-backdrop');
