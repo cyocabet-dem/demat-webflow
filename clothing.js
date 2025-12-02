@@ -1,4 +1,3 @@
-<script>
 (async function () {
   // ====== CONFIG ======
   const API_BASE       = 'https://api.dematerialized.nl';
@@ -913,9 +912,7 @@
   const initialPage = parseInt(new URLSearchParams(location.search).get('page') || '1', 10) || 1;
   await loadPage(initialPage, false);
 })();
-</script>
 
-<script>
 (async function() {
   console.log('🚀 [Wishlist] Catalog script started');
   
@@ -1185,8 +1182,7 @@
   console.log('  - window.debugWishlist.getWishlist()');
 
 })();
-</script>
-<script>
+
 // Cart handler for Clothing page - using capture phase
 (function() {
   console.log('🛒 [Clothing] Cart script starting...');
@@ -1241,4 +1237,3 @@
     setTimeout(setupCart, 500);
   });
 })();
-</script>
