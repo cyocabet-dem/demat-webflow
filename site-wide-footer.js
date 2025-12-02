@@ -945,14 +945,13 @@ async function confirmReservation() {
     const reservation = await response.json();
     console.log('✅ Reservation created:', reservation);
     
-    // Clear the cart (both local and we don't need to clear API since items are now reserved)
-    CartManager.clearCart();
+// Clear the cart (both local and we don't need to clear API since items are now reserved)
+CartManager.clearCart();
+renderCartOverlay(); // Re-render to show empty state
 
-    renderCartOverlay(); // Re-render to show empty state
-    
-    // Close modals
-    closeReservationModal();
-    closeCartOverlay();
+// Close modals
+closeReservationModal();
+closeCartOverlay();
     
     // Show success - you could redirect to a confirmation page instead
     showReservationSuccess(reservation);
