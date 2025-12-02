@@ -137,17 +137,12 @@ window.ReservationsManager = {
           </div>
         `}
         
-        <!-- Actions -->
-        <div style="display: flex; gap: 12px;">
-          <button onclick="ReservationsManager.viewReservation(${reservation.id})" style="flex: 1; padding: 10px 16px; background: #000; color: #fff; border: none; font-family: 'Urbanist', sans-serif; font-size: 13px; cursor: pointer;">
-            View Details
-          </button>
-          ${reservation.status === 'pending' ? `
-            <button onclick="ReservationsManager.cancelReservation(${reservation.id})" style="padding: 10px 16px; background: transparent; color: #666; border: 1px solid #ddd; font-family: 'Urbanist', sans-serif; font-size: 13px; cursor: pointer;">
-              Cancel
-            </button>
-          ` : ''}
-        </div>
+       <!-- Actions -->
+<div style="display: flex; gap: 12px;">
+  <button onclick="ReservationsManager.viewReservation(${reservation.id})" style="flex: 1; padding: 10px 16px; background: #000; color: #fff; border: none; font-family: 'Urbanist', sans-serif; font-size: 13px; cursor: pointer;">
+    View Details
+  </button>
+</div>
         
       </div>
     `;
