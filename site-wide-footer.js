@@ -947,6 +947,8 @@ async function confirmReservation() {
     
     // Clear the cart (both local and we don't need to clear API since items are now reserved)
     CartManager.clearCart();
+
+    renderCartOverlay(); // Re-render to show empty state
     
     // Close modals
     closeReservationModal();
@@ -1107,6 +1109,9 @@ document.addEventListener('click', function(e) {
   if (e.target.id === 'upgrade-modal-backdrop') {
     closeUpgradeModal();
   }
+  if (e.target.id === 'success-modal-backdrop') {
+    closeSuccessModal();
+  }
 });
 
 window.testCart = function() {
@@ -1157,6 +1162,16 @@ function moveCartToBody() {
     console.log('✅ Cart overlay moved to body');
     return true;
   }
+// Also move success modal
+const successBackdrop = document.getElementById('success-modal-backdrop');
+const successModal = document.getElementById('success-modal');
+
+if (successBackdrop && successBackdrop.parentElement !== document.body) {
+  document.body.appendChild(successBackdrop);
+}
+if (successModal && successModal.parentElement !== document.body) {
+  document.body.appendChild(successModal);
+}
   return false;
 }
 
