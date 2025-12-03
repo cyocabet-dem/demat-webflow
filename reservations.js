@@ -3,7 +3,7 @@
 // ============================================
 
 window.ReservationsManager = {
-  API_BASE: 'https://api.dematerialized.nl',
+  API_BASE: window.API_BASE_URL,
   _reservationsCache: null,
   
   async fetchReservations() {
