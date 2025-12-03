@@ -1,6 +1,6 @@
 (async function () {
   // ====== CONFIG ======
-  const API_BASE       = 'https://api.dematerialized.nl';
+  const API_BASE       = window.API_BASE_URL;
   const ALT_BASE       = 'https://demat-backend-load-balancer-358156782.eu-north-1.elb.amazonaws.com';
   const BASE           = API_BASE;
   const CATEGORIES_URL = `${BASE}/clothing_items/categories`;
@@ -944,7 +944,7 @@
   const token = await window.auth0Client.getTokenSilently();
   console.log('🎫 [Wishlist] Token obtained:', token ? 'YES (length: ' + token.length + ')' : 'NO');
 
-  const API_BASE = 'https://api.dematerialized.nl';
+  const API_BASE = window.API_BASE_URL;
   console.log('🌐 [Wishlist] API Base:', API_BASE);
 
   async function getUserWishlistIds() {
