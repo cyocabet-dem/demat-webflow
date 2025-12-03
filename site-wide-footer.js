@@ -1333,7 +1333,7 @@ document.addEventListener('DOMContentLoaded', function() {
   
   const buttons = document.querySelectorAll('[data-membership]');
   console.log('🎫 Found membership buttons:', buttons.length);
-  
+    
   buttons.forEach(button => {
     button.addEventListener('click', async function(e) {
       e.preventDefault();
@@ -1356,11 +1356,10 @@ document.addEventListener('DOMContentLoaded', function() {
         return;
       }
       
-      const membershipType = this.getAttribute('data-membership');
-      const membershipId = MEMBERSHIP_CONFIG[membershipType];
+      const membershipName = this.getAttribute('data-membership');
       
-      if (!membershipId) {
-        console.error('🎫 Unknown membership type:', membershipType);
+      if (!membershipName) {
+        console.error('🎫 No membership name found');
         return;
       }
       
@@ -1371,11 +1370,17 @@ document.addEventListener('DOMContentLoaded', function() {
       try {
         const token = await window.auth0Client.getTokenSilently();
         
-        const response = await fetch(`${API_BASE}/stripe/create-checkout-session?membership_id=${membershipId}`, {
+        const response = await fetch(`${API_BASE}/stripe/create-checkout-session`, {
           method: 'POST',
           headers: {
-            'Authorization': `Bearer ${token}`
-          }
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            membership_name: membershipName,
+            success_url: `${window.location.origin}/success`,
+            cancel_url: `${window.location.origin}/pricing`
+          })
         });
         
         if (!response.ok) {
@@ -1393,7 +1398,6 @@ document.addEventListener('DOMContentLoaded', function() {
       }
     });
   });
-  
   // Handle post-login redirect
   async function checkPostLoginAction() {
     if (!window.auth0Client) {
