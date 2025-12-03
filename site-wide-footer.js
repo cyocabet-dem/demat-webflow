@@ -1,4 +1,21 @@
 console.log("🎯 Filter menu script loading...");
+
+(function() {
+  const hostname = window.location.hostname;
+  const isProduction = hostname === 'dematerialized.nl' 
+                    || hostname === 'www.dematerialized.nl';
+  
+  window.API_BASE_URL = isProduction 
+    ? 'https://api.dematerialized.nl'
+    : 'https://test-api.dematerialized.nl';
+  
+  console.log('is_production', isProduction);
+  console.log('hostname', hostname);
+  console.log('api base url', window.API_BASE_URL);
+  console.log(`[${isProduction ? 'PROD' : 'DEV'}] API: ${window.API_BASE_URL}`);
+})();
+
+
 document.addEventListener("DOMContentLoaded", function () {
   console.log("✅ DOM loaded - Initializing filter menu");
   const body = document.body;
@@ -288,7 +305,7 @@ console.log("✅ Auth UI controller ready");
 window.CartManager = {
   STORAGE_KEY: 'dematerialized_cart',
   MAX_ITEMS: 10,
-  API_BASE: 'https://api.dematerialized.nl',
+  API_BASE: window.API_BASE_URL,
   _syncing: false,
   _initialized: false,
   
@@ -650,7 +667,7 @@ window.UserMembership = {
   _cache: null,
   _cacheTime: null,
   CACHE_DURATION: 5 * 60 * 1000, // 5 minutes
-  API_BASE: 'https://api.dematerialized.nl',
+  API_BASE: window.API_BASE_URL,
   
   PREMIUM_ID: 6,
   BASIC_ID: 7,
@@ -908,7 +925,7 @@ async function confirmReservation() {
   console.log('📤 Creating reservation with items:', clothingItemIds);
 
   // Create reservation via API
-  const response = await fetch('https://api.dematerialized.nl/private_clothing_items/reservations', {
+  const response = await fetch(`${window.API_BASE_URL}/private_clothing_items/reservations`, {
     method: 'POST',
     headers: {
       'Authorization': `Bearer ${token}`,
@@ -1307,7 +1324,7 @@ window.addEventListener('load', function() {
 document.addEventListener('DOMContentLoaded', function() {
   console.log('🎫 Membership script loading...');
   
-  const API_BASE = 'https://api.dematerialized.nl';
+  const API_BASE = window.API_BASE_URL;
   
   const MEMBERSHIP_CONFIG = {
     'Basic': 7,
