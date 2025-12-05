@@ -1,0 +1,24 @@
+name: Purge jsdelivr CDN cache
+
+on:
+  push:
+    branches:
+      - test
+      - main
+
+jobs:
+  purge:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Purge jsdelivr cache
+        run: |
+          BRANCH=${GITHUB_REF#refs/heads/}
+          echo "Purging cache for branch: $BRANCH"
+          
+          # Purge auth.js
+          curl -s "https://purge.jsdelivr.net/gh/cyocabet-dem/demat-webflow@${BRANCH}/auth.js"
+          
+          # Purge site-wide-footer.js
+          curl -s "https://purge.jsdelivr.net/gh/cyocabet-dem/demat-webflow@${BRANCH}/site-wide-footer.js"
+          
+          echo "Cache purged"
