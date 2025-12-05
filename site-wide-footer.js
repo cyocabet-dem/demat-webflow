@@ -189,8 +189,8 @@ document.addEventListener('DOMContentLoaded', function() {
     const onboardingLaterBtn = document.getElementById('onboarding-later-btn');
     if (onboardingLaterBtn) {
       onboardingLaterBtn.addEventListener('click', function(e) {
-        console.log("⏭️ User clicked 'later'");
         e.preventDefault();
+        sessionStorage.setItem('onboarding_modal_dismissed', 'true');  // ADD THIS
         closeOnboardingModal();
       });
     }
