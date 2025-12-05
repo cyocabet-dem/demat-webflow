@@ -284,10 +284,20 @@
       return;
     }
     
-    options.forEach(opt => {
+    // Deduplicate by name (keep first occurrence)
+    const seen = new Set();
+    const uniqueOptions = options.filter(opt => {
+      if (seen.has(opt.name)) return false;
+      seen.add(opt.name);
+      return true;
+    });
+    
+    uniqueOptions.forEach(opt => {
       const count = counts[opt.name] || 0;
       const isChecked = currentlyChecked.has(opt.name);
-      const isDisabled = count === 0 && !isChecked;
+      
+      // Hide options with 0 count (unless currently checked)
+      if (count === 0 && !isChecked) return;
       
       const label = document.createElement('label');
       label.className = 'row';
@@ -297,9 +307,8 @@
                data-filter="${filterType}"
                data-id="${opt.id}"
                ${opt.category_id ? `data-category-id="${opt.category_id}"` : ''}
-               ${isChecked ? 'checked' : ''}
-               ${isDisabled ? 'disabled' : ''}>
-        <span style="${isDisabled ? 'opacity: 0.4' : ''}">${opt.name} (${count})</span>
+               ${isChecked ? 'checked' : ''}>
+        <span>${opt.name} (${count})</span>
       `;
       listEl.appendChild(label);
     });
