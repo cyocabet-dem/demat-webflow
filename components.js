@@ -180,7 +180,7 @@
       </div>
       <p class="onboarding-text">To access all features and start browsing our collection, please complete your profile information.</p>
       <div class="onboarding-buttons-container">
-        <button class="onboarding-button-primary" id="complete-profile-btn" onclick="window.location.href='/onboarding'">Complete Profile</button>
+        <button class="onboarding-button-primary" id="complete-profile-btn" onclick="window.location.href='/profile'">Complete Profile</button>
         <button class="onboarding-button-secondary" id="onboarding-later-btn">I'll do this later</button>
       </div>
     </div>
