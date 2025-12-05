@@ -22,3 +22,12 @@ jobs:
           curl -s "https://purge.jsdelivr.net/gh/cyocabet-dem/demat-webflow@${BRANCH}/site-wide-footer.js"
           
           echo "Cache purged"
+
+          curl -s "https://purge.jsdelivr.net/gh/cyocabet-dem/demat-webflow@${BRANCH}/clothing.js"
+
+          
+          curl -s "https://purge.jsdelivr.net/gh/cyocabet-dem/demat-webflow@${BRANCH}/reservations.js"
+
+
+          curl -s "https://purge.jsdelivr.net/gh/cyocabet-dem/demat-webflow@${BRANCH}/styles.css"
+
