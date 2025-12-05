@@ -128,6 +128,26 @@ function initProfileApp() {
           }
         }, 300);
       },
+      parseApiError(errorData) {
+        // Handle FastAPI validation error format
+        if (errorData.detail && Array.isArray(errorData.detail)) {
+            const messages = errorData.detail.map(err => {
+            const field = err.loc ? err.loc[err.loc.length - 1] : 'field';
+            const fieldName = field.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
+            return `${fieldName}: ${err.msg}`;
+            });
+            return messages.join(', ');
+        }
+        
+        // Handle string error
+        if (typeof errorData.detail === 'string') {
+            return errorData.detail;
+        }
+        
+        // Fallback
+        return 'Failed to update. Please try again.';
+        },
+
       
       selectAddress(feature) {
         const props = feature.properties;
@@ -202,151 +222,151 @@ function initProfileApp() {
         this.errorMessages[section] = '';
       },
       
-      async updatePersonalInfo() {
-        this.submitting.personal = true;
-        this.clearMessages('personal');
+    async updatePersonalInfo() {
+    this.submitting.personal = true;
+    this.clearMessages('personal');
+    
+    try {
+        const token = await window.auth0Client.getTokenSilently();
         
-        try {
-          const token = await window.auth0Client.getTokenSilently();
-          
-          const customAttributes = [];
-          if (this.formData.firstName) {
-            customAttributes.push({ key: 'first_name', value: this.formData.firstName });
-          }
-          if (this.formData.lastName) {
-            customAttributes.push({ key: 'last_name', value: this.formData.lastName });
-          }
-          
-          const apiData = {
-            phone_number: this.formData.phoneNumber,
-            date_of_birth: this.formData.dateOfBirth,
-            attributes: customAttributes
-          };
-          
-          const response = await fetch(`${window.API_BASE_URL}/users/me`, {
-            method: 'PATCH',
-            headers: {
-              'Authorization': `Bearer ${token}`,
-              'Content-Type': 'application/json'
-            },
-            body: JSON.stringify(apiData)
-          });
-          
-          if (!response.ok) {
-            const errorData = await response.json();
-            throw new Error(errorData.detail || 'Failed to update');
-          }
-          
-          this.successMessages.personal = '✓ Personal information updated!';
-          setTimeout(() => this.successMessages.personal = '', 3000);
-          
-        } catch (error) {
-          console.error('❌ [Profile] Error:', error);
-          this.errorMessages.personal = `Failed to update: ${error.message}`;
-        } finally {
-          this.submitting.personal = false;
+        const customAttributes = [];
+        if (this.formData.firstName) {
+        customAttributes.push({ key: 'first_name', value: this.formData.firstName });
         }
+        if (this.formData.lastName) {
+        customAttributes.push({ key: 'last_name', value: this.formData.lastName });
+        }
+        
+        const apiData = {
+        phone_number: this.formData.phoneNumber || null,
+        date_of_birth: this.formData.dateOfBirth || null,
+        attributes: customAttributes
+        };
+        
+        const response = await fetch(`${window.API_BASE_URL}/users/me`, {
+        method: 'PATCH',
+        headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(apiData)
+        });
+        
+        if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(this.parseApiError(errorData));
+        }
+        
+        this.successMessages.personal = '✓ Personal information updated!';
+        setTimeout(() => this.successMessages.personal = '', 3000);
+        
+    } catch (error) {
+        console.error('❌ [Profile] Error:', error);
+        this.errorMessages.personal = error.message;
+    } finally {
+        this.submitting.personal = false;
+    }
+    },      
+
+    async updateAddress() {
+  this.submitting.address = true;
+  this.clearMessages('address');
+  
+  try {
+    const token = await window.auth0Client.getTokenSilently();
+    
+    const customAttributes = [];
+    if (this.formData.addressStreet) {
+      customAttributes.push({ key: 'address_street', value: this.formData.addressStreet });
+    }
+    if (this.formData.addressUnit) {
+      customAttributes.push({ key: 'address_unit', value: this.formData.addressUnit });
+    }
+    
+    const apiData = {
+      address_house_number: this.formData.addressHouseNumber || null,
+      address_zipcode: this.formData.addressZipcode || null,
+      address_city: this.formData.addressCity || null,
+      attributes: customAttributes
+    };
+    
+    const response = await fetch(`${window.API_BASE_URL}/users/me`, {
+      method: 'PATCH',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json'
       },
-      
-      async updateAddress() {
-        this.submitting.address = true;
-        this.clearMessages('address');
-        
-        try {
-          const token = await window.auth0Client.getTokenSilently();
-          
-          const customAttributes = [];
-          if (this.formData.addressStreet) {
-            customAttributes.push({ key: 'address_street', value: this.formData.addressStreet });
-          }
-          if (this.formData.addressUnit) {
-            customAttributes.push({ key: 'address_unit', value: this.formData.addressUnit });
-          }
-          
-          const apiData = {
-            address_house_number: this.formData.addressHouseNumber,
-            address_zipcode: this.formData.addressZipcode,
-            address_city: this.formData.addressCity,
-            attributes: customAttributes
-          };
-          
-          const response = await fetch(`${window.API_BASE_URL}/users/me`, {
-            method: 'PATCH',
-            headers: {
-              'Authorization': `Bearer ${token}`,
-              'Content-Type': 'application/json'
-            },
-            body: JSON.stringify(apiData)
-          });
-          
-          if (!response.ok) {
-            const errorData = await response.json();
-            throw new Error(errorData.detail || 'Failed to update');
-          }
-          
-          this.successMessages.address = '✓ Address updated!';
-          setTimeout(() => this.successMessages.address = '', 3000);
-          
-        } catch (error) {
-          console.error('❌ [Profile] Error:', error);
-          this.errorMessages.address = `Failed to update: ${error.message}`;
-        } finally {
-          this.submitting.address = false;
-        }
+      body: JSON.stringify(apiData)
+    });
+    
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(this.parseApiError(errorData));
+    }
+    
+    this.successMessages.address = '✓ Address updated!';
+    setTimeout(() => this.successMessages.address = '', 3000);
+    
+  } catch (error) {
+    console.error('❌ [Profile] Error:', error);
+    this.errorMessages.address = error.message;
+  } finally {
+    this.submitting.address = false;
+  }
+},
+async updateSizeProfile() {
+  this.submitting.size = true;
+  this.clearMessages('size');
+  
+  try {
+    const token = await window.auth0Client.getTokenSilently();
+    
+    const customAttributes = [];
+    if (this.formData.heightCm) {
+      customAttributes.push({ key: 'height_cm', value: this.formData.heightCm });
+    }
+    if (this.formData.preferredFit) {
+      customAttributes.push({ key: 'preferred_fit', value: this.formData.preferredFit });
+    }
+    if (this.formData.shirtSize) {
+      customAttributes.push({ key: 'shirt_size', value: this.formData.shirtSize });
+    }
+    if (this.formData.pantsSize) {
+      customAttributes.push({ key: 'pants_size', value: this.formData.pantsSize });
+    }
+    if (this.formData.shoeSize) {
+      customAttributes.push({ key: 'shoe_size', value: this.formData.shoeSize });
+    }
+    
+    const apiData = {
+      attributes: customAttributes
+    };
+    
+    const response = await fetch(`${window.API_BASE_URL}/users/me`, {
+      method: 'PATCH',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json'
       },
-      
-      async updateSizeProfile() {
-        this.submitting.size = true;
-        this.clearMessages('size');
-        
-        try {
-          const token = await window.auth0Client.getTokenSilently();
-          
-          const customAttributes = [];
-          if (this.formData.heightCm) {
-            customAttributes.push({ key: 'height_cm', value: this.formData.heightCm });
-          }
-          if (this.formData.preferredFit) {
-            customAttributes.push({ key: 'preferred_fit', value: this.formData.preferredFit });
-          }
-          if (this.formData.shirtSize) {
-            customAttributes.push({ key: 'shirt_size', value: this.formData.shirtSize });
-          }
-          if (this.formData.pantsSize) {
-            customAttributes.push({ key: 'pants_size', value: this.formData.pantsSize });
-          }
-          if (this.formData.shoeSize) {
-            customAttributes.push({ key: 'shoe_size', value: this.formData.shoeSize });
-          }
-          
-          const apiData = {
-            attributes: customAttributes
-          };
-          
-          const response = await fetch(`${window.API_BASE_URL}/users/me`, {
-            method: 'PATCH',
-            headers: {
-              'Authorization': `Bearer ${token}`,
-              'Content-Type': 'application/json'
-            },
-            body: JSON.stringify(apiData)
-          });
-          
-          if (!response.ok) {
-            const errorData = await response.json();
-            throw new Error(errorData.detail || 'Failed to update');
-          }
-          
-          this.successMessages.size = '✓ Size profile updated!';
-          setTimeout(() => this.successMessages.size = '', 3000);
-          
-        } catch (error) {
-          console.error('❌ [Profile] Error:', error);
-          this.errorMessages.size = `Failed to update: ${error.message}`;
-        } finally {
-          this.submitting.size = false;
-        }
-      }
+      body: JSON.stringify(apiData)
+    });
+    
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(this.parseApiError(errorData));
+    }
+    
+    this.successMessages.size = '✓ Size profile updated!';
+    setTimeout(() => this.successMessages.size = '', 3000);
+    
+  } catch (error) {
+    console.error('❌ [Profile] Error:', error);
+    this.errorMessages.size = error.message;
+  } finally {
+    this.submitting.size = false;
+  }
+}
+
     }
   }).mount('#vue-profile-app');
   
