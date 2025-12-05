@@ -7,7 +7,7 @@ document.addEventListener('DOMContentLoaded', function() {
     cacheLocation: 'localstorage',
     useRefreshTokens: true
   };
-  const API_URL = "https://api.dematerialized.nl";
+  const API_URL = window.API_BASE_URL || 'https://api.dematerialized.nl';
   window.auth0Client = null;
 
   async function initializeAuth0() {
