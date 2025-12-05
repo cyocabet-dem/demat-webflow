@@ -1325,12 +1325,7 @@ document.addEventListener('DOMContentLoaded', function() {
   console.log('🎫 Membership script loading...');
   
   const API_BASE = window.API_BASE_URL;
-  
-  const MEMBERSHIP_CONFIG = {
-    'Basic': 7,
-    'Premium': 6
-  };
-  
+
   const buttons = document.querySelectorAll('[data-membership]');
   console.log('🎫 Found membership buttons:', buttons.length);
     
@@ -1378,8 +1373,8 @@ document.addEventListener('DOMContentLoaded', function() {
           },
           body: JSON.stringify({
             membership_name: membershipName,
-            success_url: `${window.location.origin}/success`,
-            cancel_url: `${window.location.origin}/pricing`
+            success_url: `${window.location.origin}/welcome-to-dematerialized`,
+            cancel_url: `${window.location.origin}/error-membership-signup`
           })
         });
         
