@@ -845,3 +845,291 @@ body.onboarding-modal-open {
   0% { transform: rotate(0deg); }
   100% { transform: rotate(360deg); }
 }
+
+
+
+/* ============================================
+   MODAL UTILITIES
+   ============================================ */
+
+.modal-backdrop {
+  display: none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0,0,0,0.6);
+  z-index: 10000;
+}
+
+.modal-container {
+  display: none;
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 90%;
+  max-width: 480px;
+  background: #fff;
+  z-index: 10001;
+  border-radius: 4px;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+}
+
+.modal-large {
+  max-width: 600px;
+  max-height: 85vh;
+  display: none;
+  flex-direction: column;
+}
+
+.modal-centered {
+  max-width: 440px;
+}
+
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20px 24px;
+  border-bottom: 1px solid #e0e0e0;
+  flex-shrink: 0;
+}
+
+.modal-title {
+  font-family: 'Urbanist', sans-serif;
+  font-size: 18px;
+  font-weight: 500;
+  color: #000;
+}
+
+.modal-label {
+  font-family: 'Urbanist', sans-serif;
+  font-size: 10px;
+  color: #999;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.modal-close {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.modal-body {
+  padding: 24px;
+  font-family: 'Urbanist', sans-serif;
+}
+
+.modal-body.modal-scroll {
+  flex: 1;
+  overflow-y: auto;
+}
+
+.modal-body.text-center {
+  text-align: center;
+}
+
+.modal-footer {
+  padding: 16px 24px 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.modal-heading {
+  font-size: 20px;
+  font-weight: 500;
+  color: #000;
+  margin: 0 0 12px 0;
+}
+
+.modal-text {
+  font-size: 14px;
+  color: #666;
+  line-height: 1.6;
+  margin: 0 0 24px 0;
+}
+
+.modal-subtext {
+  font-size: 13px;
+  color: #888;
+  line-height: 1.5;
+  margin: 0;
+}
+
+.modal-error {
+  display: none;
+  padding: 12px 16px;
+  background: #fee2e2;
+  border: 1px solid #fca5a5;
+  border-radius: 4px;
+  margin-bottom: 16px;
+  font-size: 13px;
+  color: #991b1b;
+}
+
+.modal-icon {
+  width: 64px;
+  height: 64px;
+  background: #f8f8f8;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 20px;
+}
+
+.success-icon {
+  width: 72px;
+  height: 72px;
+  background: #ecfdf5;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 24px;
+}
+
+/* Buttons */
+.btn-primary {
+  width: 100%;
+  padding: 14px 20px;
+  background: #000;
+  color: #fff;
+  border: none;
+  font-family: 'Urbanist', sans-serif;
+  font-size: 14px;
+  font-weight: 400;
+  cursor: pointer;
+  text-decoration: none;
+  text-align: center;
+  display: block;
+  box-sizing: border-box;
+}
+
+.btn-primary:hover {
+  background: #333;
+}
+
+.btn-secondary {
+  width: 100%;
+  padding: 12px 20px;
+  background: transparent;
+  color: #666;
+  border: 1px solid #ddd;
+  font-family: 'Urbanist', sans-serif;
+  font-size: 13px;
+  font-weight: 400;
+  cursor: pointer;
+  text-decoration: none;
+  text-align: center;
+  display: block;
+  box-sizing: border-box;
+}
+
+.btn-secondary:hover {
+  background: #f5f5f5;
+}
+
+/* Reservation specific */
+.reservation-item-count-box {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 20px;
+  padding: 16px;
+  background: #f8f8f8;
+  border-radius: 4px;
+}
+
+.reservation-item-count-box span {
+  font-size: 15px;
+  color: #000;
+}
+
+.reservation-policy h4 {
+  font-size: 14px;
+  font-weight: 600;
+  color: #000;
+  margin: 0 0 12px 0;
+}
+
+.reservation-policy {
+  margin-bottom: 24px;
+}
+
+.policy-item {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 12px;
+  font-size: 13px;
+  color: #444;
+  line-height: 1.5;
+}
+
+.policy-item svg {
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.reservation-id-box {
+  background: #f8f8f8;
+  padding: 14px 16px;
+  border-radius: 4px;
+  margin-bottom: 24px;
+}
+
+.reservation-id-label {
+  font-size: 11px;
+  color: #999;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 4px;
+}
+
+.reservation-id-value {
+  font-size: 13px;
+  color: #000;
+  font-family: monospace;
+  word-break: break-all;
+}
+
+/* Benefits box */
+.benefits-box {
+  background: #f8f8f8;
+  padding: 16px;
+  border-radius: 4px;
+  margin-bottom: 24px;
+  text-align: left;
+}
+
+.benefits-title {
+  font-size: 13px;
+  font-weight: 500;
+  color: #000;
+  margin-bottom: 8px;
+}
+
+.benefits-list {
+  margin: 0;
+  padding-left: 20px;
+  font-size: 13px;
+  color: #444;
+  line-height: 1.8;
+}
+
+.link-text-html {
+  color: #000;
+  text-decoration: underline;
+}
+
+.link-text-html:hover {
+  color: #333;
+}
