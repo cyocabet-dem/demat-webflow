@@ -54,7 +54,6 @@ document.addEventListener('DOMContentLoaded', function() {
       
       if (isAuthenticated) {
         const user = await window.auth0Client.getUser();
-        console.log('User details:', user);
         displayUserInfo(user);
         
         // Check user status on page load if already authenticated
@@ -71,10 +70,8 @@ document.addEventListener('DOMContentLoaded', function() {
       // Don't show onboarding modal if we're already on the onboarding page!
         const excludedPaths = ['/onboarding', '/complete-your-profile', '/profile'];
         if (excludedPaths.includes(window.location.pathname)) {
-        console.log('⏭️ On excluded page, skipping onboarding modal');
         return;
         }
-      console.log('🔍 Checking user status...');
       const token = await window.auth0Client.getTokenSilently();
       const response = await fetch(`${API_URL}/users/me`, {
         headers: { Authorization: `Bearer ${token}` }

@@ -2,6 +2,12 @@
    DEMATERIALIZED - SITE-WIDE STYLES
    ============================================ */
 
+
+
+body {
+  overflow-x: clip;
+}
+
 /* Optional: limit zoom container overflow */
 .zoom-container {
   overflow: hidden;
