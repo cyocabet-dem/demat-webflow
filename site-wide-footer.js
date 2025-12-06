@@ -668,9 +668,8 @@ window.UserMembership = {
   _cacheTime: null,
   CACHE_DURATION: 5 * 60 * 1000, // 5 minutes
   API_BASE: window.API_BASE_URL,
-  
-  PREMIUM_ID: 6,
-  BASIC_ID: 7,
+  premium_name: 'Premium',
+  basic_name: 'Basic',
   
   async fetch() {
     if (this._cache && this._cacheTime && (Date.now() - this._cacheTime < this.CACHE_DURATION)) {
@@ -715,18 +714,25 @@ window.UserMembership = {
     const user = await this.fetch();
     return user?.membership_id || user?.membership?.id || null;
   },
+
+  async getMembershipName() {
+    const user = await this.fetch();
+    return user?.membership?.name || null;
+  },
   
   async isPremium() {
-    const membershipId = await this.getMembershipId();
-    return membershipId === this.PREMIUM_ID;
+    const membershipName = await this.getMembershipName();
+    return membershipName === this.premium_name;
   },
   
   async isBasic() {
-    const membershipId = await this.getMembershipId();
-    return membershipId === this.BASIC_ID;
+    const membershipName = await this.getMembershipName();
+    return membershipName === this.basic_name;
   },
   
   async canReserveOnline() {
+    console.log("👤 Checking if user can reserve online...");
+    console.log("His membership is premium:", await this.isPremium())
     return await this.isPremium();
   },
   
@@ -1022,7 +1028,6 @@ function closeSuccessModal() {
 
 window.closeSuccessModal = closeSuccessModal;
 
-// Updated handleReserveClick - checks membership before showing confirmation modal
 async function handleReserveClick() {
   console.log('🛒 Reserve button clicked');
   
