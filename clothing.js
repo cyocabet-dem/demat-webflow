@@ -1,10 +1,5 @@
 /**
- * Client-Side Catalog - All filtering done locally
- * 
- * 1. Fetches full catalog once, stores in sessionStorage
- * 2. All filtering/pagination/search happens client-side
- * 3. Instant filter response (no network latency)
- * 4. Easy to add new filters (brand, size, search, etc.)
+ * Client-Side Catalog with Smart Search
  */
 
 (async function () {
@@ -15,7 +10,7 @@
   // ============================================================
   
   const BASE = window.API_BASE_URL;
-  const CATALOG_URL = `${BASE}/clothing_items/catalog/full`;
+  const CATALOG_URL = `${BASE}/search`;
   const STORAGE_KEY = 'dm_catalog';
   const ITEMS_PER_PAGE = 20;
   
@@ -28,6 +23,7 @@
   const btnPrev = document.querySelector('[data-page="prev"]');
   const btnNext = document.querySelector('[data-page="next"]');
   const pageLabel = document.querySelector('[data-page="label"]');
+  const searchInput = document.querySelector('[data-search="input"]');
   
   if (!grid || !template) {
     console.warn('[Catalog] Grid or template not found');
@@ -41,12 +37,14 @@
   let catalogData = null;
   let currentPage = 1;
   let filteredItems = [];
+  let searchQuery = '';
   
   // ============================================================
-  // STORAGE
+  // STORAGE (only for non-search results)
   // ============================================================
   
   function saveCatalog(data) {
+    if (data.query) return; // Don't cache search results
     try {
       sessionStorage.setItem(STORAGE_KEY, JSON.stringify({
         data,
@@ -58,18 +56,17 @@
   }
   
   function loadCatalog() {
+    if (searchQuery) return null; // Don't use cache when searching
     try {
       const stored = sessionStorage.getItem(STORAGE_KEY);
       if (!stored) return null;
       
       const { data, timestamp } = JSON.parse(stored);
-      
-      const MAX_AGE = 5 * 60 * 1000; // 5 minutes
+      const MAX_AGE = 5 * 60 * 1000;
       if (Date.now() - timestamp > MAX_AGE) {
         sessionStorage.removeItem(STORAGE_KEY);
         return null;
       }
-      
       return data;
     } catch (e) {
       return null;
@@ -80,18 +77,17 @@
   // FETCH
   // ============================================================
   
-  async function fetchCatalog() {
-    console.log('[Catalog] Fetching full catalog...');
+  async function fetchCatalog(query = '') {
+    const url = query 
+      ? `${CATALOG_URL}?q=${encodeURIComponent(query)}&limit=500`
+      : CATALOG_URL;
     
-    const res = await fetch(CATALOG_URL, {
-      headers: { 'Accept': 'application/json' }
-    });
-    
+    console.log('[Catalog] Fetching:', url);
+    const res = await fetch(url, { headers: { 'Accept': 'application/json' } });
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
     
     const data = await res.json();
-    console.log(`[Catalog] Loaded ${data.total_items} items (version: ${data.version})`);
-    
+    console.log(`[Catalog] Loaded ${data.total_items} items${query ? ` for "${query}"` : ''}`);
     return data;
   }
   
@@ -104,12 +100,11 @@
       catalogData = await fetchCatalog();
       saveCatalog(catalogData);
     }
-    
     return catalogData;
   }
   
   // ============================================================
-  // FILTERING
+  // FILTERING (unchanged)
   // ============================================================
   
   function getSelectedFilters() {
@@ -127,35 +122,17 @@
   
   function filterItems(items, filters) {
     return items.filter(item => {
-      if (filters.categories.length > 0) {
-        if (!filters.categories.includes(item.category_name)) return false;
-      }
-      
-      if (filters.subcategories.length > 0) {
-        if (!filters.subcategories.includes(item.subcategory_name)) return false;
-      }
-      
-      if (filters.colors.length > 0) {
-        if (!item.color_names.some(c => filters.colors.includes(c))) return false;
-      }
-      
-      if (filters.brands.length > 0) {
-        if (!filters.brands.includes(item.brand_name)) return false;
-      }
-      
+      if (filters.categories.length > 0 && !filters.categories.includes(item.category_name)) return false;
+      if (filters.subcategories.length > 0 && !filters.subcategories.includes(item.subcategory_name)) return false;
+      if (filters.colors.length > 0 && !item.color_names.some(c => filters.colors.includes(c))) return false;
+      if (filters.brands.length > 0 && !filters.brands.includes(item.brand_name)) return false;
       return true;
     });
   }
   
   function calculateFilterCounts(allItems, currentFilters) {
-    const counts = {
-      categories: {},
-      subcategories: {},
-      colors: {},
-      brands: {},
-    };
+    const counts = { categories: {}, subcategories: {}, colors: {}, brands: {} };
     
-    // Category counts: items matching (subcategory + color + brand) filters
     allItems.filter(item => {
       if (currentFilters.subcategories.length > 0 && !currentFilters.subcategories.includes(item.subcategory_name)) return false;
       if (currentFilters.colors.length > 0 && !item.color_names.some(c => currentFilters.colors.includes(c))) return false;
@@ -165,7 +142,6 @@
       counts.categories[item.category_name] = (counts.categories[item.category_name] || 0) + 1;
     });
     
-    // Subcategory counts: items matching (category + color + brand) filters
     allItems.filter(item => {
       if (currentFilters.categories.length > 0 && !currentFilters.categories.includes(item.category_name)) return false;
       if (currentFilters.colors.length > 0 && !item.color_names.some(c => currentFilters.colors.includes(c))) return false;
@@ -175,7 +151,6 @@
       counts.subcategories[item.subcategory_name] = (counts.subcategories[item.subcategory_name] || 0) + 1;
     });
     
-    // Color counts: items matching (category + subcategory + brand) filters
     allItems.filter(item => {
       if (currentFilters.categories.length > 0 && !currentFilters.categories.includes(item.category_name)) return false;
       if (currentFilters.subcategories.length > 0 && !currentFilters.subcategories.includes(item.subcategory_name)) return false;
@@ -187,7 +162,6 @@
       });
     });
     
-    // Brand counts: items matching (category + subcategory + color) filters
     allItems.filter(item => {
       if (currentFilters.categories.length > 0 && !currentFilters.categories.includes(item.category_name)) return false;
       if (currentFilters.subcategories.length > 0 && !currentFilters.subcategories.includes(item.subcategory_name)) return false;
@@ -201,7 +175,7 @@
   }
   
   // ============================================================
-  // RENDERING
+  // RENDERING (unchanged)
   // ============================================================
   
   function setImg(el, url, alt) {
@@ -284,7 +258,6 @@
       return;
     }
     
-    // Deduplicate by name (keep first occurrence)
     const seen = new Set();
     const uniqueOptions = options.filter(opt => {
       if (seen.has(opt.name)) return false;
@@ -295,8 +268,6 @@
     uniqueOptions.forEach(opt => {
       const count = counts[opt.name] || 0;
       const isChecked = currentlyChecked.has(opt.name);
-      
-      // Hide options with 0 count (unless currently checked)
       if (count === 0 && !isChecked) return;
       
       const label = document.createElement('label');
@@ -316,31 +287,25 @@
   
   function updatePager(totalItems, page) {
     const totalPages = Math.ceil(totalItems / ITEMS_PER_PAGE) || 1;
-    
     if (pageLabel) pageLabel.textContent = `${page} / ${totalPages}`;
     if (btnPrev) btnPrev.disabled = page <= 1;
     if (btnNext) btnNext.disabled = page >= totalPages;
-    
     return totalPages;
   }
   
   // ============================================================
-  // MAIN RENDER FUNCTION
+  // MAIN RENDER
   // ============================================================
   
   function render(page = 1) {
     const filters = getSelectedFilters();
-    
     filteredItems = filterItems(catalogData.items, filters);
-    
     const counts = calculateFilterCounts(catalogData.items, filters);
     
-    // Render filter panels
     renderFilterPanel('[data-list="category"]', catalogData.filters.categories, 'category', counts.categories);
     renderFilterPanel('[data-list="color"]', catalogData.filters.colors, 'color', counts.colors);
     renderFilterPanel('[data-list="brand"]', catalogData.filters.brands, 'brand', counts.brands);
     
-    // Subcategories: only show those for selected categories
     let subcatsToShow = catalogData.filters.subcategories;
     if (filters.categories.length > 0) {
       const selectedCatIds = catalogData.filters.categories
@@ -350,20 +315,15 @@
     }
     renderFilterPanel('[data-list="subcategory"]', subcatsToShow, 'subcategory', counts.subcategories);
     
-    // Show/hide subcategory panel
     const subPanel = document.querySelector('[data-panel="subcategory"]');
-    if (subPanel) {
-      subPanel.style.display = filters.categories.length > 0 ? '' : 'none';
-    }
+    if (subPanel) subPanel.style.display = filters.categories.length > 0 ? '' : 'none';
     
     renderGrid(filteredItems, page);
-    
     currentPage = page;
     updatePager(filteredItems.length, page);
-    
     updateURL(filters, page);
     
-    console.log(`[Catalog] Rendered ${filteredItems.length} items (page ${page})`);
+    console.log(`[Catalog] Rendered ${filteredItems.length} items (page ${page})${searchQuery ? ` [search: "${searchQuery}"]` : ''}`);
   }
   
   // ============================================================
@@ -373,12 +333,11 @@
   function updateURL(filters, page) {
     const params = new URLSearchParams();
     params.set('page', String(page));
-    
+    if (searchQuery) params.set('q', searchQuery);
     filters.categories.forEach(c => params.append('categories', c));
     filters.subcategories.forEach(s => params.append('subcategories', s));
     filters.colors.forEach(c => params.append('colors', c));
     filters.brands.forEach(b => params.append('brands', b));
-    
     history.replaceState({ page }, '', '?' + params.toString());
   }
   
@@ -389,7 +348,8 @@
       subcategories: params.getAll('subcategories').filter(Boolean),
       colors: params.getAll('colors').filter(Boolean),
       brands: params.getAll('brands').filter(Boolean),
-      page: parseInt(params.get('page') || '1', 10)
+      page: parseInt(params.get('page') || '1', 10),
+      q: params.get('q') || ''
     };
   }
   
@@ -409,7 +369,31 @@
       });
     });
     
+    if (searchInput && urlFilters.q) {
+      searchInput.value = urlFilters.q;
+      searchQuery = urlFilters.q;
+    }
+    
     return urlFilters.page;
+  }
+  
+  // ============================================================
+  // SEARCH HANDLER
+  // ============================================================
+  
+  async function handleSearch(query) {
+    searchQuery = query.trim();
+    
+    if (!searchQuery) {
+      // Clear search - reload full catalog
+      catalogData = loadCatalog() || await fetchCatalog();
+      saveCatalog(catalogData);
+    } else {
+      // Fetch search results from backend
+      catalogData = await fetchCatalog(searchQuery);
+    }
+    
+    render(1);
   }
   
   // ============================================================
@@ -418,14 +402,9 @@
   
   document.addEventListener('change', (e) => {
     if (!e.target.matches('[data-filter]')) return;
-    
-    // If category unchecked, clear subcategories
     if (e.target.matches('[data-filter="category"]') && !e.target.checked) {
-      document.querySelectorAll('[data-filter="subcategory"]:checked').forEach(i => {
-        i.checked = false;
-      });
+      document.querySelectorAll('[data-filter="subcategory"]:checked').forEach(i => i.checked = false);
     }
-    
     render(1);
     window.scrollTo({ top: 0, behavior: 'smooth' });
   });
@@ -449,10 +428,31 @@
     });
   }
   
+  // Search input with debounce
+  if (searchInput) {
+    let debounceTimer;
+    searchInput.addEventListener('input', (e) => {
+      clearTimeout(debounceTimer);
+      debounceTimer = setTimeout(() => handleSearch(e.target.value), 300);
+    });
+    
+    // Handle Enter key
+    searchInput.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') {
+        clearTimeout(debounceTimer);
+        handleSearch(e.target.value);
+      }
+    });
+  }
+  
   document.querySelectorAll('[data-filter-reset]').forEach(btn => {
-    btn.addEventListener('click', (e) => {
+    btn.addEventListener('click', async (e) => {
       e.preventDefault();
-      document.querySelectorAll('[data-filter]').forEach(i => { i.checked = false; });
+      document.querySelectorAll('[data-filter]').forEach(i => i.checked = false);
+      if (searchInput) searchInput.value = '';
+      searchQuery = '';
+      catalogData = loadCatalog() || await fetchCatalog();
+      saveCatalog(catalogData);
       render(1);
       
       const panel = btn.closest('[data-panel], .filter-panel');
@@ -470,9 +470,13 @@
     });
   });
   
-  window.addEventListener('popstate', () => {
-    const page = applyURLFilters();
-    render(page);
+  window.addEventListener('popstate', async () => {
+    const urlFilters = readFiltersFromURL();
+    if (urlFilters.q !== searchQuery) {
+      await handleSearch(urlFilters.q);
+    }
+    applyURLFilters();
+    render(urlFilters.page);
   });
   
   // ============================================================
@@ -480,13 +484,19 @@
   // ============================================================
   
   try {
-    await initCatalog();
+    const urlFilters = readFiltersFromURL();
     
-    // Initial render populates filter panels
+    // If URL has search query, fetch search results
+    if (urlFilters.q) {
+      searchQuery = urlFilters.q;
+      if (searchInput) searchInput.value = searchQuery;
+      catalogData = await fetchCatalog(searchQuery);
+    } else {
+      await initCatalog();
+    }
+    
     render(1);
     
-    // Apply URL filters (sets checkboxes) and re-render if needed
-    const urlFilters = readFiltersFromURL();
     const hasFilters = urlFilters.categories.length || urlFilters.subcategories.length || 
                        urlFilters.colors.length || urlFilters.brands.length;
     
@@ -495,7 +505,7 @@
       render(urlFilters.page);
     }
     
-    console.log('[Catalog] Ready - client-side filtering enabled 🚀');
+    console.log('[Catalog] Ready 🚀');
     
   } catch (err) {
     console.error('[Catalog] Init failed:', err);
