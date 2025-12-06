@@ -83,22 +83,10 @@
 .account-content {
   flex: 1;
   min-width: 0;
-  max-width: 800px;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-}
-
-.account-content > div {
-  width: 100%;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
 }
 
 .account-section {
   width: 100%;
-  max-width: 600px;
   margin-bottom: 2.5rem;
 }
 
@@ -211,7 +199,6 @@
 .rental-card,
 .reservation-card {
   width: 100%;
-  max-width: 600px;
   display: flex;
   gap: 20px;
   padding: 20px;
@@ -294,7 +281,6 @@
 /* ========== EMPTY STATES ========== */
 .empty-state {
   width: 100%;
-  max-width: 500px;
   text-align: center;
   padding: 60px 20px;
   background: #fafafa;
@@ -333,7 +319,6 @@
 
 .loading-state {
   width: 100%;
-  max-width: 500px;
   text-align: center;
   padding: 60px 20px;
 }
@@ -346,7 +331,6 @@
 /* ========== MEMBERSHIP ========== */
 .membership-info {
   width: 100%;
-  max-width: 600px;
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 16px;
@@ -401,7 +385,6 @@
 /* ========== HISTORY ITEM ========== */
 .history-item {
   width: 100%;
-  max-width: 600px;
   display: flex;
   align-items: center;
   gap: 16px;
@@ -533,8 +516,6 @@
   margin-top: 24px;
   text-align: left;
   max-width: 400px;
-  margin-left: auto;
-  margin-right: auto;
 }
 
 .credit-balance-label {
@@ -818,14 +799,6 @@
     border-bottom-color: #000;
   }
   
-  .account-content {
-    max-width: 100%;
-  }
-  
-  .account-section {
-    max-width: 100%;
-  }
-  
   .form-row {
     flex-direction: column;
     gap: 0;
@@ -838,7 +811,6 @@
   
   .rental-card,
   .reservation-card {
-    max-width: 100%;
     padding: 16px;
     gap: 16px;
   }
@@ -849,12 +821,7 @@
   }
   
   .membership-info {
-    max-width: 100%;
     grid-template-columns: 1fr;
-  }
-  
-  .history-item {
-    max-width: 100%;
   }
   
   .reservation-dates {
@@ -863,7 +830,6 @@
   }
   
   .empty-state {
-    max-width: 100%;
     padding: 40px 16px;
   }
   
