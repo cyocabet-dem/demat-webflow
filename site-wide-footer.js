@@ -1318,7 +1318,30 @@ window.addEventListener('load', function() {
     setTimeout(setupCart, 500);
   });
 })();
+
+(function() {
+  const redirectMap = {
+    '/profile': '/account#profile',
+    '/profile.html': '/account#profile',
+    '/my-rentals': '/account#rentals',
+    '/my-rentals.html': '/account#rentals',
+    '/reservations': '/account#reservations',
+    '/reservations.html': '/account#reservations',
+    '/donations-credits': '/account#donations',
+    '/donations-credits.html': '/account#donations',
+    '/purchases': '/account#purchases',
+    '/purchases.html': '/account#purchases',
+    '/my-membership': '/account#membership',
+    '/my-membership.html': '/account#membership'
+  };
   
+  const path = window.location.pathname;
+  
+  if (redirectMap[path]) {
+    console.log('📱 [Account] Redirecting to unified account page...');
+    window.location.replace(redirectMap[path]);
+  }
+})();
 
 // Membership signup handler
 document.addEventListener('DOMContentLoaded', function() {
