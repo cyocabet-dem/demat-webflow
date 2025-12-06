@@ -1,0 +1,895 @@
+/* ============================================
+   ACCOUNT PAGE STYLES
+   my-account.css
+   ============================================ */
+
+[v-cloak] { display: none !important; }
+
+/* ========== LAYOUT STRUCTURE ========== */
+.account-wrapper {
+  width: 100%;
+  max-width: 1300px;
+  margin: 0 auto;
+  padding: 0 40px;
+}
+
+.account-header {
+  margin-bottom: 32px;
+}
+
+.account-page-title {
+  font-family: 'Urbanist', sans-serif;
+  font-weight: 400;
+  font-size: 32px;
+  line-height: 1.2;
+  margin: 0;
+  text-transform: capitalize;
+}
+
+.account-back-link {
+  display: none;
+  align-items: center;
+  gap: 4px;
+  font-family: 'Urbanist', sans-serif;
+  font-size: 13px;
+  color: #666;
+  text-decoration: none;
+  margin-bottom: 16px;
+}
+
+.account-back-link:hover {
+  color: #000;
+}
+
+.account-layout {
+  display: flex;
+  gap: 80px;
+}
+
+/* ========== TAB NAVIGATION ========== */
+.account-tabs {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  width: 200px;
+  flex-shrink: 0;
+}
+
+.account-tab {
+  display: block;
+  padding: 12px 0;
+  font-family: 'Urbanist', sans-serif;
+  font-size: 14px;
+  font-weight: 400;
+  color: #666;
+  text-decoration: none;
+  cursor: pointer;
+  transition: all 0.2s;
+  border: none;
+  background: none;
+  text-align: left;
+}
+
+.account-tab:hover {
+  color: #000;
+}
+
+.account-tab.active {
+  color: #000;
+  font-weight: 500;
+}
+
+/* ========== CONTENT AREA ========== */
+.account-content {
+  flex: 1;
+  min-width: 0;
+  max-width: 800px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.account-content > div {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.account-section {
+  width: 100%;
+  max-width: 600px;
+  margin-bottom: 2.5rem;
+}
+
+.account-section-title {
+  font-family: 'Urbanist', sans-serif;
+  font-weight: 400;
+  font-size: 18px;
+  line-height: 28px;
+  margin: 0 0 1.5rem 0;
+}
+
+/* ========== FORMS ========== */
+.form-label {
+  font-family: 'Urbanist', sans-serif;
+  font-weight: 400;
+  font-size: 14px;
+  color: #000;
+  text-transform: capitalize;
+  padding-bottom: 5px;
+  display: block;
+}
+
+.form-input {
+  display: block;
+  width: 100%;
+  height: 44px;
+  padding: 8px 12px;
+  font-size: 14px;
+  color: #333;
+  background-color: #fff;
+  border: 1px solid #ccc;
+  font-family: 'Urbanist', sans-serif;
+  transition: border-color 0.2s;
+  box-sizing: border-box;
+}
+
+.form-input:focus {
+  border-color: #000;
+  outline: none;
+}
+
+.form-input:disabled {
+  background: #f5f5f5;
+}
+
+.form-row {
+  display: flex;
+  gap: 16px;
+}
+
+.form-col {
+  flex: 1;
+  min-width: 0;
+}
+
+.form-group {
+  margin-bottom: 16px;
+}
+
+/* ========== BUTTONS ========== */
+.btn-primary {
+  padding: 12px 24px;
+  background: #000;
+  color: #fff;
+  border: none;
+  font-family: 'Urbanist', sans-serif;
+  font-size: 13px;
+  cursor: pointer;
+  transition: opacity 0.2s;
+  text-decoration: none;
+  display: inline-block;
+}
+
+.btn-primary:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.btn-secondary {
+  padding: 12px 24px;
+  background: #fff;
+  color: #000;
+  border: 1px solid #000;
+  font-family: 'Urbanist', sans-serif;
+  font-size: 13px;
+  cursor: pointer;
+  text-decoration: none;
+  display: inline-block;
+}
+
+.btn-full {
+  width: 100%;
+  text-align: center;
+}
+
+/* ========== MESSAGES ========== */
+.success-msg {
+  color: #065f46;
+  font-size: 13px;
+  margin-top: 8px;
+}
+
+.error-msg {
+  color: #991b1b;
+  font-size: 13px;
+  margin-top: 8px;
+}
+
+/* ========== CARDS ========== */
+.rental-card,
+.reservation-card {
+  width: 100%;
+  max-width: 600px;
+  display: flex;
+  gap: 20px;
+  padding: 20px;
+  border: 1px solid #e5e5e5;
+  margin-bottom: 16px;
+}
+
+.reservation-card--block {
+  display: block;
+}
+
+.card-image {
+  width: 100px;
+  height: 133px;
+  background: #f5f5f5;
+  flex-shrink: 0;
+  overflow: hidden;
+}
+
+.card-image img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.card-image--sm {
+  width: 80px;
+  height: 107px;
+}
+
+.card-details {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+
+.card-brand {
+  font-size: 11px;
+  color: #666;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.card-name {
+  font-size: 14px;
+  font-weight: 500;
+  color: #000;
+}
+
+.card-meta {
+  font-size: 12px;
+  color: #666;
+}
+
+.card-actions {
+  margin-top: auto;
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.card-link {
+  font-size: 13px;
+  color: #000;
+}
+
+/* ========== STATUS BADGE ========== */
+.status-badge {
+  display: inline-block;
+  padding: 4px 10px;
+  font-size: 11px;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+/* ========== EMPTY STATES ========== */
+.empty-state {
+  width: 100%;
+  max-width: 500px;
+  text-align: center;
+  padding: 60px 20px;
+  background: #fafafa;
+}
+
+.empty-state-icon {
+  margin-bottom: 16px;
+}
+
+.empty-state-title {
+  font-size: 20px;
+  font-weight: 500;
+  margin: 0 0 8px 0;
+}
+
+.empty-state-text {
+  font-size: 14px;
+  color: #666;
+  margin: 0 0 20px 0;
+}
+
+/* ========== LOADING ========== */
+.spinner {
+  width: 40px;
+  height: 40px;
+  border: 3px solid #f0f0f0;
+  border-top-color: #000;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin: 0 auto 16px;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+.loading-state {
+  width: 100%;
+  max-width: 500px;
+  text-align: center;
+  padding: 60px 20px;
+}
+
+.loading-text {
+  color: #666;
+  font-size: 14px;
+}
+
+/* ========== MEMBERSHIP ========== */
+.membership-info {
+  width: 100%;
+  max-width: 600px;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+
+.membership-item {
+  padding: 16px;
+  background: #fafafa;
+}
+
+.membership-item-label {
+  font-size: 10px;
+  color: #999;
+  text-transform: uppercase;
+  margin-bottom: 4px;
+}
+
+.membership-item-value {
+  font-size: 16px;
+  font-weight: 500;
+  color: #000;
+}
+
+/* ========== ADDRESS AUTOCOMPLETE ========== */
+.address-wrapper {
+  position: relative;
+}
+
+.address-results {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  background: #fff;
+  border: 1px solid #ccc;
+  border-top: none;
+  z-index: 10;
+  max-height: 200px;
+  overflow-y: auto;
+}
+
+.address-result {
+  padding: 10px 12px;
+  cursor: pointer;
+  font-size: 13px;
+}
+
+.address-result:hover {
+  background: #f5f5f5;
+}
+
+/* ========== HISTORY ITEM ========== */
+.history-item {
+  width: 100%;
+  max-width: 600px;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 16px;
+  border: 1px solid #e5e5e5;
+  margin-bottom: 12px;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.history-item:hover {
+  background: #fafafa;
+}
+
+.history-item-info {
+  flex: 1;
+  text-align: right;
+}
+
+.history-item-date {
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.history-item-count {
+  font-size: 13px;
+  color: #666;
+}
+
+.history-item-arrow {
+  color: #999;
+}
+
+/* ========== RESERVATION ========== */
+.reservation-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 16px;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.reservation-label {
+  font-size: 11px;
+  color: #999;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 4px;
+}
+
+.reservation-id {
+  font-size: 13px;
+  color: #333;
+  font-family: monospace;
+}
+
+.reservation-dates {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+  padding: 12px;
+  background: #fafafa;
+  margin-bottom: 16px;
+}
+
+.reservation-date-item {
+  font-size: 10px;
+  color: #999;
+  text-transform: uppercase;
+}
+
+.reservation-date-value {
+  font-size: 13px;
+  color: #333;
+  margin-top: 2px;
+}
+
+.reservation-date-value--bold {
+  font-weight: 500;
+}
+
+/* ========== ITEM PREVIEWS ========== */
+.items-preview-wrapper {
+  margin-bottom: 16px;
+}
+
+.items-preview-count {
+  font-size: 12px;
+  color: #666;
+  margin-bottom: 8px;
+}
+
+.item-previews {
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+}
+
+.item-preview {
+  width: 60px;
+  height: 80px;
+  background: #f5f5f5;
+  flex-shrink: 0;
+  overflow: hidden;
+}
+
+.item-preview img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.item-preview-more {
+  width: 60px;
+  height: 80px;
+  background: #f5f5f5;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  color: #666;
+}
+
+/* ========== CREDIT BALANCE ========== */
+.credit-balance {
+  background: #f5f5f5;
+  padding: 20px;
+  margin-top: 24px;
+  text-align: left;
+  max-width: 400px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.credit-balance-label {
+  font-size: 12px;
+  font-weight: 500;
+  text-transform: uppercase;
+  margin-bottom: 12px;
+}
+
+.credit-balance-value {
+  font-size: 32px;
+  font-weight: 500;
+}
+
+/* ========== MODAL ========== */
+.modal-backdrop {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0,0,0,0.5);
+  z-index: 9998;
+}
+
+.modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 9999;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 20px;
+}
+
+.modal-content {
+  background: #fff;
+  width: 100%;
+  max-width: 420px;
+  max-height: 90vh;
+  overflow-y: auto;
+}
+
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px 20px;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.modal-title {
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.modal-close {
+  background: none;
+  border: none;
+  font-size: 24px;
+  cursor: pointer;
+  padding: 0;
+  line-height: 1;
+}
+
+.modal-body {
+  padding: 20px;
+}
+
+.modal-image {
+  display: block;
+  width: 100%;
+  max-width: 280px;
+  margin: 0 auto 20px;
+  aspect-ratio: 3/4;
+  background: #f5f5f5;
+  overflow: hidden;
+}
+
+.modal-image img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.modal-item-info {
+  text-align: center;
+  margin-bottom: 20px;
+}
+
+.modal-dates {
+  background: #fafafa;
+  padding: 14px;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  margin-bottom: 20px;
+}
+
+.modal-date-label {
+  font-size: 10px;
+  color: #999;
+  text-transform: uppercase;
+  margin-bottom: 2px;
+}
+
+.modal-date-value {
+  font-size: 13px;
+  color: #333;
+}
+
+.modal-status-banner {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 16px;
+  background: #fafafa;
+  margin-bottom: 20px;
+}
+
+.modal-section-title {
+  font-size: 12px;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 12px;
+}
+
+.modal-details-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.modal-detail-item {
+  padding: 12px;
+  background: #fafafa;
+}
+
+.modal-detail-item--warning {
+  background: #fef3c7;
+}
+
+.modal-detail-item--warning .modal-date-label {
+  color: #92400e;
+}
+
+.modal-detail-item--warning .modal-date-value {
+  color: #92400e;
+  font-weight: 500;
+}
+
+.modal-items-list {
+  border-top: 1px solid #f0f0f0;
+}
+
+.modal-item-row {
+  display: flex;
+  gap: 16px;
+  padding: 16px 0;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.modal-item-image {
+  width: 80px;
+  height: 107px;
+  background: #f5f5f5;
+  flex-shrink: 0;
+  overflow: hidden;
+}
+
+.modal-item-image img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.modal-item-details {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+
+.modal-item-status {
+  font-size: 11px;
+  margin-top: auto;
+}
+
+.modal-item-status--picked {
+  color: #065f46;
+}
+
+.modal-item-status--waiting {
+  color: #92400e;
+}
+
+.modal-item-link {
+  font-size: 11px;
+  color: #000;
+  text-decoration: underline;
+}
+
+.modal-location {
+  margin-top: 24px;
+  padding: 16px;
+  background: #f8f8f8;
+}
+
+.modal-location-address {
+  font-size: 14px;
+  color: #333;
+  line-height: 1.5;
+}
+
+/* ========== MOBILE STYLES ========== */
+@media (max-width: 991px) {
+  .account-wrapper {
+    padding: 0 24px;
+  }
+  
+  .account-layout {
+    gap: 40px;
+  }
+  
+  .account-tabs {
+    width: 180px;
+  }
+}
+
+@media (max-width: 768px) {
+  .account-wrapper {
+    padding: 0 16px;
+  }
+  
+  .account-header {
+    margin-bottom: 24px;
+  }
+  
+  .account-page-title {
+    font-size: 28px;
+  }
+  
+  .account-back-link {
+    display: flex;
+  }
+  
+  .account-layout {
+    flex-direction: column;
+    gap: 24px;
+  }
+  
+  .account-tabs {
+    width: 100%;
+    flex-direction: row;
+    overflow-x: auto;
+    gap: 0;
+    border-bottom: 1px solid #e5e5e5;
+    padding-bottom: 0;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+  }
+  
+  .account-tabs::-webkit-scrollbar {
+    display: none;
+  }
+  
+  .account-tab {
+    padding: 12px 16px;
+    white-space: nowrap;
+    border-bottom: 2px solid transparent;
+    margin-bottom: -1px;
+  }
+  
+  .account-tab.active {
+    border-bottom-color: #000;
+  }
+  
+  .account-content {
+    max-width: 100%;
+  }
+  
+  .account-section {
+    max-width: 100%;
+  }
+  
+  .form-row {
+    flex-direction: column;
+    gap: 0;
+  }
+  
+  .form-col {
+    flex: none;
+    width: 100%;
+  }
+  
+  .rental-card,
+  .reservation-card {
+    max-width: 100%;
+    padding: 16px;
+    gap: 16px;
+  }
+  
+  .card-image {
+    width: 80px;
+    height: 107px;
+  }
+  
+  .membership-info {
+    max-width: 100%;
+    grid-template-columns: 1fr;
+  }
+  
+  .history-item {
+    max-width: 100%;
+  }
+  
+  .reservation-dates {
+    grid-template-columns: 1fr;
+    gap: 8px;
+  }
+  
+  .empty-state {
+    max-width: 100%;
+    padding: 40px 16px;
+  }
+  
+  .modal-details-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 480px) {
+  .account-page-title {
+    font-size: 24px;
+  }
+  
+  .account-tab {
+    padding: 10px 12px;
+    font-size: 13px;
+  }
+  
+  .card-image {
+    width: 70px;
+    height: 93px;
+  }
+  
+  .btn-primary,
+  .btn-secondary {
+    width: 100%;
+    text-align: center;
+  }
+}
