@@ -123,7 +123,11 @@ console.log('📱 [Account] Loading unified account app...');
         },
         hasReservations() {
           return this.reservations.list.length > 0;
-        }
+        },
+          currentTabLabel() {
+    const tab = this.tabs.find(t => t.id === this.activeTab);
+    return tab ? tab.label : 'Account';
+  }
       },
 
       async mounted() {
