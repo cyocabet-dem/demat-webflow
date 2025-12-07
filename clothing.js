@@ -1,5 +1,10 @@
 /**
  * Client-Side Catalog with Smart Search
+ * 
+ * 1. Fetches catalog from /search endpoint
+ * 2. Search queries go to backend for smart matching
+ * 3. Client-side filtering on top of search results
+ * 4. Filter options reflect available items (search-aware)
  */
 
 (async function () {
@@ -24,6 +29,8 @@
   const btnNext = document.querySelector('[data-page="next"]');
   const pageLabel = document.querySelector('[data-page="label"]');
   const searchInput = document.querySelector('[data-search="input"]');
+  const searchClear = document.querySelector('[data-search="clear"]');
+  const resetAllBtn = document.querySelector('[data-reset-all]');
   
   if (!grid || !template) {
     console.warn('[Catalog] Grid or template not found');
@@ -62,7 +69,7 @@
       if (!stored) return null;
       
       const { data, timestamp } = JSON.parse(stored);
-      const MAX_AGE = 5 * 60 * 1000;
+      const MAX_AGE = 5 * 60 * 1000; // 5 minutes
       if (Date.now() - timestamp > MAX_AGE) {
         sessionStorage.removeItem(STORAGE_KEY);
         return null;
@@ -104,7 +111,7 @@
   }
   
   // ============================================================
-  // FILTERING (unchanged)
+  // FILTERING
   // ============================================================
   
   function getSelectedFilters() {
@@ -133,6 +140,7 @@
   function calculateFilterCounts(allItems, currentFilters) {
     const counts = { categories: {}, subcategories: {}, colors: {}, brands: {} };
     
+    // Category counts
     allItems.filter(item => {
       if (currentFilters.subcategories.length > 0 && !currentFilters.subcategories.includes(item.subcategory_name)) return false;
       if (currentFilters.colors.length > 0 && !item.color_names.some(c => currentFilters.colors.includes(c))) return false;
@@ -142,6 +150,7 @@
       counts.categories[item.category_name] = (counts.categories[item.category_name] || 0) + 1;
     });
     
+    // Subcategory counts
     allItems.filter(item => {
       if (currentFilters.categories.length > 0 && !currentFilters.categories.includes(item.category_name)) return false;
       if (currentFilters.colors.length > 0 && !item.color_names.some(c => currentFilters.colors.includes(c))) return false;
@@ -151,6 +160,7 @@
       counts.subcategories[item.subcategory_name] = (counts.subcategories[item.subcategory_name] || 0) + 1;
     });
     
+    // Color counts
     allItems.filter(item => {
       if (currentFilters.categories.length > 0 && !currentFilters.categories.includes(item.category_name)) return false;
       if (currentFilters.subcategories.length > 0 && !currentFilters.subcategories.includes(item.subcategory_name)) return false;
@@ -162,6 +172,7 @@
       });
     });
     
+    // Brand counts
     allItems.filter(item => {
       if (currentFilters.categories.length > 0 && !currentFilters.categories.includes(item.category_name)) return false;
       if (currentFilters.subcategories.length > 0 && !currentFilters.subcategories.includes(item.subcategory_name)) return false;
@@ -174,8 +185,43 @@
     return counts;
   }
   
+  // Build filter options from items (for search results)
+  function buildFiltersFromItems(items) {
+    const categories = new Map();
+    const subcategories = new Map();
+    const colors = new Map();
+    const brands = new Map();
+    
+    items.forEach(item => {
+      if (item.category_id && item.category_name) {
+        categories.set(item.category_name, { id: item.category_id, name: item.category_name });
+      }
+      if (item.subcategory_id && item.subcategory_name) {
+        subcategories.set(item.subcategory_name, { 
+          id: item.subcategory_id, 
+          name: item.subcategory_name, 
+          category_id: item.category_id 
+        });
+      }
+      if (item.brand_id && item.brand_name) {
+        brands.set(item.brand_name, { id: item.brand_id, name: item.brand_name });
+      }
+      item.color_names.forEach((colorName, idx) => {
+        const colorId = item.color_ids?.[idx] || colorName;
+        colors.set(colorName, { id: colorId, name: colorName });
+      });
+    });
+    
+    return {
+      categories: Array.from(categories.values()),
+      subcategories: Array.from(subcategories.values()),
+      colors: Array.from(colors.values()),
+      brands: Array.from(brands.values()),
+    };
+  }
+  
   // ============================================================
-  // RENDERING (unchanged)
+  // RENDERING
   // ============================================================
   
   function setImg(el, url, alt) {
@@ -225,7 +271,7 @@
     grid.innerHTML = '';
     
     if (pageItems.length === 0) {
-      grid.innerHTML = '<p>No items found.</p>';
+      grid.innerHTML = '<p style="grid-column: 1/-1; text-align: center; padding: 40px 0;">No items found.</p>';
       return;
     }
     
@@ -294,83 +340,64 @@
   }
   
   // ============================================================
+  // UI STATE UPDATES
+  // ============================================================
+  
+  function updateSearchClearVisibility() {
+    if (searchClear) {
+      searchClear.style.display = searchInput?.value ? 'block' : 'none';
+    }
+  }
+  
+  function updateResetAllVisibility() {
+    if (!resetAllBtn) return;
+    const filters = getSelectedFilters();
+    const hasFilters = filters.categories.length || filters.subcategories.length || 
+                       filters.colors.length || filters.brands.length;
+    const hasSearch = !!searchQuery;
+    resetAllBtn.style.display = (hasFilters || hasSearch) ? 'flex' : 'none';
+  }
+  
+  // ============================================================
   // MAIN RENDER
   // ============================================================
-  // ============================================================
-// MAIN RENDER
-// ============================================================
-
-function buildFiltersFromItems(items) {
-  // Build filter options from actual items (for search results)
-  const categories = new Map();
-  const subcategories = new Map();
-  const colors = new Map();
-  const brands = new Map();
   
-  items.forEach(item => {
-    if (item.category_id && item.category_name) {
-      categories.set(item.category_name, { id: item.category_id, name: item.category_name });
+  function render(page = 1) {
+    const filters = getSelectedFilters();
+    filteredItems = filterItems(catalogData.items, filters);
+    
+    // Use search-result-based filters when searching, full catalog filters otherwise
+    const availableFilters = searchQuery 
+      ? buildFiltersFromItems(catalogData.items)
+      : catalogData.filters;
+    
+    const counts = calculateFilterCounts(catalogData.items, filters);
+    
+    renderFilterPanel('[data-list="category"]', availableFilters.categories, 'category', counts.categories);
+    renderFilterPanel('[data-list="color"]', availableFilters.colors, 'color', counts.colors);
+    renderFilterPanel('[data-list="brand"]', availableFilters.brands, 'brand', counts.brands);
+    
+    let subcatsToShow = availableFilters.subcategories;
+    if (filters.categories.length > 0) {
+      const selectedCatIds = availableFilters.categories
+        .filter(c => filters.categories.includes(c.name))
+        .map(c => c.id);
+      subcatsToShow = subcatsToShow.filter(s => selectedCatIds.includes(s.category_id));
     }
-    if (item.subcategory_id && item.subcategory_name) {
-      subcategories.set(item.subcategory_name, { 
-        id: item.subcategory_id, 
-        name: item.subcategory_name, 
-        category_id: item.category_id 
-      });
-    }
-    if (item.brand_id && item.brand_name) {
-      brands.set(item.brand_name, { id: item.brand_id, name: item.brand_name });
-    }
-    item.color_names.forEach((colorName, idx) => {
-      const colorId = item.color_ids?.[idx] || colorName;
-      colors.set(colorName, { id: colorId, name: colorName });
-    });
-  });
-  
-  return {
-    categories: Array.from(categories.values()),
-    subcategories: Array.from(subcategories.values()),
-    colors: Array.from(colors.values()),
-    brands: Array.from(brands.values()),
-  };
-}
-
-function render(page = 1) {
-  const filters = getSelectedFilters();
-  filteredItems = filterItems(catalogData.items, filters);
-  
-  // Use search-result-based filters when searching, full catalog filters otherwise
-  const availableFilters = searchQuery 
-    ? buildFiltersFromItems(catalogData.items)
-    : catalogData.filters;
-  
-  const counts = calculateFilterCounts(catalogData.items, filters);
-  
-  renderFilterPanel('[data-list="category"]', availableFilters.categories, 'category', counts.categories);
-  renderFilterPanel('[data-list="color"]', availableFilters.colors, 'color', counts.colors);
-  renderFilterPanel('[data-list="brand"]', availableFilters.brands, 'brand', counts.brands);
-  
-  let subcatsToShow = availableFilters.subcategories;
-  if (filters.categories.length > 0) {
-    const selectedCatIds = availableFilters.categories
-      .filter(c => filters.categories.includes(c.name))
-      .map(c => c.id);
-    subcatsToShow = subcatsToShow.filter(s => selectedCatIds.includes(s.category_id));
+    renderFilterPanel('[data-list="subcategory"]', subcatsToShow, 'subcategory', counts.subcategories);
+    
+    const subPanel = document.querySelector('[data-panel="subcategory"]');
+    if (subPanel) subPanel.style.display = filters.categories.length > 0 ? '' : 'none';
+    
+    renderGrid(filteredItems, page);
+    currentPage = page;
+    updatePager(filteredItems.length, page);
+    updateURL(filters, page);
+    updateResetAllVisibility();
+    
+    console.log(`[Catalog] Rendered ${filteredItems.length} items (page ${page})${searchQuery ? ` [search: "${searchQuery}"]` : ''}`);
   }
-  renderFilterPanel('[data-list="subcategory"]', subcatsToShow, 'subcategory', counts.subcategories);
   
-  const subPanel = document.querySelector('[data-panel="subcategory"]');
-  if (subPanel) subPanel.style.display = filters.categories.length > 0 ? '' : 'none';
-  
-  renderGrid(filteredItems, page);
-  currentPage = page;
-  updatePager(filteredItems.length, page);
-  updateURL(filters, page);
-  
-  console.log(`[Catalog] Rendered ${filteredItems.length} items (page ${page})${searchQuery ? ` [search: "${searchQuery}"]` : ''}`);
-}
-
-
   // ============================================================
   // URL SYNC
   // ============================================================
@@ -429,6 +456,9 @@ function render(page = 1) {
   async function handleSearch(query) {
     searchQuery = query.trim();
     
+    // Clear existing filters when searching
+    document.querySelectorAll('[data-filter]').forEach(i => i.checked = false);
+    
     if (!searchQuery) {
       // Clear search - reload full catalog
       catalogData = loadCatalog() || await fetchCatalog();
@@ -438,13 +468,36 @@ function render(page = 1) {
       catalogData = await fetchCatalog(searchQuery);
     }
     
+    updateSearchClearVisibility();
     render(1);
+  }
+  
+  // ============================================================
+  // RESET ALL HANDLER
+  // ============================================================
+  
+  async function handleResetAll() {
+    // Clear all filter checkboxes
+    document.querySelectorAll('[data-filter]').forEach(i => i.checked = false);
+    
+    // Clear search
+    if (searchInput) searchInput.value = '';
+    searchQuery = '';
+    updateSearchClearVisibility();
+    
+    // Reload full catalog
+    catalogData = loadCatalog() || await fetchCatalog();
+    saveCatalog(catalogData);
+    
+    render(1);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   }
   
   // ============================================================
   // EVENT HANDLERS
   // ============================================================
   
+  // Filter changes
   document.addEventListener('change', (e) => {
     if (!e.target.matches('[data-filter]')) return;
     if (e.target.matches('[data-filter="category"]') && !e.target.checked) {
@@ -454,6 +507,7 @@ function render(page = 1) {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   });
   
+  // Pagination
   if (btnPrev) {
     btnPrev.addEventListener('click', () => {
       if (currentPage > 1) {
@@ -476,32 +530,46 @@ function render(page = 1) {
   // Search input with debounce
   if (searchInput) {
     let debounceTimer;
+    
     searchInput.addEventListener('input', (e) => {
+      updateSearchClearVisibility();
       clearTimeout(debounceTimer);
       debounceTimer = setTimeout(() => handleSearch(e.target.value), 300);
     });
     
-    // Handle Enter key
     searchInput.addEventListener('keydown', (e) => {
       if (e.key === 'Enter') {
         clearTimeout(debounceTimer);
         handleSearch(e.target.value);
       }
+      if (e.key === 'Escape') {
+        searchInput.value = '';
+        handleSearch('');
+      }
     });
   }
   
+  // Search clear button
+  if (searchClear) {
+    searchClear.addEventListener('click', async () => {
+      if (searchInput) searchInput.value = '';
+      await handleSearch('');
+    });
+  }
+  
+  // Reset all button
+  if (resetAllBtn) {
+    resetAllBtn.addEventListener('click', handleResetAll);
+  }
+  
+  // Filter panel reset buttons (existing in Webflow)
   document.querySelectorAll('[data-filter-reset]').forEach(btn => {
     btn.addEventListener('click', async (e) => {
       e.preventDefault();
-      document.querySelectorAll('[data-filter]').forEach(i => i.checked = false);
-      if (searchInput) searchInput.value = '';
-      searchQuery = '';
-      catalogData = loadCatalog() || await fetchCatalog();
-      saveCatalog(catalogData);
-      render(1);
+      await handleResetAll();
       
-      const panel = btn.closest('[data-panel], .filter-panel');
-      const closeBtn = panel?.querySelector('[data-panel-close], [data-close]');
+      const panel = btn.closest('[data-panel], .filter-panel, .filter-page');
+      const closeBtn = panel?.querySelector('[data-panel-close], [data-close], .close-filter-button');
       closeBtn?.click();
     });
   });
@@ -509,12 +577,13 @@ function render(page = 1) {
   document.querySelectorAll('[data-filter-apply]').forEach(btn => {
     btn.addEventListener('click', (e) => {
       e.preventDefault();
-      const panel = btn.closest('[data-panel], .filter-panel');
-      const closeBtn = panel?.querySelector('[data-panel-close], [data-close]');
+      const panel = btn.closest('[data-panel], .filter-panel, .filter-page');
+      const closeBtn = panel?.querySelector('[data-panel-close], [data-close], .close-filter-button');
       closeBtn?.click();
     });
   });
   
+  // Browser back/forward
   window.addEventListener('popstate', async () => {
     const urlFilters = readFiltersFromURL();
     if (urlFilters.q !== searchQuery) {
@@ -540,6 +609,7 @@ function render(page = 1) {
       await initCatalog();
     }
     
+    updateSearchClearVisibility();
     render(1);
     
     const hasFilters = urlFilters.categories.length || urlFilters.subcategories.length || 
@@ -554,7 +624,7 @@ function render(page = 1) {
     
   } catch (err) {
     console.error('[Catalog] Init failed:', err);
-    grid.innerHTML = '<p>Could not load catalog. Please refresh the page.</p>';
+    grid.innerHTML = '<p style="grid-column: 1/-1; text-align: center; padding: 40px 0;">Could not load catalog. Please refresh the page.</p>';
   }
   
 })();
