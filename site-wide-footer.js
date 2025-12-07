@@ -756,6 +756,8 @@ async function openCartOverlay() {
     console.error('❌ Cart overlay elements not found!');
     return;
   }
+    // Add mobile footer spacer if needed
+  ensureMobileFooterSpacer();
   
   backdrop.style.display = 'block';
   overlay.style.transform = 'translateX(0)';
@@ -848,6 +850,21 @@ async function removeCartOverlayItem(event, itemId) {
   renderCartOverlay();
 }
 
+// general function to ensure mobile-footer-spacer in overlays / modals
+function ensureMobileFooterSpacer() {
+  const overlay = document.getElementById('cart-overlay');
+  if (!overlay) return;
+  
+  // Check if spacer already exists
+  if (overlay.querySelector('.mobile-footer-spacer')) return;
+  
+  // Create and append the spacer at the end of the overlay
+  const spacer = document.createElement('div');
+  spacer.className = 'mobile-footer-spacer';
+  overlay.appendChild(spacer);
+  
+  console.log('✅ Mobile footer spacer added to cart overlay');
+}
 // ============================================
 // RESERVATION MODAL FUNCTIONS
 // ============================================
