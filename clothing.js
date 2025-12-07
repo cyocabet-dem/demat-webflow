@@ -296,36 +296,81 @@
   // ============================================================
   // MAIN RENDER
   // ============================================================
+  // ============================================================
+// MAIN RENDER
+// ============================================================
+
+function buildFiltersFromItems(items) {
+  // Build filter options from actual items (for search results)
+  const categories = new Map();
+  const subcategories = new Map();
+  const colors = new Map();
+  const brands = new Map();
   
-  function render(page = 1) {
-    const filters = getSelectedFilters();
-    filteredItems = filterItems(catalogData.items, filters);
-    const counts = calculateFilterCounts(catalogData.items, filters);
-    
-    renderFilterPanel('[data-list="category"]', catalogData.filters.categories, 'category', counts.categories);
-    renderFilterPanel('[data-list="color"]', catalogData.filters.colors, 'color', counts.colors);
-    renderFilterPanel('[data-list="brand"]', catalogData.filters.brands, 'brand', counts.brands);
-    
-    let subcatsToShow = catalogData.filters.subcategories;
-    if (filters.categories.length > 0) {
-      const selectedCatIds = catalogData.filters.categories
-        .filter(c => filters.categories.includes(c.name))
-        .map(c => c.id);
-      subcatsToShow = subcatsToShow.filter(s => selectedCatIds.includes(s.category_id));
+  items.forEach(item => {
+    if (item.category_id && item.category_name) {
+      categories.set(item.category_name, { id: item.category_id, name: item.category_name });
     }
-    renderFilterPanel('[data-list="subcategory"]', subcatsToShow, 'subcategory', counts.subcategories);
-    
-    const subPanel = document.querySelector('[data-panel="subcategory"]');
-    if (subPanel) subPanel.style.display = filters.categories.length > 0 ? '' : 'none';
-    
-    renderGrid(filteredItems, page);
-    currentPage = page;
-    updatePager(filteredItems.length, page);
-    updateURL(filters, page);
-    
-    console.log(`[Catalog] Rendered ${filteredItems.length} items (page ${page})${searchQuery ? ` [search: "${searchQuery}"]` : ''}`);
-  }
+    if (item.subcategory_id && item.subcategory_name) {
+      subcategories.set(item.subcategory_name, { 
+        id: item.subcategory_id, 
+        name: item.subcategory_name, 
+        category_id: item.category_id 
+      });
+    }
+    if (item.brand_id && item.brand_name) {
+      brands.set(item.brand_name, { id: item.brand_id, name: item.brand_name });
+    }
+    item.color_names.forEach((colorName, idx) => {
+      const colorId = item.color_ids?.[idx] || colorName;
+      colors.set(colorName, { id: colorId, name: colorName });
+    });
+  });
   
+  return {
+    categories: Array.from(categories.values()),
+    subcategories: Array.from(subcategories.values()),
+    colors: Array.from(colors.values()),
+    brands: Array.from(brands.values()),
+  };
+}
+
+function render(page = 1) {
+  const filters = getSelectedFilters();
+  filteredItems = filterItems(catalogData.items, filters);
+  
+  // Use search-result-based filters when searching, full catalog filters otherwise
+  const availableFilters = searchQuery 
+    ? buildFiltersFromItems(catalogData.items)
+    : catalogData.filters;
+  
+  const counts = calculateFilterCounts(catalogData.items, filters);
+  
+  renderFilterPanel('[data-list="category"]', availableFilters.categories, 'category', counts.categories);
+  renderFilterPanel('[data-list="color"]', availableFilters.colors, 'color', counts.colors);
+  renderFilterPanel('[data-list="brand"]', availableFilters.brands, 'brand', counts.brands);
+  
+  let subcatsToShow = availableFilters.subcategories;
+  if (filters.categories.length > 0) {
+    const selectedCatIds = availableFilters.categories
+      .filter(c => filters.categories.includes(c.name))
+      .map(c => c.id);
+    subcatsToShow = subcatsToShow.filter(s => selectedCatIds.includes(s.category_id));
+  }
+  renderFilterPanel('[data-list="subcategory"]', subcatsToShow, 'subcategory', counts.subcategories);
+  
+  const subPanel = document.querySelector('[data-panel="subcategory"]');
+  if (subPanel) subPanel.style.display = filters.categories.length > 0 ? '' : 'none';
+  
+  renderGrid(filteredItems, page);
+  currentPage = page;
+  updatePager(filteredItems.length, page);
+  updateURL(filters, page);
+  
+  console.log(`[Catalog] Rendered ${filteredItems.length} items (page ${page})${searchQuery ? ` [search: "${searchQuery}"]` : ''}`);
+}
+
+
   // ============================================================
   // URL SYNC
   // ============================================================
