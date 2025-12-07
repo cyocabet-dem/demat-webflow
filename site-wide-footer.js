@@ -1422,6 +1422,27 @@ document.addEventListener('DOMContentLoaded', function() {
       setTimeout(checkPostLoginAction, 500);
       return;
     }
+
+    // Add safe area styles for iOS
+function addSafeAreaStyles() {
+  if (document.getElementById('safe-area-styles')) return;
+  
+  const style = document.createElement('style');
+  style.id = 'safe-area-styles';
+  style.textContent = `
+    #cart-overlay {
+      padding-bottom: env(safe-area-inset-bottom, 0px);
+    }
+    #cart-overlay-footer {
+      padding-bottom: env(safe-area-inset-bottom, 0px);
+    }
+  `;
+  document.head.appendChild(style);
+  console.log('✅ Safe area styles added');
+}
+
+// Call it early
+addSafeAreaStyles();
     
     const action = sessionStorage.getItem('postLoginAction');
     if (action) {
@@ -1439,3 +1460,4 @@ document.addEventListener('DOMContentLoaded', function() {
   checkPostLoginAction();
   console.log('🎫 Membership script loaded');
 });
+
