@@ -1,10 +1,10 @@
 /**
- * Client-Side Catalog - All filtering done locally
+ * Client-Side Catalog with Smart Search
  * 
- * 1. Fetches full catalog once, stores in sessionStorage
- * 2. All filtering/pagination/search happens client-side
- * 3. Instant filter response (no network latency)
- * 4. Easy to add new filters (brand, size, search, etc.)
+ * 1. Fetches catalog from /search endpoint
+ * 2. Search queries go to backend for smart matching
+ * 3. Client-side filtering on top of search results
+ * 4. Filter options reflect available items (search-aware)
  */
 
 (async function () {
@@ -15,7 +15,7 @@
   // ============================================================
   
   const BASE = window.API_BASE_URL;
-  const CATALOG_URL = `${BASE}/clothing_items/catalog/full`;
+  const CATALOG_URL = `${BASE}/search`;
   const STORAGE_KEY = 'dm_catalog';
   const ITEMS_PER_PAGE = 20;
   
@@ -52,6 +52,9 @@
   const btnPrev = document.querySelector('[data-page="prev"]');
   const btnNext = document.querySelector('[data-page="next"]');
   const pageLabel = document.querySelector('[data-page="label"]');
+  const searchInput = document.querySelector('[data-search="input"]');
+  const searchClear = document.querySelector('[data-search="clear"]');
+  const resetAllBtn = document.querySelector('[data-reset-all]');
   
   if (!grid || !template) {
     console.warn('[Catalog] Grid or template not found');
@@ -65,12 +68,14 @@
   let catalogData = null;
   let currentPage = 1;
   let filteredItems = [];
+  let searchQuery = '';
   
   // ============================================================
-  // STORAGE
+  // STORAGE (only for non-search results)
   // ============================================================
   
   function saveCatalog(data) {
+    if (data.query) return; // Don't cache search results
     try {
       sessionStorage.setItem(STORAGE_KEY, JSON.stringify({
         data,
@@ -82,18 +87,17 @@
   }
   
   function loadCatalog() {
+    if (searchQuery) return null; // Don't use cache when searching
     try {
       const stored = sessionStorage.getItem(STORAGE_KEY);
       if (!stored) return null;
       
       const { data, timestamp } = JSON.parse(stored);
-      
       const MAX_AGE = 5 * 60 * 1000; // 5 minutes
       if (Date.now() - timestamp > MAX_AGE) {
         sessionStorage.removeItem(STORAGE_KEY);
         return null;
       }
-      
       return data;
     } catch (e) {
       return null;
@@ -104,18 +108,17 @@
   // FETCH
   // ============================================================
   
-  async function fetchCatalog() {
-    console.log('[Catalog] Fetching full catalog...');
+  async function fetchCatalog(query = '') {
+    const url = query 
+      ? `${CATALOG_URL}?q=${encodeURIComponent(query)}&limit=500`
+      : CATALOG_URL;
     
-    const res = await fetch(CATALOG_URL, {
-      headers: { 'Accept': 'application/json' }
-    });
-    
+    console.log('[Catalog] Fetching:', url);
+    const res = await fetch(url, { headers: { 'Accept': 'application/json' } });
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
     
     const data = await res.json();
-    console.log(`[Catalog] Loaded ${data.total_items} items (version: ${data.version})`);
-    
+    console.log(`[Catalog] Loaded ${data.total_items} items${query ? ` for "${query}"` : ''}`);
     return data;
   }
   
@@ -128,7 +131,6 @@
       catalogData = await fetchCatalog();
       saveCatalog(catalogData);
     }
-    
     return catalogData;
   }
   
@@ -151,35 +153,18 @@
   
   function filterItems(items, filters) {
     return items.filter(item => {
-      if (filters.categories.length > 0) {
-        if (!filters.categories.includes(item.category_name)) return false;
-      }
-      
-      if (filters.subcategories.length > 0) {
-        if (!filters.subcategories.includes(item.subcategory_name)) return false;
-      }
-      
-      if (filters.colors.length > 0) {
-        if (!item.color_names.some(c => filters.colors.includes(c))) return false;
-      }
-      
-      if (filters.brands.length > 0) {
-        if (!filters.brands.includes(item.brand_name)) return false;
-      }
-      
+      if (filters.categories.length > 0 && !filters.categories.includes(item.category_name)) return false;
+      if (filters.subcategories.length > 0 && !filters.subcategories.includes(item.subcategory_name)) return false;
+      if (filters.colors.length > 0 && !item.color_names.some(c => filters.colors.includes(c))) return false;
+      if (filters.brands.length > 0 && !filters.brands.includes(item.brand_name)) return false;
       return true;
     });
   }
   
   function calculateFilterCounts(allItems, currentFilters) {
-    const counts = {
-      categories: {},
-      subcategories: {},
-      colors: {},
-      brands: {},
-    };
+    const counts = { categories: {}, subcategories: {}, colors: {}, brands: {} };
     
-    // Category counts: items matching (subcategory + color + brand) filters
+    // Category counts
     allItems.filter(item => {
       if (currentFilters.subcategories.length > 0 && !currentFilters.subcategories.includes(item.subcategory_name)) return false;
       if (currentFilters.colors.length > 0 && !item.color_names.some(c => currentFilters.colors.includes(c))) return false;
@@ -189,7 +174,7 @@
       counts.categories[item.category_name] = (counts.categories[item.category_name] || 0) + 1;
     });
     
-    // Subcategory counts: items matching (category + color + brand) filters
+    // Subcategory counts
     allItems.filter(item => {
       if (currentFilters.categories.length > 0 && !currentFilters.categories.includes(item.category_name)) return false;
       if (currentFilters.colors.length > 0 && !item.color_names.some(c => currentFilters.colors.includes(c))) return false;
@@ -199,7 +184,7 @@
       counts.subcategories[item.subcategory_name] = (counts.subcategories[item.subcategory_name] || 0) + 1;
     });
     
-    // Color counts: items matching (category + subcategory + brand) filters
+    // Color counts
     allItems.filter(item => {
       if (currentFilters.categories.length > 0 && !currentFilters.categories.includes(item.category_name)) return false;
       if (currentFilters.subcategories.length > 0 && !currentFilters.subcategories.includes(item.subcategory_name)) return false;
@@ -211,7 +196,7 @@
       });
     });
     
-    // Brand counts: items matching (category + subcategory + color) filters
+    // Brand counts
     allItems.filter(item => {
       if (currentFilters.categories.length > 0 && !currentFilters.categories.includes(item.category_name)) return false;
       if (currentFilters.subcategories.length > 0 && !currentFilters.subcategories.includes(item.subcategory_name)) return false;
@@ -222,6 +207,41 @@
     });
     
     return counts;
+  }
+  
+  // Build filter options from items (for search results)
+  function buildFiltersFromItems(items) {
+    const categories = new Map();
+    const subcategories = new Map();
+    const colors = new Map();
+    const brands = new Map();
+    
+    items.forEach(item => {
+      if (item.category_id && item.category_name) {
+        categories.set(item.category_name, { id: item.category_id, name: item.category_name });
+      }
+      if (item.subcategory_id && item.subcategory_name) {
+        subcategories.set(item.subcategory_name, { 
+          id: item.subcategory_id, 
+          name: item.subcategory_name, 
+          category_id: item.category_id 
+        });
+      }
+      if (item.brand_id && item.brand_name) {
+        brands.set(item.brand_name, { id: item.brand_id, name: item.brand_name });
+      }
+      item.color_names.forEach((colorName, idx) => {
+        const colorId = item.color_ids?.[idx] || colorName;
+        colors.set(colorName, { id: colorId, name: colorName });
+      });
+    });
+    
+    return {
+      categories: Array.from(categories.values()),
+      subcategories: Array.from(subcategories.values()),
+      colors: Array.from(colors.values()),
+      brands: Array.from(brands.values()),
+    };
   }
   
   // ============================================================
@@ -284,7 +304,7 @@
     grid.innerHTML = '';
     
     if (pageItems.length === 0) {
-      grid.innerHTML = '<p>No items found.</p>';
+      grid.innerHTML = '<p style="grid-column: 1/-1; text-align: center; padding: 40px 0;">No items found.</p>';
       return;
     }
     
@@ -317,7 +337,6 @@
       return;
     }
     
-    // Deduplicate by name (keep first occurrence)
     const seen = new Set();
     const uniqueOptions = options.filter(opt => {
       if (seen.has(opt.name)) return false;
@@ -328,8 +347,6 @@
     uniqueOptions.forEach(opt => {
       const count = counts[opt.name] || 0;
       const isChecked = currentlyChecked.has(opt.name);
-      
-      // Hide options with 0 count (unless currently checked)
       if (count === 0 && !isChecked) return;
       
       const label = document.createElement('label');
@@ -349,54 +366,69 @@
   
   function updatePager(totalItems, page) {
     const totalPages = Math.ceil(totalItems / ITEMS_PER_PAGE) || 1;
-    
     if (pageLabel) pageLabel.textContent = `${page} / ${totalPages}`;
     if (btnPrev) btnPrev.disabled = page <= 1;
     if (btnNext) btnNext.disabled = page >= totalPages;
-    
     return totalPages;
   }
   
   // ============================================================
-  // MAIN RENDER FUNCTION
+  // UI STATE UPDATES
+  // ============================================================
+  
+  function updateSearchClearVisibility() {
+    if (searchClear) {
+      searchClear.style.display = searchInput?.value ? 'block' : 'none';
+    }
+  }
+  
+  function updateResetAllVisibility() {
+    if (!resetAllBtn) return;
+    const filters = getSelectedFilters();
+    const hasFilters = filters.categories.length || filters.subcategories.length || 
+                       filters.colors.length || filters.brands.length;
+    const hasSearch = !!searchQuery;
+    resetAllBtn.style.display = (hasFilters || hasSearch) ? 'flex' : 'none';
+  }
+  
+  // ============================================================
+  // MAIN RENDER
   // ============================================================
   
   function render(page = 1) {
     const filters = getSelectedFilters();
-    
     filteredItems = filterItems(catalogData.items, filters);
+    
+    // Use search-result-based filters when searching, full catalog filters otherwise
+    const availableFilters = searchQuery 
+      ? buildFiltersFromItems(catalogData.items)
+      : catalogData.filters;
     
     const counts = calculateFilterCounts(catalogData.items, filters);
     
-    // Render filter panels
-    renderFilterPanel('[data-list="category"]', catalogData.filters.categories, 'category', counts.categories);
-    renderFilterPanel('[data-list="color"]', catalogData.filters.colors, 'color', counts.colors);
-    renderFilterPanel('[data-list="brand"]', catalogData.filters.brands, 'brand', counts.brands);
+    renderFilterPanel('[data-list="category"]', availableFilters.categories, 'category', counts.categories);
+    renderFilterPanel('[data-list="color"]', availableFilters.colors, 'color', counts.colors);
+    renderFilterPanel('[data-list="brand"]', availableFilters.brands, 'brand', counts.brands);
     
-    // Subcategories: only show those for selected categories
-    let subcatsToShow = catalogData.filters.subcategories;
+    let subcatsToShow = availableFilters.subcategories;
     if (filters.categories.length > 0) {
-      const selectedCatIds = catalogData.filters.categories
+      const selectedCatIds = availableFilters.categories
         .filter(c => filters.categories.includes(c.name))
         .map(c => c.id);
       subcatsToShow = subcatsToShow.filter(s => selectedCatIds.includes(s.category_id));
     }
     renderFilterPanel('[data-list="subcategory"]', subcatsToShow, 'subcategory', counts.subcategories);
     
-    // Show/hide subcategory panel
     const subPanel = document.querySelector('[data-panel="subcategory"]');
-    if (subPanel) {
-      subPanel.style.display = filters.categories.length > 0 ? '' : 'none';
-    }
+    if (subPanel) subPanel.style.display = filters.categories.length > 0 ? '' : 'none';
     
     renderGrid(filteredItems, page);
-    
     currentPage = page;
     updatePager(filteredItems.length, page);
-    
     updateURL(filters, page);
+    updateResetAllVisibility();
     
-    console.log(`[Catalog] Rendered ${filteredItems.length} items (page ${page})`);
+    console.log(`[Catalog] Rendered ${filteredItems.length} items (page ${page})${searchQuery ? ` [search: "${searchQuery}"]` : ''}`);
   }
   
   // ============================================================
@@ -406,12 +438,11 @@
   function updateURL(filters, page) {
     const params = new URLSearchParams();
     params.set('page', String(page));
-    
+    if (searchQuery) params.set('q', searchQuery);
     filters.categories.forEach(c => params.append('categories', c));
     filters.subcategories.forEach(s => params.append('subcategories', s));
     filters.colors.forEach(c => params.append('colors', c));
     filters.brands.forEach(b => params.append('brands', b));
-    
     history.replaceState({ page }, '', '?' + params.toString());
   }
   
@@ -422,7 +453,8 @@
       subcategories: params.getAll('subcategories').filter(Boolean),
       colors: params.getAll('colors').filter(Boolean),
       brands: params.getAll('brands').filter(Boolean),
-      page: parseInt(params.get('page') || '1', 10)
+      page: parseInt(params.get('page') || '1', 10),
+      q: params.get('q') || ''
     };
   }
   
@@ -442,27 +474,73 @@
       });
     });
     
+    if (searchInput && urlFilters.q) {
+      searchInput.value = urlFilters.q;
+      searchQuery = urlFilters.q;
+    }
+    
     return urlFilters.page;
+  }
+  
+  // ============================================================
+  // SEARCH HANDLER
+  // ============================================================
+  
+  async function handleSearch(query) {
+    searchQuery = query.trim();
+    
+    // Clear existing filters when searching
+    document.querySelectorAll('[data-filter]').forEach(i => i.checked = false);
+    
+    if (!searchQuery) {
+      // Clear search - reload full catalog
+      catalogData = loadCatalog() || await fetchCatalog();
+      saveCatalog(catalogData);
+    } else {
+      // Fetch search results from backend
+      catalogData = await fetchCatalog(searchQuery);
+    }
+    
+    updateSearchClearVisibility();
+    render(1);
+  }
+  
+  // ============================================================
+  // RESET ALL HANDLER
+  // ============================================================
+  
+  async function handleResetAll() {
+    // Clear all filter checkboxes
+    document.querySelectorAll('[data-filter]').forEach(i => i.checked = false);
+    
+    // Clear search
+    if (searchInput) searchInput.value = '';
+    searchQuery = '';
+    updateSearchClearVisibility();
+    
+    // Reload full catalog
+    catalogData = loadCatalog() || await fetchCatalog();
+    saveCatalog(catalogData);
+    
+    render(1);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   }
   
   // ============================================================
   // EVENT HANDLERS
   // ============================================================
   
+  // Filter changes
   document.addEventListener('change', (e) => {
     if (!e.target.matches('[data-filter]')) return;
-    
-    // If category unchecked, clear subcategories
     if (e.target.matches('[data-filter="category"]') && !e.target.checked) {
-      document.querySelectorAll('[data-filter="subcategory"]:checked').forEach(i => {
-        i.checked = false;
-      });
+      document.querySelectorAll('[data-filter="subcategory"]:checked').forEach(i => i.checked = false);
     }
-    
     render(1);
     window.scrollTo({ top: 0, behavior: 'smooth' });
   });
   
+  // Pagination
   if (btnPrev) {
     btnPrev.addEventListener('click', () => {
       if (currentPage > 1) {
@@ -482,14 +560,49 @@
     });
   }
   
+  // Search input with debounce
+  if (searchInput) {
+    let debounceTimer;
+    
+    searchInput.addEventListener('input', (e) => {
+      updateSearchClearVisibility();
+      clearTimeout(debounceTimer);
+      debounceTimer = setTimeout(() => handleSearch(e.target.value), 300);
+    });
+    
+    searchInput.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') {
+        clearTimeout(debounceTimer);
+        handleSearch(e.target.value);
+      }
+      if (e.key === 'Escape') {
+        searchInput.value = '';
+        handleSearch('');
+      }
+    });
+  }
+  
+  // Search clear button
+  if (searchClear) {
+    searchClear.addEventListener('click', async () => {
+      if (searchInput) searchInput.value = '';
+      await handleSearch('');
+    });
+  }
+  
+  // Reset all button
+  if (resetAllBtn) {
+    resetAllBtn.addEventListener('click', handleResetAll);
+  }
+  
+  // Filter panel reset buttons (existing in Webflow)
   document.querySelectorAll('[data-filter-reset]').forEach(btn => {
-    btn.addEventListener('click', (e) => {
+    btn.addEventListener('click', async (e) => {
       e.preventDefault();
-      document.querySelectorAll('[data-filter]').forEach(i => { i.checked = false; });
-      render(1);
+      await handleResetAll();
       
-      const panel = btn.closest('[data-panel], .filter-panel');
-      const closeBtn = panel?.querySelector('[data-panel-close], [data-close]');
+      const panel = btn.closest('[data-panel], .filter-panel, .filter-page');
+      const closeBtn = panel?.querySelector('[data-panel-close], [data-close], .close-filter-button');
       closeBtn?.click();
     });
   });
@@ -497,15 +610,20 @@
   document.querySelectorAll('[data-filter-apply]').forEach(btn => {
     btn.addEventListener('click', (e) => {
       e.preventDefault();
-      const panel = btn.closest('[data-panel], .filter-panel');
-      const closeBtn = panel?.querySelector('[data-panel-close], [data-close]');
+      const panel = btn.closest('[data-panel], .filter-panel, .filter-page');
+      const closeBtn = panel?.querySelector('[data-panel-close], [data-close], .close-filter-button');
       closeBtn?.click();
     });
   });
   
-  window.addEventListener('popstate', () => {
-    const page = applyURLFilters();
-    render(page);
+  // Browser back/forward
+  window.addEventListener('popstate', async () => {
+    const urlFilters = readFiltersFromURL();
+    if (urlFilters.q !== searchQuery) {
+      await handleSearch(urlFilters.q);
+    }
+    applyURLFilters();
+    render(urlFilters.page);
   });
   
   // ============================================================
@@ -513,13 +631,20 @@
   // ============================================================
   
   try {
-    await initCatalog();
+    const urlFilters = readFiltersFromURL();
     
-    // Initial render populates filter panels
+    // If URL has search query, fetch search results
+    if (urlFilters.q) {
+      searchQuery = urlFilters.q;
+      if (searchInput) searchInput.value = searchQuery;
+      catalogData = await fetchCatalog(searchQuery);
+    } else {
+      await initCatalog();
+    }
+    
+    updateSearchClearVisibility();
     render(1);
     
-    // Apply URL filters (sets checkboxes) and re-render if needed
-    const urlFilters = readFiltersFromURL();
     const hasFilters = urlFilters.categories.length || urlFilters.subcategories.length || 
                        urlFilters.colors.length || urlFilters.brands.length;
     
@@ -528,11 +653,11 @@
       render(urlFilters.page);
     }
     
-    console.log('[Catalog] Ready - client-side filtering enabled 🚀');
+    console.log('[Catalog] Ready 🚀');
     
   } catch (err) {
     console.error('[Catalog] Init failed:', err);
-    grid.innerHTML = '<p>Could not load catalog. Please refresh the page.</p>';
+    grid.innerHTML = '<p style="grid-column: 1/-1; text-align: center; padding: 40px 0;">Could not load catalog. Please refresh the page.</p>';
   }
   
 })();
