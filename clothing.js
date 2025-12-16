@@ -321,14 +321,18 @@
     }
   }
   
-  function renderFilterPanel(selector, options, filterType, counts) {
+  // UPDATED: Now accepts activeValues to pre-check checkboxes
+  function renderFilterPanel(selector, options, filterType, counts, activeValues = []) {
     const listEl = document.querySelector(selector);
     if (!listEl) return;
     
-    const currentlyChecked = new Set(
-      Array.from(document.querySelectorAll(`input[data-filter="${filterType}"]:checked`))
-        .map(i => i.value)
-    );
+    // Use provided activeValues, or fall back to reading from existing checkboxes
+    const currentlyChecked = activeValues.length > 0 
+      ? new Set(activeValues)
+      : new Set(
+          Array.from(document.querySelectorAll(`input[data-filter="${filterType}"]:checked`))
+            .map(i => i.value)
+        );
     
     listEl.innerHTML = '';
     
@@ -392,11 +396,12 @@
   }
   
   // ============================================================
-  // MAIN RENDER
+  // MAIN RENDER - UPDATED to accept initial filters
   // ============================================================
   
-  function render(page = 1) {
-    const filters = getSelectedFilters();
+  function render(page = 1, initialFilters = null) {
+    // Use provided filters or read from checkboxes
+    const filters = initialFilters || getSelectedFilters();
     filteredItems = filterItems(catalogData.items, filters);
     
     // Use search-result-based filters when searching, full catalog filters otherwise
@@ -406,9 +411,10 @@
     
     const counts = calculateFilterCounts(catalogData.items, filters);
     
-    renderFilterPanel('[data-list="category"]', availableFilters.categories, 'category', counts.categories);
-    renderFilterPanel('[data-list="color"]', availableFilters.colors, 'color', counts.colors);
-    renderFilterPanel('[data-list="brand"]', availableFilters.brands, 'brand', counts.brands);
+    // Pass active filter values to renderFilterPanel
+    renderFilterPanel('[data-list="category"]', availableFilters.categories, 'category', counts.categories, filters.categories);
+    renderFilterPanel('[data-list="color"]', availableFilters.colors, 'color', counts.colors, filters.colors);
+    renderFilterPanel('[data-list="brand"]', availableFilters.brands, 'brand', counts.brands, filters.brands);
     
     let subcatsToShow = availableFilters.subcategories;
     if (filters.categories.length > 0) {
@@ -417,7 +423,7 @@
         .map(c => c.id);
       subcatsToShow = subcatsToShow.filter(s => selectedCatIds.includes(s.category_id));
     }
-    renderFilterPanel('[data-list="subcategory"]', subcatsToShow, 'subcategory', counts.subcategories);
+    renderFilterPanel('[data-list="subcategory"]', subcatsToShow, 'subcategory', counts.subcategories, filters.subcategories);
     
     const subPanel = document.querySelector('[data-panel="subcategory"]');
     if (subPanel) subPanel.style.display = filters.categories.length > 0 ? '' : 'none';
@@ -627,7 +633,7 @@
   });
   
   // ============================================================
-  // INIT
+  // INIT - UPDATED to apply URL filters correctly
   // ============================================================
   
   try {
@@ -643,14 +649,25 @@
     }
     
     updateSearchClearVisibility();
-    render(1);
     
+    // Check if URL has filters
     const hasFilters = urlFilters.categories.length || urlFilters.subcategories.length || 
                        urlFilters.colors.length || urlFilters.brands.length;
     
-    if (urlFilters.page !== 1 || hasFilters) {
-      applyURLFilters();
-      render(urlFilters.page);
+    if (hasFilters || urlFilters.page !== 1) {
+      // Render with URL filters directly (bypasses checkbox timing issues)
+      const filters = {
+        categories: urlFilters.categories,
+        subcategories: urlFilters.subcategories,
+        colors: urlFilters.colors,
+        brands: urlFilters.brands
+      };
+      
+      render(urlFilters.page, filters);
+      console.log('[Catalog] Applied URL filters:', filters);
+    } else {
+      // No URL filters, render normally
+      render(1);
     }
     
     console.log('[Catalog] Ready 🚀');
