@@ -20,6 +20,30 @@
   const ITEMS_PER_PAGE = 20;
   
   // ============================================================
+  // STATUS DISPLAY MAPPING
+  // ============================================================
+  
+  const STATUS_DISPLAY = {
+    available: 'Available',
+    rented: 'Rented Out',
+    reserved: 'Reserved',
+    returned: 'Returning Soon',
+    purchased: 'Purchased',
+    sold: 'Sold',
+    damaged: 'Unavailable',
+    retired: 'No Longer Available'
+  };
+  
+  function formatStatus(status) {
+    const s = (status || '').toLowerCase().trim();
+    // If status is empty/missing, default to 'available'
+    if (!s) {
+      return STATUS_DISPLAY['available'];
+    }
+    return STATUS_DISPLAY[s] || (s.charAt(0).toUpperCase() + s.slice(1));
+  }
+  
+  // ============================================================
   // DOM HOOKS
   // ============================================================
   
@@ -221,6 +245,7 @@
     card.setAttribute('data-sku', item.sku);
     card.setAttribute('data-name', item.name);
     card.setAttribute('data-item-id', item.id);
+    card.setAttribute('data-status', item.status || 'available');
     
     const href = `/product?sku=${encodeURIComponent(item.sku)}`;
     const linkEl = card.querySelector('a') || (card.tagName === 'A' ? card : null);
@@ -238,8 +263,16 @@
     const nameEl = card.querySelector('[data-field="name"]');
     if (nameEl) nameEl.textContent = item.name || item.sku;
     
+    // Format status for display
     const metaEl = card.querySelector('[data-field="meta"]');
-    if (metaEl) metaEl.textContent = item.status || '';
+    if (metaEl) {
+      const displayStatus = formatStatus(item.status);
+      metaEl.textContent = displayStatus;
+      
+      // Add status class for optional styling
+      const statusClass = (item.status || 'available').toLowerCase().trim();
+      metaEl.classList.add(`status-${statusClass}`);
+    }
     
     return card;
   }
