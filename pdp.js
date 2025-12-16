@@ -113,6 +113,10 @@
 
   function getStatusConfig(status) {
     const normalizedStatus = (status || '').toLowerCase().trim();
+    // If status is empty/missing, default to 'available'
+    if (!normalizedStatus) {
+      return ITEM_STATUS_CONFIG['available'];
+    }
     return ITEM_STATUS_CONFIG[normalizedStatus] || DEFAULT_STATUS_CONFIG;
   }
 
