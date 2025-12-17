@@ -124,7 +124,7 @@ window.DonationsManager = {
     const itemCount = session.item_count || 0;
     const credits = session.total_credits_cents || 0;
     const notes = session.notes || '';
-    const isActive = session.active;
+    const isComplete = !!session.ended_at;
     
     return `
       <div class="donation-card" style="background: #fff; border: 1px solid #e5e5e5; padding: 20px; margin-bottom: 16px;">
@@ -135,9 +135,9 @@ window.DonationsManager = {
             <div style="font-size: 11px; color: #999; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 4px;">Donation</div>
             <div style="font-size: 13px; color: #333; font-family: monospace;">#${session.hash_id?.substring(0, 8) || session.id}</div>
           </div>
-          ${isActive 
-            ? `<span style="display: inline-block; padding: 4px 10px; background: #fef3c7; color: #92400e; font-size: 11px; font-weight: 500; text-transform: uppercase; letter-spacing: 0.5px;">Processing</span>`
-            : `<span style="display: inline-block; padding: 4px 10px; background: #d1fae5; color: #065f46; font-size: 11px; font-weight: 500; text-transform: uppercase; letter-spacing: 0.5px;">Complete</span>`
+          ${isComplete 
+            ? `<span style="display: inline-block; padding: 4px 10px; background: #d1fae5; color: #065f46; font-size: 11px; font-weight: 500; text-transform: uppercase; letter-spacing: 0.5px;">Complete</span>`
+            : `<span style="display: inline-block; padding: 4px 10px; background: #fef3c7; color: #92400e; font-size: 11px; font-weight: 500; text-transform: uppercase; letter-spacing: 0.5px;">Processing</span>`
           }
         </div>
         
@@ -231,11 +231,11 @@ window.DonationsManager = {
     return `
       <!-- Status Banner -->
       <div style="display: flex; align-items: center; gap: 12px; padding: 16px; background: #fafafa; margin-bottom: 20px;">
-        ${session.active 
-          ? `<span style="display: inline-block; padding: 4px 10px; background: #fef3c7; color: #92400e; font-size: 11px; font-weight: 500; text-transform: uppercase; letter-spacing: 0.5px;">Processing</span>
-             <span style="font-size: 13px; color: #666;">We're reviewing your donated items</span>`
-          : `<span style="display: inline-block; padding: 4px 10px; background: #d1fae5; color: #065f46; font-size: 11px; font-weight: 500; text-transform: uppercase; letter-spacing: 0.5px;">Complete</span>
+        ${session.ended_at 
+          ? `<span style="display: inline-block; padding: 4px 10px; background: #d1fae5; color: #065f46; font-size: 11px; font-weight: 500; text-transform: uppercase; letter-spacing: 0.5px;">Complete</span>
              <span style="font-size: 13px; color: #666;">Credits have been added to your account</span>`
+          : `<span style="display: inline-block; padding: 4px 10px; background: #fef3c7; color: #92400e; font-size: 11px; font-weight: 500; text-transform: uppercase; letter-spacing: 0.5px;">Processing</span>
+             <span style="font-size: 13px; color: #666;">We're reviewing your donated items</span>`
         }
       </div>
       
