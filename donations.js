@@ -252,7 +252,7 @@ window.DonationsManager = {
       <div style="margin-top: 24px; padding: 16px; background: #f8f8f8;">
         <div style="font-size: 12px; font-weight: 500; color: #000; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 8px;">How Store Credits Work</div>
         <div style="font-size: 13px; color: #666; line-height: 1.6;">
-          Store credits can be used towards any purchase or rental at Dematerialized. Credits don't expire and can be combined with other payment methods.
+          Store credits can be used towards any material purchase at Dematerialized. Credits don't expire and can be combined with other payment methods. See our 
         </div>
       </div>
     `;
