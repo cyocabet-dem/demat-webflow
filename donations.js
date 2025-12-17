@@ -74,18 +74,13 @@ window.DonationsManager = {
         <div style="position: absolute; bottom: -40px; right: 60px; width: 80px; height: 80px; border: 1px solid rgba(255,255,255,0.05); border-radius: 50%;"></div>
         
         <div style="position: relative; z-index: 1;">
-          <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 16px;">
-            <div style="width: 40px; height: 40px; background: rgba(255,255,255,0.1); border-radius: 50%; display: flex; align-items: center; justify-content: center;">
-              <span style="font-size: 20px;">✨</span>
-            </div>
-            <div style="font-size: 13px; text-transform: uppercase; letter-spacing: 1px; opacity: 0.8;">Available Store Credit</div>
-          </div>
+          <div style="font-size: 13px; text-transform: uppercase; letter-spacing: 1px; opacity: 0.8; margin-bottom: 16px;">Available Store Credit</div>
           
-          <div style="font-size: 42px; font-weight: 600; letter-spacing: -1px; margin-bottom: 24px;">${this.formatCredits(balance)}</div>
+          <div style="font-size: 42px; font-weight: 600; letter-spacing: -1px; margin-bottom: 12px;">${this.formatCredits(balance)}</div>
           
           <div style="font-size: 13px; opacity: 0.7; line-height: 1.5;">
             Earn credits by donating your pre-loved clothing.<br>
-            Use credits towards purchases in store (online coming soon).
+            Use credits towards rentals and purchases in store.
           </div>
         </div>
       </div>
@@ -252,7 +247,7 @@ window.DonationsManager = {
       <div style="margin-top: 24px; padding: 16px; background: #f8f8f8;">
         <div style="font-size: 12px; font-weight: 500; color: #000; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 8px;">How Store Credits Work</div>
         <div style="font-size: 13px; color: #666; line-height: 1.6;">
-          Store credits can be used towards any material purchase at Dematerialized. Credits don't expire and can be combined with other payment methods. See our 
+          Store credits can be used towards any purchase or rental at Dematerialized. Credits don't expire and can be combined with other payment methods.
         </div>
       </div>
     `;
@@ -313,7 +308,6 @@ window.DonationsManager = {
         // No donations yet, but show balance and empty state
         html += `
           <div style="text-align: center; padding: 40px 20px; background: #fafafa;">
-            <div style="font-size: 48px; margin-bottom: 16px;">🎁</div>
             <h3 style="font-size: 18px; font-weight: 500; margin: 0 0 8px 0;">No donations yet</h3>
             <p style="font-size: 14px; color: #666; margin: 0 0 20px 0; max-width: 300px; margin-left: auto; margin-right: auto;">
               Bring your pre-loved clothing to Dematerialized and earn store credits!
