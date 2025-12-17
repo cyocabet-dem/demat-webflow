@@ -85,7 +85,7 @@ window.DonationsManager = {
           
           <div style="font-size: 13px; opacity: 0.7; line-height: 1.5;">
             Earn credits by donating your pre-loved clothing.<br>
-            Use credits towards rentals and purchases in store.
+            Use credits towards purchases in store (online coming soon).
           </div>
         </div>
       </div>
