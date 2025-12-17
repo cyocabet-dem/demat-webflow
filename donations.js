@@ -206,11 +206,13 @@ window.DonationsManager = {
       const name = item.name || 'Donated Item';
       const size = item.size?.size || item.size?.standard_size?.standard_size || '';
       const credits = this.getItemCredits(item);
+      const sku = item.sku || '';
+      const itemUrl = sku ? `/product?sku=${encodeURIComponent(sku)}` : '';
       
       return `
-        <div style="display: flex; gap: 16px; padding: 16px 0; border-bottom: 1px solid #f0f0f0;">
-          <div style="width: 80px; height: 107px; background: #f5f5f5; flex-shrink: 0; overflow: hidden;">
-            ${imgUrl ? `<img src="${imgUrl}" alt="${name}" style="width: 100%; height: 100%; object-fit: cover;">` : '<div style="width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; color: #ccc; font-size: 24px;">👕</div>'}
+        <a href="${itemUrl}" style="display: flex; gap: 16px; padding: 16px 0; border-bottom: 1px solid #f0f0f0; text-decoration: none; color: inherit;${itemUrl ? ' cursor: pointer;' : ' pointer-events: none;'}">
+          <div style="width: 80px; height: 107px; background: #f5f5f5; flex-shrink: 0; overflow: hidden; display: flex; align-items: center; justify-content: center; padding: 8px;">
+            ${imgUrl ? `<img src="${imgUrl}" alt="${name}" style="max-width: 100%; max-height: 100%; object-fit: contain;">` : '<div style="color: #ccc; font-size: 24px;">👕</div>'}
           </div>
           <div style="flex: 1; display: flex; flex-direction: column; gap: 4px;">
             ${brand ? `<div style="font-size: 10px; color: #666; text-transform: uppercase; letter-spacing: 0.5px;">${brand}</div>` : ''}
@@ -222,7 +224,7 @@ window.DonationsManager = {
               </div>
             ` : ''}
           </div>
-        </div>
+        </a>
       `;
     }).join('') : '<div style="padding: 20px; text-align: center; color: #666;">Item details not available</div>';
     
