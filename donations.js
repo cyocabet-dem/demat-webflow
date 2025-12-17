@@ -259,10 +259,14 @@ window.DonationsManager = {
   },
   
   async renderDonationsPage() {
+    console.log('🎁 renderDonationsPage called');
+    
     const container = document.getElementById('donations-container');
     const loadingEl = document.getElementById('donations-loading');
     const emptyEl = document.getElementById('donations-empty');
     const contentEl = document.getElementById('donations-content');
+    
+    console.log('🎁 Elements found:', { container: !!container, loadingEl: !!loadingEl, emptyEl: !!emptyEl, contentEl: !!contentEl });
     
     if (!container) {
       console.error('Donations container not found');
@@ -276,11 +280,16 @@ window.DonationsManager = {
     
     const data = await this.fetchDonations();
     
+    console.log('🎁 Data received:', data);
+    console.log('🎁 Credit balance:', this._creditBalance);
+    console.log('🎁 Sessions count:', data?.sessions?.length);
+    
     // Hide loading
     if (loadingEl) loadingEl.style.display = 'none';
     
     if (!data) {
       // Error state
+      console.error('🎁 No data returned from fetchDonations');
       if (contentEl) {
         contentEl.innerHTML = `
           <div style="text-align: center; padding: 40px 20px; background: #fef2f2;">
@@ -294,6 +303,7 @@ window.DonationsManager = {
     }
     
     const sessions = data.sessions || [];
+    console.log('🎁 Processing sessions:', sessions.length);
     
     // Always show the credit balance card, even with no donations
     if (contentEl) {
@@ -335,6 +345,7 @@ window.DonationsManager = {
       
       contentEl.innerHTML = html;
       contentEl.style.display = 'block';
+      console.log('🎁 Content rendered, HTML length:', html.length);
     }
     
     console.log('🎁 Donations page rendered');
