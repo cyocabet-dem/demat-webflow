@@ -160,8 +160,8 @@ window.DonationsManager = {
         <!-- Notes Section (if present) -->
         ${notes ? `
           <div style="margin-bottom: 16px; padding: 12px; background: #f8f5f0; border-left: 3px solid #d4a574;">
-            <div style="font-size: 10px; color: #8b7355; text-transform: uppercase; margin-bottom: 6px; display: flex; align-items: center; gap: 6px;">
-              <span>📝</span> Notes from Dematerialized
+            <div style="font-size: 10px; color: #8b7355; text-transform: uppercase; margin-bottom: 6px;">
+              Notes from Dematerialized
             </div>
             <div style="font-size: 13px; color: #5c4d3d; line-height: 1.5;">${this.escapeHtml(notes)}</div>
           </div>
@@ -265,8 +265,8 @@ window.DonationsManager = {
       <!-- Notes (if present) -->
       ${notes ? `
         <div style="margin-bottom: 24px; padding: 16px; background: #f8f5f0; border-left: 3px solid #d4a574;">
-          <div style="font-size: 12px; font-weight: 500; color: #8b7355; text-transform: uppercase; margin-bottom: 8px; display: flex; align-items: center; gap: 6px;">
-            <span>📝</span> Notes from Dematerialized
+          <div style="font-size: 12px; font-weight: 500; color: #8b7355; text-transform: uppercase; margin-bottom: 8px;">
+            Notes from Dematerialized
           </div>
           <div style="font-size: 14px; color: #5c4d3d; line-height: 1.6;">${this.escapeHtml(notes)}</div>
         </div>
