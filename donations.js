@@ -81,7 +81,7 @@ window.DonationsManager = {
             <div style="font-size: 13px; text-transform: uppercase; letter-spacing: 1px; opacity: 0.8;">Available Store Credit</div>
           </div>
           
-          <div style="font-size: 42px; font-weight: 600; letter-spacing: -1px; margin-bottom: 12px;">${this.formatCredits(balance)}</div>
+          <div style="font-size: 42px; font-weight: 600; letter-spacing: -1px; margin-bottom: 24px;">${this.formatCredits(balance)}</div>
           
           <div style="font-size: 13px; opacity: 0.7; line-height: 1.5;">
             Earn credits by donating your pre-loved clothing.<br>
