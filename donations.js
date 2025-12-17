@@ -6,6 +6,39 @@ window.DonationsManager = {
   API_BASE: window.API_BASE_URL,
   _donationsCache: null,
   _creditBalance: 0,
+  _pricingCategories: null,
+  
+  async fetchPricingCategories() {
+    if (this._pricingCategories) return this._pricingCategories;
+    
+    try {
+      const response = await fetch(`${this.API_BASE}/clothing_items/pricing_categories`, {
+        headers: { 'Accept': 'application/json' }
+      });
+      
+      if (response.ok) {
+        this._pricingCategories = await response.json();
+        console.log('🎁 Pricing categories loaded:', this._pricingCategories.length);
+      }
+    } catch (err) {
+      console.error('Error fetching pricing categories:', err);
+    }
+    
+    return this._pricingCategories;
+  },
+  
+  getItemCredits(item) {
+    if (!this._pricingCategories || !item.category?.pricing_group) return null;
+    
+    const pricingGroup = item.category.pricing_group;
+    const isFastFashion = item.brand?.is_fast_fashion || false;
+    
+    const match = this._pricingCategories.find(pc => 
+      pc.display_name === pricingGroup && pc.is_fast_fashion === isFastFashion
+    );
+    
+    return match?.store_credits_cents ?? null;
+  },
   
   async fetchDonations() {
     console.log('🎁 Fetching donations...');
@@ -172,7 +205,7 @@ window.DonationsManager = {
       const brand = item.brand?.brand_name || '';
       const name = item.name || 'Donated Item';
       const size = item.size?.size || item.size?.standard_size?.standard_size || '';
-      const credits = item.store_credit_cents || 0;
+      const credits = this.getItemCredits(item);
       
       return `
         <div style="display: flex; gap: 16px; padding: 16px 0; border-bottom: 1px solid #f0f0f0;">
@@ -183,9 +216,11 @@ window.DonationsManager = {
             ${brand ? `<div style="font-size: 10px; color: #666; text-transform: uppercase; letter-spacing: 0.5px;">${brand}</div>` : ''}
             <div style="font-size: 14px; font-weight: 500; color: #000; line-height: 1.3;">${name}</div>
             ${size ? `<div style="font-size: 12px; color: #666;">Size: ${size}</div>` : ''}
-            <div style="font-size: 12px; color: #065f46; margin-top: auto; font-weight: 500;">
-              +${this.formatCredits(credits)} credit
-            </div>
+            ${credits !== null ? `
+              <div style="font-size: 12px; color: #065f46; margin-top: auto; font-weight: 500;">
+                +${this.formatCredits(credits)} credit
+              </div>
+            ` : ''}
           </div>
         </div>
       `;
@@ -273,6 +308,8 @@ window.DonationsManager = {
     if (emptyEl) emptyEl.style.display = 'none';
     if (contentEl) contentEl.style.display = 'none';
     
+    // Fetch pricing categories and donations
+    await this.fetchPricingCategories();
     const data = await this.fetchDonations();
     
     console.log('🎁 Data received:', data);
@@ -347,6 +384,9 @@ window.DonationsManager = {
   
   async viewDonation(sessionId) {
     console.log('🎁 View donation:', sessionId);
+    
+    // Ensure pricing categories are loaded
+    await this.fetchPricingCategories();
     
     // First check cache
     let session = this._donationsCache?.find(s => s.id === sessionId);
