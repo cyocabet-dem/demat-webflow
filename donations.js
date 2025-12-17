@@ -252,7 +252,7 @@ window.DonationsManager = {
             <div style="font-size: 14px; color: #333;">${session.location || 'In-store'}</div>
           </div>
           <div style="padding: 12px; background: #fafafa;">
-            <div style="font-size: 10px; color: #999; text-transform: uppercase; margin-bottom: 4px;">Items Donated</div>
+            <div style="font-size: 10px; color: #999; text-transform: uppercase; margin-bottom: 4px;">Items Accepted</div>
             <div style="font-size: 14px; color: #333;">${session.item_count || 0} item${(session.item_count || 0) !== 1 ? 's' : ''}</div>
           </div>
           <div style="padding: 12px; background: #d1fae5;">
