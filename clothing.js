@@ -547,24 +547,26 @@
   });
   
   // Pagination
-  if (btnPrev) {
-    btnPrev.addEventListener('click', () => {
-      if (currentPage > 1) {
-        render(currentPage - 1);
-        window.scrollTo({ top: 0, behavior: 'smooth' });
-      }
-    });
-  }
-  
-  if (btnNext) {
-    btnNext.addEventListener('click', () => {
-      const totalPages = Math.ceil(filteredItems.length / ITEMS_PER_PAGE);
-      if (currentPage < totalPages) {
-        render(currentPage + 1);
-        window.scrollTo({ top: 0, behavior: 'smooth' });
-      }
-    });
-  }
+if (btnPrev) {
+  btnPrev.addEventListener('click', (e) => {
+    e.preventDefault();
+    if (currentPage > 1) {
+      render(currentPage - 1);
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+  });
+}
+
+if (btnNext) {
+  btnNext.addEventListener('click', (e) => {
+    e.preventDefault();
+    const totalPages = Math.ceil(filteredItems.length / ITEMS_PER_PAGE);
+    if (currentPage < totalPages) {
+      render(currentPage + 1);
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+  });
+}
   
   // Search input with debounce
   if (searchInput) {
