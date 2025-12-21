@@ -31,7 +31,7 @@
     purchased: 'Purchased',
     sold: 'Sold',
     damaged: 'Unavailable',
-    retired: 'No Longer Available'
+    retired: 'No Longer Available',
     'in cleaning': 'Being Cleaned'
   };
   
