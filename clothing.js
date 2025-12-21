@@ -290,9 +290,9 @@
       const displayStatus = formatStatus(item.status);
       metaEl.textContent = displayStatus;
       
-      // Add status class for optional styling
-const statusClass = (item.status || 'available').toLowerCase().trim().replace(/\s+/g, '-');
-metaEl.classList.add(`status-${statusClass}`);  // "status-in-cleaning" ✓
+      // Add status class for optional styling (replace spaces with hyphens for valid class names)
+      const statusClass = (item.status || 'available').toLowerCase().trim().replace(/\s+/g, '-');
+      metaEl.classList.add(`status-${statusClass}`);
     }
     
     return card;
@@ -548,26 +548,24 @@ metaEl.classList.add(`status-${statusClass}`);  // "status-in-cleaning" ✓
   });
   
   // Pagination
-if (btnPrev) {
-  btnPrev.addEventListener('click', (e) => {
-    e.preventDefault();
-    if (currentPage > 1) {
-      render(currentPage - 1);
-      window.scrollTo({ top: 0, behavior: 'smooth' });
-    }
-  });
-}
-
-if (btnNext) {
-  btnNext.addEventListener('click', (e) => {
-    e.preventDefault();
-    const totalPages = Math.ceil(filteredItems.length / ITEMS_PER_PAGE);
-    if (currentPage < totalPages) {
-      render(currentPage + 1);
-      window.scrollTo({ top: 0, behavior: 'smooth' });
-    }
-  });
-}
+  if (btnPrev) {
+    btnPrev.addEventListener('click', () => {
+      if (currentPage > 1) {
+        render(currentPage - 1);
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      }
+    });
+  }
+  
+  if (btnNext) {
+    btnNext.addEventListener('click', () => {
+      const totalPages = Math.ceil(filteredItems.length / ITEMS_PER_PAGE);
+      if (currentPage < totalPages) {
+        render(currentPage + 1);
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      }
+    });
+  }
   
   // Search input with debounce
   if (searchInput) {
