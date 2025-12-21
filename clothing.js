@@ -32,6 +32,7 @@
     sold: 'Sold',
     damaged: 'Unavailable',
     retired: 'No Longer Available'
+    'in cleaning': 'Being Cleaned'
   };
   
   function formatStatus(status) {
@@ -290,8 +291,8 @@
       metaEl.textContent = displayStatus;
       
       // Add status class for optional styling
-      const statusClass = (item.status || 'available').toLowerCase().trim();
-      metaEl.classList.add(`status-${statusClass}`);
+const statusClass = (item.status || 'available').toLowerCase().trim().replace(/\s+/g, '-');
+metaEl.classList.add(`status-${statusClass}`);  // "status-in-cleaning" ✓
     }
     
     return card;
