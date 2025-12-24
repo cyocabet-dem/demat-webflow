@@ -1,3 +1,14 @@
+// Redirect staging to production (unless bypass parameter is present)
+(function() {
+  if (window.location.hostname.includes('webflow.io')) {
+    const params = new URLSearchParams(window.location.search);
+    if (!params.has('staging')) {
+      window.location.replace('https://dematerialized.nl' + window.location.pathname + window.location.search);
+      return;
+    }
+  }
+})();
+
 console.log("🎯 Filter menu script loading...");
 
 (function() {
