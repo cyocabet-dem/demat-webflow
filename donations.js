@@ -6,6 +6,39 @@ window.DonationsManager = {
   API_BASE: window.API_BASE_URL,
   _donationsCache: null,
   _creditBalance: 0,
+  _pricingCategories: null,
+  
+  async fetchPricingCategories() {
+    if (this._pricingCategories) return this._pricingCategories;
+    
+    try {
+      const response = await fetch(`${this.API_BASE}/clothing_items/pricing_categories`, {
+        headers: { 'Accept': 'application/json' }
+      });
+      
+      if (response.ok) {
+        this._pricingCategories = await response.json();
+        console.log('🎁 Pricing categories loaded:', this._pricingCategories.length);
+      }
+    } catch (err) {
+      console.error('Error fetching pricing categories:', err);
+    }
+    
+    return this._pricingCategories;
+  },
+  
+  getItemCredits(item) {
+    if (!this._pricingCategories || !item.category?.pricing_group) return null;
+    
+    const pricingGroup = item.category.pricing_group;
+    const isFastFashion = item.brand?.is_fast_fashion || false;
+    
+    const match = this._pricingCategories.find(pc => 
+      pc.display_name === pricingGroup && pc.is_fast_fashion === isFastFashion
+    );
+    
+    return match?.store_credits_cents ?? null;
+  },
   
   async fetchDonations() {
     console.log('🎁 Fetching donations...');
@@ -74,18 +107,13 @@ window.DonationsManager = {
         <div style="position: absolute; bottom: -40px; right: 60px; width: 80px; height: 80px; border: 1px solid rgba(255,255,255,0.05); border-radius: 50%;"></div>
         
         <div style="position: relative; z-index: 1;">
-          <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 16px;">
-            <div style="width: 40px; height: 40px; background: rgba(255,255,255,0.1); border-radius: 50%; display: flex; align-items: center; justify-content: center;">
-              <span style="font-size: 20px;">✨</span>
-            </div>
-            <div style="font-size: 13px; text-transform: uppercase; letter-spacing: 1px; opacity: 0.8;">Available Store Credit</div>
-          </div>
+          <div style="font-size: 13px; text-transform: uppercase; letter-spacing: 1px; opacity: 0.8; margin-bottom: 16px;">Available Store Credit</div>
           
-          <div style="font-size: 42px; font-weight: 600; letter-spacing: -1px; margin-bottom: 12px;">${this.formatCredits(balance)}</div>
+          <div style="font-size: 42px; font-weight: 600; letter-spacing: -1px; margin-bottom: 24px;">${this.formatCredits(balance)}</div>
           
           <div style="font-size: 13px; opacity: 0.7; line-height: 1.5;">
             Earn credits by donating your pre-loved clothing.<br>
-            Use credits towards rentals and purchases in store.
+            Use credits towards eligible purchases in store (online coming soon).
           </div>
         </div>
       </div>
@@ -96,7 +124,7 @@ window.DonationsManager = {
     const itemCount = session.item_count || 0;
     const credits = session.total_credits_cents || 0;
     const notes = session.notes || '';
-    const isActive = session.active;
+    const isComplete = !!session.ended_at;
     
     return `
       <div class="donation-card" style="background: #fff; border: 1px solid #e5e5e5; padding: 20px; margin-bottom: 16px;">
@@ -107,9 +135,9 @@ window.DonationsManager = {
             <div style="font-size: 11px; color: #999; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 4px;">Donation</div>
             <div style="font-size: 13px; color: #333; font-family: monospace;">#${session.hash_id?.substring(0, 8) || session.id}</div>
           </div>
-          ${isActive 
-            ? `<span style="display: inline-block; padding: 4px 10px; background: #fef3c7; color: #92400e; font-size: 11px; font-weight: 500; text-transform: uppercase; letter-spacing: 0.5px;">Processing</span>`
-            : `<span style="display: inline-block; padding: 4px 10px; background: #d1fae5; color: #065f46; font-size: 11px; font-weight: 500; text-transform: uppercase; letter-spacing: 0.5px;">Complete</span>`
+          ${isComplete 
+            ? `<span style="display: inline-block; padding: 4px 10px; background: #d1fae5; color: #065f46; font-size: 11px; font-weight: 500; text-transform: uppercase; letter-spacing: 0.5px;">Complete</span>`
+            : `<span style="display: inline-block; padding: 4px 10px; background: #fef3c7; color: #92400e; font-size: 11px; font-weight: 500; text-transform: uppercase; letter-spacing: 0.5px;">Processing</span>`
           }
         </div>
         
@@ -132,8 +160,8 @@ window.DonationsManager = {
         <!-- Notes Section (if present) -->
         ${notes ? `
           <div style="margin-bottom: 16px; padding: 12px; background: #f8f5f0; border-left: 3px solid #d4a574;">
-            <div style="font-size: 10px; color: #8b7355; text-transform: uppercase; margin-bottom: 6px; display: flex; align-items: center; gap: 6px;">
-              <span>📝</span> Notes from Dematerialized
+            <div style="font-size: 10px; color: #8b7355; text-transform: uppercase; margin-bottom: 6px;">
+              Notes from Dematerialized
             </div>
             <div style="font-size: 13px; color: #5c4d3d; line-height: 1.5;">${this.escapeHtml(notes)}</div>
           </div>
@@ -177,33 +205,37 @@ window.DonationsManager = {
       const brand = item.brand?.brand_name || '';
       const name = item.name || 'Donated Item';
       const size = item.size?.size || item.size?.standard_size?.standard_size || '';
-      const credits = item.store_credit_cents || 0;
+      const credits = this.getItemCredits(item);
+      const sku = item.sku || '';
+      const itemUrl = sku ? `/product?sku=${encodeURIComponent(sku)}` : '';
       
       return `
-        <div style="display: flex; gap: 16px; padding: 16px 0; border-bottom: 1px solid #f0f0f0;">
-          <div style="width: 80px; height: 107px; background: #f5f5f5; flex-shrink: 0; overflow: hidden;">
-            ${imgUrl ? `<img src="${imgUrl}" alt="${name}" style="width: 100%; height: 100%; object-fit: cover;">` : '<div style="width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; color: #ccc; font-size: 24px;">👕</div>'}
+        <a href="${itemUrl}" style="display: flex; gap: 16px; padding: 16px 0; border-bottom: 1px solid #f0f0f0; text-decoration: none; color: inherit;${itemUrl ? ' cursor: pointer;' : ' pointer-events: none;'}">
+          <div style="width: 80px; height: 107px; background: #f5f5f5; flex-shrink: 0; overflow: hidden; display: flex; align-items: center; justify-content: center; padding: 8px;">
+            ${imgUrl ? `<img src="${imgUrl}" alt="${name}" style="max-width: 100%; max-height: 100%; object-fit: contain;">` : '<div style="color: #ccc; font-size: 24px;">👕</div>'}
           </div>
           <div style="flex: 1; display: flex; flex-direction: column; gap: 4px;">
             ${brand ? `<div style="font-size: 10px; color: #666; text-transform: uppercase; letter-spacing: 0.5px;">${brand}</div>` : ''}
             <div style="font-size: 14px; font-weight: 500; color: #000; line-height: 1.3;">${name}</div>
             ${size ? `<div style="font-size: 12px; color: #666;">Size: ${size}</div>` : ''}
-            <div style="font-size: 12px; color: #065f46; margin-top: auto; font-weight: 500;">
-              +${this.formatCredits(credits)} credit
-            </div>
+            ${credits !== null ? `
+              <div style="font-size: 12px; color: #065f46; margin-top: auto; font-weight: 500;">
+                +${this.formatCredits(credits)} credit
+              </div>
+            ` : ''}
           </div>
-        </div>
+        </a>
       `;
     }).join('') : '<div style="padding: 20px; text-align: center; color: #666;">Item details not available</div>';
     
     return `
       <!-- Status Banner -->
       <div style="display: flex; align-items: center; gap: 12px; padding: 16px; background: #fafafa; margin-bottom: 20px;">
-        ${session.active 
-          ? `<span style="display: inline-block; padding: 4px 10px; background: #fef3c7; color: #92400e; font-size: 11px; font-weight: 500; text-transform: uppercase; letter-spacing: 0.5px;">Processing</span>
-             <span style="font-size: 13px; color: #666;">We're reviewing your donated items</span>`
-          : `<span style="display: inline-block; padding: 4px 10px; background: #d1fae5; color: #065f46; font-size: 11px; font-weight: 500; text-transform: uppercase; letter-spacing: 0.5px;">Complete</span>
+        ${session.ended_at 
+          ? `<span style="display: inline-block; padding: 4px 10px; background: #d1fae5; color: #065f46; font-size: 11px; font-weight: 500; text-transform: uppercase; letter-spacing: 0.5px;">Complete</span>
              <span style="font-size: 13px; color: #666;">Credits have been added to your account</span>`
+          : `<span style="display: inline-block; padding: 4px 10px; background: #fef3c7; color: #92400e; font-size: 11px; font-weight: 500; text-transform: uppercase; letter-spacing: 0.5px;">Processing</span>
+             <span style="font-size: 13px; color: #666;">We're reviewing your donated items</span>`
         }
       </div>
       
@@ -220,7 +252,7 @@ window.DonationsManager = {
             <div style="font-size: 14px; color: #333;">${session.location || 'In-store'}</div>
           </div>
           <div style="padding: 12px; background: #fafafa;">
-            <div style="font-size: 10px; color: #999; text-transform: uppercase; margin-bottom: 4px;">Items Donated</div>
+            <div style="font-size: 10px; color: #999; text-transform: uppercase; margin-bottom: 4px;">Items Accepted</div>
             <div style="font-size: 14px; color: #333;">${session.item_count || 0} item${(session.item_count || 0) !== 1 ? 's' : ''}</div>
           </div>
           <div style="padding: 12px; background: #d1fae5;">
@@ -233,8 +265,8 @@ window.DonationsManager = {
       <!-- Notes (if present) -->
       ${notes ? `
         <div style="margin-bottom: 24px; padding: 16px; background: #f8f5f0; border-left: 3px solid #d4a574;">
-          <div style="font-size: 12px; font-weight: 500; color: #8b7355; text-transform: uppercase; margin-bottom: 8px; display: flex; align-items: center; gap: 6px;">
-            <span>📝</span> Notes from Dematerialized
+          <div style="font-size: 12px; font-weight: 500; color: #8b7355; text-transform: uppercase; margin-bottom: 8px;">
+            Notes from Dematerialized
           </div>
           <div style="font-size: 14px; color: #5c4d3d; line-height: 1.6;">${this.escapeHtml(notes)}</div>
         </div>
@@ -252,7 +284,7 @@ window.DonationsManager = {
       <div style="margin-top: 24px; padding: 16px; background: #f8f8f8;">
         <div style="font-size: 12px; font-weight: 500; color: #000; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 8px;">How Store Credits Work</div>
         <div style="font-size: 13px; color: #666; line-height: 1.6;">
-          Store credits can be used towards any purchase or rental at Dematerialized. Credits don't expire and can be combined with other payment methods.
+          Store credits can be used towards any material purchase at Dematerialized. Credits don't expire and can be combined with other payment methods.
         </div>
       </div>
     `;
@@ -278,6 +310,8 @@ window.DonationsManager = {
     if (emptyEl) emptyEl.style.display = 'none';
     if (contentEl) contentEl.style.display = 'none';
     
+    // Fetch pricing categories and donations
+    await this.fetchPricingCategories();
     const data = await this.fetchDonations();
     
     console.log('🎁 Data received:', data);
@@ -313,7 +347,6 @@ window.DonationsManager = {
         // No donations yet, but show balance and empty state
         html += `
           <div style="text-align: center; padding: 40px 20px; background: #fafafa;">
-            <div style="font-size: 48px; margin-bottom: 16px;">🎁</div>
             <h3 style="font-size: 18px; font-weight: 500; margin: 0 0 8px 0;">No donations yet</h3>
             <p style="font-size: 14px; color: #666; margin: 0 0 20px 0; max-width: 300px; margin-left: auto; margin-right: auto;">
               Bring your pre-loved clothing to Dematerialized and earn store credits!
@@ -353,6 +386,9 @@ window.DonationsManager = {
   
   async viewDonation(sessionId) {
     console.log('🎁 View donation:', sessionId);
+    
+    // Ensure pricing categories are loaded
+    await this.fetchPricingCategories();
     
     // First check cache
     let session = this._donationsCache?.find(s => s.id === sessionId);
