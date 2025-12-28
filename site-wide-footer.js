@@ -315,7 +315,7 @@ console.log("✅ Auth UI controller ready");
 // ============================================
 window.CartManager = {
   STORAGE_KEY: 'dematerialized_cart',
-  MAX_ITEMS: 10,
+  MAX_ITEMS: 5,
   API_BASE: window.API_BASE_URL,
   _syncing: false,
   _initialized: false,
@@ -813,7 +813,7 @@ function renderCartOverlay() {
     return;
   }
   
-  countText.textContent = `${cart.length} of 10 items`;
+  countText.textContent = `${cart.length} of 5 items`;
   footerCount.textContent = cart.length;
   
   if (cart.length === 0) {
@@ -1073,17 +1073,7 @@ async function handleReserveClick() {
     return;
   }
   
-  // Check if user has Premium membership
-  const canReserve = await UserMembership.canReserveOnline();
-  
-  if (!canReserve) {
-    // Show upgrade modal for Basic members
-    console.log('⭐ User is not Premium, showing upgrade modal');
-    openUpgradeModal();
-    return;
-  }
-  
-  // User is Premium - show confirmation modal
+  // User is authenticated - show reservation modal
   openReservationModal();
 }
 
