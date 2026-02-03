@@ -10,6 +10,14 @@
  * 
  * Before: 3 item fetches + 300 item fetch = 4 requests
  * After:  1 item fetch + 0 extra (uses cache) = 1 request
+ * 
+ * STATUS-AWARE CART BUTTON:
+ * - available: Normal Add/Remove from Cart
+ * - rented: Disabled, "Rented Out"
+ * - reserved: Disabled, "Reserved"
+ * - returned: Disabled, "Returning Soon"
+ * - purchased/sold: Disabled, "Purchased"/"Sold"
+ * - Other statuses: Disabled, "Unavailable"
  */
 
 // ============================================================
@@ -49,6 +57,68 @@
     normalized: null,
     ready: false
   };
+
+  // ============================================================
+  // ITEM STATUS CONFIGURATION
+  // ============================================================
+  
+  const ITEM_STATUS_CONFIG = {
+    available: {
+      canAddToCart: true,
+      buttonText: null,
+      buttonClass: ''
+    },
+    rented: {
+      canAddToCart: false,
+      buttonText: 'Rented Out',
+      buttonClass: 'status-rented'
+    },
+    reserved: {
+      canAddToCart: false,
+      buttonText: 'Reserved',
+      buttonClass: 'status-reserved'
+    },
+    returned: {
+      canAddToCart: false,
+      buttonText: 'Returning Soon',
+      buttonClass: 'status-returned'
+    },
+    purchased: {
+      canAddToCart: false,
+      buttonText: 'Purchased',
+      buttonClass: 'status-purchased'
+    },
+    sold: {
+      canAddToCart: false,
+      buttonText: 'Sold',
+      buttonClass: 'status-sold'
+    },
+    damaged: {
+      canAddToCart: false,
+      buttonText: 'Unavailable',
+      buttonClass: 'status-unavailable'
+    },
+    retired: {
+      canAddToCart: false,
+      buttonText: 'No Longer Available',
+      buttonClass: 'status-retired'
+    }
+  };
+
+  const DEFAULT_STATUS_CONFIG = {
+    canAddToCart: false,
+    buttonText: 'Unavailable',
+    buttonClass: 'status-unavailable'
+  };
+
+  function getStatusConfig(status) {
+    const normalizedStatus = (status || '').toLowerCase().trim();
+    // If status is empty/missing, default to 'available'
+    if (!normalizedStatus) {
+      return ITEM_STATUS_CONFIG['available'];
+    }
+    return ITEM_STATUS_CONFIG[normalizedStatus] || DEFAULT_STATUS_CONFIG;
+  }
 
   // ============================================================
   // UTILITIES
@@ -686,7 +756,7 @@
   }
 
   // ============================================================
-  // CART
+  // CART (STATUS-AWARE)
   // ============================================================
 
   async function initCart() {
@@ -698,12 +768,33 @@
       frontImage: pickFrontImage(state.item.images)
     };
 
+    // Get status configuration
+    const itemStatus = state.normalized?.status || state.item?.status || '';
+    const statusConfig = getStatusConfig(itemStatus);
+
     if (window.CartManager) {
       await CartManager.init();
     }
 
     function updateBtn() {
+      // First check if item status allows cart operations
+      if (!statusConfig.canAddToCart) {
+        btn.textContent = statusConfig.buttonText;
+        btn.classList.remove('in-cart');
+        btn.classList.add('status-disabled', statusConfig.buttonClass);
+        btn.disabled = true;
+        btn.style.opacity = '0.6';
+        btn.style.cursor = 'not-allowed';
+        return;
+      }
+
+      // Item is available - normal cart functionality
       if (!window.CartManager) return;
+
+      // Remove any status classes
+      btn.classList.remove('status-disabled', 'status-rented', 'status-reserved', 
+                           'status-returned', 'status-purchased', 'status-sold',
+                           'status-unavailable', 'status-retired');
 
       const isInCart = CartManager.isInCart(itemData.id);
       const cartCount = CartManager.getCartCount();
@@ -731,6 +822,9 @@
 
     btn.addEventListener('click', async e => {
       e.preventDefault();
+      
+      // Don't allow clicks if item isn't available
+      if (!statusConfig.canAddToCart) return;
       if (!window.CartManager) return;
 
       const originalText = btn.textContent;
@@ -759,6 +853,109 @@
 
     updateBtn();
   }
+
+  // ============================================================
+  // EXPORT CART BUTTON UTILITIES (for use on other pages)
+  // ============================================================
+  
+  window.CartButtonUtils = {
+    getStatusConfig,
+    ITEM_STATUS_CONFIG,
+    DEFAULT_STATUS_CONFIG,
+    
+    /**
+     * Updates any cart button based on item status
+     * @param {HTMLElement} btn - The button element
+     * @param {Object} item - Item data with id and status
+     * @returns {Object} { canInteract, status }
+     */
+    updateCartButton(btn, item) {
+      if (!btn || !item) return { canInteract: false, status: 'unknown' };
+
+      const itemStatus = (item.status || '').toLowerCase().trim();
+      const config = getStatusConfig(itemStatus);
+
+      if (!config.canAddToCart) {
+        btn.textContent = config.buttonText;
+        btn.classList.remove('in-cart');
+        btn.classList.add('status-disabled', config.buttonClass);
+        btn.disabled = true;
+        btn.style.opacity = '0.6';
+        btn.style.cursor = 'not-allowed';
+        return { canInteract: false, status: itemStatus };
+      }
+
+      btn.classList.remove('status-disabled', 'status-rented', 'status-reserved',
+                           'status-returned', 'status-purchased', 'status-sold',
+                           'status-unavailable', 'status-retired');
+
+      if (!window.CartManager) {
+        btn.textContent = 'Add To Cart';
+        btn.disabled = false;
+        btn.style.opacity = '1';
+        btn.style.cursor = 'pointer';
+        return { canInteract: true, status: itemStatus };
+      }
+
+      const isInCart = CartManager.isInCart(item.id);
+      const cartCount = CartManager.getCartCount();
+
+      if (isInCart) {
+        btn.textContent = 'Remove From Cart';
+        btn.classList.add('in-cart');
+        btn.disabled = false;
+        btn.style.opacity = '1';
+        btn.style.cursor = 'pointer';
+      } else if (cartCount >= CartManager.MAX_ITEMS) {
+        btn.textContent = 'Cart Full (10 Items)';
+        btn.classList.remove('in-cart');
+        btn.disabled = true;
+        btn.style.opacity = '0.5';
+        btn.style.cursor = 'not-allowed';
+      } else {
+        btn.textContent = 'Add To Cart';
+        btn.classList.remove('in-cart');
+        btn.disabled = false;
+        btn.style.opacity = '1';
+        btn.style.cursor = 'pointer';
+      }
+
+      return { canInteract: config.canAddToCart, status: itemStatus };
+    },
+
+    /**
+     * Handles cart button click with status check
+     * @param {HTMLElement} btn - The button
+     * @param {Object} item - Item data
+     * @param {Function} onUpdate - Callback after update
+     */
+    async handleCartClick(btn, item, onUpdate) {
+      const config = getStatusConfig(item.status);
+      if (!config.canAddToCart || !window.CartManager) return;
+
+      btn.disabled = true;
+      btn.textContent = 'Updating...';
+      btn.style.opacity = '0.7';
+
+      try {
+        const isInCart = CartManager.isInCart(item.id);
+        if (isInCart) {
+          await CartManager.removeFromCart(item.id);
+        } else {
+          const result = await CartManager.addToCart(item);
+          if (!result.success && result.reason === 'max_items') {
+            alert('Your cart is full! You can reserve up to 10 items at a time.');
+          }
+        }
+      } catch (e) {
+        console.error('[Cart] Error:', e);
+      }
+
+      btn.disabled = false;
+      btn.style.opacity = '1';
+      if (typeof onUpdate === 'function') onUpdate(btn, item);
+    }
+  };
 
   // ============================================================
   // INIT
