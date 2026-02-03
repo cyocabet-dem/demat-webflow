@@ -1468,9 +1468,9 @@ addSafeAreaStyles();
 (function() {
   console.log('🧭 Navbar scroll handler loading...');
   
-  let lastScrollY = 0;
   let ticking = false;
-  const SCROLL_THRESHOLD = 50; // pixels before hiding kicks in
+  const SCROLL_THRESHOLD = 50;
+  let navLinksHeight = 0;
   
   function updateNavLinks() {
     const navLinks = document.querySelector('.div-nav-links-wrapper');
@@ -1482,18 +1482,27 @@ addSafeAreaStyles();
     const currentScrollY = window.scrollY;
     
     if (currentScrollY > SCROLL_THRESHOLD) {
-      // Scrolled down past threshold - hide nav links
+      // Scrolled down - hide and collapse
       navLinks.style.opacity = '0';
+      navLinks.style.maxHeight = '0';
+      navLinks.style.overflow = 'hidden';
+      navLinks.style.marginTop = '0';
+      navLinks.style.marginBottom = '0';
+      navLinks.style.paddingTop = '0';
+      navLinks.style.paddingBottom = '0';
       navLinks.style.pointerEvents = 'none';
-      navLinks.style.transform = 'translateY(-10px)';
     } else {
-      // At or near top - show nav links
+      // At top - show and expand
       navLinks.style.opacity = '1';
+      navLinks.style.maxHeight = navLinksHeight + 'px';
+      navLinks.style.overflow = 'visible';
+      navLinks.style.marginTop = '';
+      navLinks.style.marginBottom = '';
+      navLinks.style.paddingTop = '';
+      navLinks.style.paddingBottom = '';
       navLinks.style.pointerEvents = 'auto';
-      navLinks.style.transform = 'translateY(0)';
     }
     
-    lastScrollY = currentScrollY;
     ticking = false;
   }
   
@@ -1507,9 +1516,14 @@ addSafeAreaStyles();
   function initNavScroll() {
     const navLinks = document.querySelector('.div-nav-links-wrapper');
     if (navLinks) {
+      // Store original height before any manipulation
+      navLinksHeight = navLinks.offsetHeight;
+      
       // Add CSS transition for smooth animation
-      navLinks.style.transition = 'opacity 0.3s ease, transform 0.3s ease';
-      console.log('✅ Navbar scroll handler initialized');
+      navLinks.style.transition = 'opacity 0.3s ease, max-height 0.3s ease, margin 0.3s ease, padding 0.3s ease';
+      navLinks.style.maxHeight = navLinksHeight + 'px';
+      
+      console.log('✅ Navbar scroll handler initialized, height:', navLinksHeight);
     }
     
     window.addEventListener('scroll', onScroll, { passive: true });
