@@ -1462,3 +1462,62 @@ addSafeAreaStyles();
   console.log('🎫 Membership script loaded');
 });
 
+// ============================================
+// NAVBAR SCROLL HIDE/SHOW
+// ============================================
+(function() {
+  console.log('🧭 Navbar scroll handler loading...');
+  
+  let lastScrollY = 0;
+  let ticking = false;
+  const SCROLL_THRESHOLD = 50; // pixels before hiding kicks in
+  
+  function updateNavLinks() {
+    const navLinks = document.querySelector('.div-nav-links-wrapper');
+    if (!navLinks) {
+      console.warn('🧭 .div-nav-links-wrapper not found');
+      return;
+    }
+    
+    const currentScrollY = window.scrollY;
+    
+    if (currentScrollY > SCROLL_THRESHOLD) {
+      // Scrolled down past threshold - hide nav links
+      navLinks.style.opacity = '0';
+      navLinks.style.pointerEvents = 'none';
+      navLinks.style.transform = 'translateY(-10px)';
+    } else {
+      // At or near top - show nav links
+      navLinks.style.opacity = '1';
+      navLinks.style.pointerEvents = 'auto';
+      navLinks.style.transform = 'translateY(0)';
+    }
+    
+    lastScrollY = currentScrollY;
+    ticking = false;
+  }
+  
+  function onScroll() {
+    if (!ticking) {
+      window.requestAnimationFrame(updateNavLinks);
+      ticking = true;
+    }
+  }
+  
+  function initNavScroll() {
+    const navLinks = document.querySelector('.div-nav-links-wrapper');
+    if (navLinks) {
+      // Add CSS transition for smooth animation
+      navLinks.style.transition = 'opacity 0.3s ease, transform 0.3s ease';
+      console.log('✅ Navbar scroll handler initialized');
+    }
+    
+    window.addEventListener('scroll', onScroll, { passive: true });
+  }
+  
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initNavScroll);
+  } else {
+    initNavScroll();
+  }
+})();
