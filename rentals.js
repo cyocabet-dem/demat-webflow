@@ -1,5 +1,6 @@
 // ============================================
-// MY RENTALS PAGE FUNCTIONS
+// MY RENTALS PAGE - UPDATED WITH NEW STYLING
+// Add to Page Body Code
 // ============================================
 
 window.RentalsManager = {
@@ -94,19 +95,19 @@ window.RentalsManager = {
     const sku = ci?.sku || '';
 
     return `
-      <div class="rental-card" style="display: flex; gap: 20px; margin-bottom: 24px; padding: 20px; border: 1px solid #e5e5e5;">
-        <a href="/product?sku=${encodeURIComponent(sku)}" style="width: 140px; height: 187px; background: #f5f5f5; flex-shrink: 0; overflow: hidden; display: block;">
-          ${imgUrl ? `<img src="${imgUrl}" alt="${name}" style="width: 100%; height: 100%; object-fit: cover;">` : ''}
+      <div class="rental-card">
+        <a href="/product?sku=${encodeURIComponent(sku)}" class="rental-card-image">
+          ${imgUrl ? `<img src="${imgUrl}" alt="${name}">` : ''}
         </a>
-        <div style="flex: 1; display: flex; flex-direction: column; gap: 4px;">
-          ${brand ? `<div style="font-size: 11px; color: #666; text-transform: uppercase; letter-spacing: 0.5px;">${brand}</div>` : ''}
-          <div style="font-size: 14px; font-weight: 500; color: #000;">${name}</div>
-          ${colors ? `<div style="font-size: 13px; color: #666;">${colors}</div>` : ''}
-          ${size ? `<div style="font-size: 13px; color: #666;">Size: ${size}</div>` : ''}
-          <div style="font-size: 12px; color: #999; margin-top: 4px;">Rented: ${this.formatDate(rental.rental_start_date)}</div>
-          <div style="margin-top: auto; display: flex; gap: 12px; align-items: center;">
-            <a href="/product?sku=${encodeURIComponent(sku)}" style="font-size: 13px; color: #000; text-decoration: underline;">View item</a>
-            <button onclick="RentalsManager.openPurchaseModal(${rental.id})" style="padding: 8px 16px; background: #000; color: #fff; border: none; font-family: 'Urbanist', sans-serif; font-size: 12px; cursor: pointer;">
+        <div class="rental-card-content">
+          ${brand ? `<div class="rental-card-brand">${brand}</div>` : ''}
+          <div class="rental-card-name">${name}</div>
+          ${colors ? `<div class="rental-card-detail">${colors}</div>` : ''}
+          ${size ? `<div class="rental-card-detail">Size: ${size}</div>` : ''}
+          <div class="rental-card-date">Rented: ${this.formatDate(rental.rental_start_date)}</div>
+          <div class="rental-card-actions">
+            <a href="/product?sku=${encodeURIComponent(sku)}" class="rental-card-link">View item</a>
+            <button onclick="RentalsManager.openPurchaseModal(${rental.id})" class="rental-card-btn">
               Purchase Item
             </button>
           </div>
@@ -122,16 +123,16 @@ window.RentalsManager = {
     const returnDate = this.formatDate(rental.rental_return_date);
 
     return `
-      <div onclick="RentalsManager.openHistoryModal(${rental.id})" class="history-item" style="display: flex; align-items: center; gap: 16px; padding: 16px; border: 1px solid #e5e5e5; margin-bottom: 12px; cursor: pointer;">
-        <div style="width: 80px; height: 107px; background: #f5f5f5; flex-shrink: 0; overflow: hidden;">
-          ${imgUrl ? `<img src="${imgUrl}" alt="${name}" style="width: 100%; height: 100%; object-fit: cover;">` : ''}
+      <div onclick="RentalsManager.openHistoryModal(${rental.id})" class="history-item">
+        <div class="history-item-image">
+          ${imgUrl ? `<img src="${imgUrl}" alt="${name}">` : ''}
         </div>
-        <div style="flex: 1; text-align: right;">
-          <div style="font-size: 14px; font-weight: 500; color: #000;">${returnDate}</div>
-          <div style="font-size: 13px; color: #666;">1 item</div>
+        <div class="history-item-info">
+          <div class="history-item-date">${returnDate}</div>
+          <div class="history-item-count">1 item</div>
         </div>
-        <div style="color: #999;">
-          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1">
+        <div class="history-item-arrow">
+          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
             <path d="m9 18 6-6-6-6"></path>
           </svg>
         </div>
@@ -217,26 +218,25 @@ window.RentalsManager = {
 
     if (modalContent) {
       modalContent.innerHTML = `
-        <a href="/product?sku=${encodeURIComponent(sku)}" style="display: block; width: 100%; max-width: 280px; margin: 0 auto 20px; aspect-ratio: 3/4; background: #f5f5f5; overflow: hidden;">
-          ${imgUrl ? `<img src="${imgUrl}" alt="${name}" style="width: 100%; height: 100%; object-fit: cover;">` : ''}
+        <a href="/product?sku=${encodeURIComponent(sku)}" class="rental-modal-image">
+          ${imgUrl ? `<img src="${imgUrl}" alt="${name}">` : ''}
         </a>
-        <div style="text-align: center; margin-bottom: 20px;">
-          ${brand ? `<div style="font-size: 11px; color: #666; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 4px;">${brand}</div>` : ''}
-          <div style="font-size: 16px; font-weight: 500; color: #000;">${name}</div>
-          ${colors ? `<div style="font-size: 13px; color: #666; margin-top: 6px;">${colors}</div>` : ''}
-          ${size ? `<div style="font-size: 13px; color: #666;">Size: ${size}</div>` : ''}
+        <div class="rental-modal-details">
+          ${brand ? `<div class="rental-modal-brand">${brand}</div>` : ''}
+          <div class="rental-modal-name">${name}</div>
+          ${colors || size ? `<div class="rental-modal-meta">${colors}${colors && size ? ' · ' : ''}${size ? `Size: ${size}` : ''}</div>` : ''}
         </div>
-        <div style="background: #fafafa; padding: 14px; display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 20px;">
+        <div class="rental-modal-dates">
           <div>
-            <div style="font-size: 10px; color: #999; text-transform: uppercase; margin-bottom: 2px;">Rented</div>
-            <div style="font-size: 13px; color: #333;">${this.formatDate(rental.rental_start_date)}</div>
+            <div class="rental-modal-date-label">Rented</div>
+            <div class="rental-modal-date-value">${this.formatDate(rental.rental_start_date)}</div>
           </div>
           <div>
-            <div style="font-size: 10px; color: #999; text-transform: uppercase; margin-bottom: 2px;">Returned</div>
-            <div style="font-size: 13px; color: #333;">${this.formatDate(rental.rental_return_date)}</div>
+            <div class="rental-modal-date-label">Returned</div>
+            <div class="rental-modal-date-value">${this.formatDate(rental.rental_return_date)}</div>
           </div>
         </div>
-        <a href="/product?sku=${encodeURIComponent(sku)}" style="display: block; width: 100%; padding: 12px; background: #000; color: #fff; text-align: center; text-decoration: none; font-family: 'Urbanist', sans-serif; font-size: 13px;">
+        <a href="/product?sku=${encodeURIComponent(sku)}" class="rental-modal-btn">
           View Item
         </a>
       `;
@@ -266,12 +266,14 @@ window.closeRentalModal = function() {
   RentalsManager.closeModal();
 };
 
+// Close on Escape key
 document.addEventListener('keydown', function(e) {
   if (e.key === 'Escape') {
     RentalsManager.closeModal();
   }
 });
 
+// Close on backdrop click
 document.addEventListener('click', function(e) {
   if (e.target.id === 'rental-detail-backdrop') {
     RentalsManager.closeModal();
@@ -298,10 +300,10 @@ document.addEventListener('DOMContentLoaded', function() {
           const container = document.getElementById('rentals-container');
           if (container) {
             container.innerHTML = `
-              <div style="text-align: center; padding: 60px 20px;">
-                <h2 style="font-size: 20px; margin-bottom: 12px;">Sign in to view your rentals</h2>
-                <p style="color: #666; margin-bottom: 20px;">You need to be logged in to see your rentals.</p>
-                <button onclick="openAuthModal()" style="padding: 12px 24px; background: #000; color: #fff; border: none; font-family: 'Urbanist', sans-serif; cursor: pointer;">
+              <div class="rentals-signin">
+                <h2 class="rentals-signin-title">Sign in to view your rentals</h2>
+                <p class="rentals-signin-text">You need to be logged in to see your rentals.</p>
+                <button onclick="openAuthModal()" class="rentals-signin-btn">
                   Sign In
                 </button>
               </div>
