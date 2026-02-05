@@ -1,6 +1,6 @@
 // ============================================
-// MY RENTALS PAGE - UPDATED WITH NEW STYLING
-// Add to Page Body Code
+// MY RENTALS PAGE FUNCTIONS
+// Updated with Purchase Cart Integration
 // ============================================
 
 window.RentalsManager = {
@@ -67,6 +67,11 @@ window.RentalsManager = {
     });
   },
 
+  formatPrice(cents) {
+    if (cents === null || cents === undefined) return '€0.00';
+    return `€${(cents / 100).toFixed(2)}`;
+  },
+
   getItemImage(rental) {
     if (!rental.clothing_item?.images?.length) return '';
 
@@ -93,23 +98,58 @@ window.RentalsManager = {
     const size = ci?.size?.size || ci?.size?.standard_size?.standard_size || '';
     const colors = ci?.colors?.map(c => c.name).join(', ') || '';
     const sku = ci?.sku || '';
+    
+    // Calculate purchase price (50% off retail)
+    const retailPrice = ci?.retail_price_cents || ci?.retail_price * 100 || 0;
+    const purchasePrice = Math.round(retailPrice * 0.5);
+    
+    // Check if in purchase cart
+    const isInCart = window.PurchaseCartManager?.isInCart(rental.id) || false;
 
     return `
-      <div class="rental-card">
-        <a href="/product?sku=${encodeURIComponent(sku)}" class="rental-card-image">
-          ${imgUrl ? `<img src="${imgUrl}" alt="${name}">` : ''}
+      <div class="rental-card" style="display: flex; gap: 20px; margin-bottom: 24px; padding: 20px; border: 1px solid #e5e5e5;">
+        <!-- Item Image -->
+        <a href="/product?sku=${encodeURIComponent(sku)}" style="width: 140px; height: 187px; background: #f5f5f5; flex-shrink: 0; overflow: hidden; display: block;">
+          ${imgUrl ? `<img src="${imgUrl}" alt="${name}" style="width: 100%; height: 100%; object-fit: cover;">` : ''}
         </a>
-        <div class="rental-card-content">
-          ${brand ? `<div class="rental-card-brand">${brand}</div>` : ''}
-          <div class="rental-card-name">${name}</div>
-          ${colors ? `<div class="rental-card-detail">${colors}</div>` : ''}
-          ${size ? `<div class="rental-card-detail">Size: ${size}</div>` : ''}
-          <div class="rental-card-date">Rented: ${this.formatDate(rental.rental_start_date)}</div>
-          <div class="rental-card-actions">
-            <a href="/product?sku=${encodeURIComponent(sku)}" class="rental-card-link">View item</a>
-            <button onclick="RentalsManager.openPurchaseModal(${rental.id})" class="rental-card-btn">
-              Purchase Item
-            </button>
+        
+        <!-- Item Details -->
+        <div style="flex: 1; display: flex; flex-direction: column; gap: 4px;">
+          ${brand ? `<div style="font-size: 11px; color: #666; text-transform: uppercase; letter-spacing: 0.5px;">${brand}</div>` : ''}
+          <div style="font-size: 14px; font-weight: 500; color: #000;">${name}</div>
+          ${colors ? `<div style="font-size: 13px; color: #666;">${colors}</div>` : ''}
+          ${size ? `<div style="font-size: 13px; color: #666;">Size: ${size}</div>` : ''}
+          <div style="font-size: 12px; color: #999; margin-top: 4px;">Rented: ${this.formatDate(rental.rental_start_date)}</div>
+          
+          <!-- Purchase Price Section -->
+          ${retailPrice > 0 ? `
+            <div style="margin-top: auto; padding: 12px; background: #fdf2f8; border-left: 3px solid #be185d;">
+              <div style="display: flex; align-items: baseline; gap: 8px; margin-bottom: 4px;">
+                <span style="font-size: 11px; color: #666; text-decoration: line-through;">${this.formatPrice(retailPrice)}</span>
+                <span style="font-size: 16px; font-weight: 600; color: #be185d;">${this.formatPrice(purchasePrice)}</span>
+                <span style="font-size: 11px; color: #be185d; font-weight: 500;">50% OFF</span>
+              </div>
+              <div style="font-size: 11px; color: #9d174d;">Want to keep it? Purchase at member discount</div>
+            </div>
+          ` : ''}
+          
+          <!-- Actions -->
+          <div style="margin-top: 12px; display: flex; gap: 12px; align-items: center; flex-wrap: wrap;">
+            <a href="/product?sku=${encodeURIComponent(sku)}" style="font-size: 13px; color: #000; text-decoration: underline;">View item</a>
+            ${retailPrice > 0 ? `
+              <button onclick="RentalsManager.openPurchaseModal(${rental.id})" style="
+                padding: 10px 20px;
+                background: ${isInCart ? '#fff' : '#000'};
+                color: ${isInCart ? '#000' : '#fff'};
+                border: 1px solid #000;
+                font-family: 'Urbanist', sans-serif;
+                font-size: 12px;
+                cursor: pointer;
+                transition: all 0.2s ease;
+              ">
+                ${isInCart ? 'In Cart ✓' : 'Purchase Item'}
+              </button>
+            ` : ''}
           </div>
         </div>
       </div>
@@ -123,16 +163,16 @@ window.RentalsManager = {
     const returnDate = this.formatDate(rental.rental_return_date);
 
     return `
-      <div onclick="RentalsManager.openHistoryModal(${rental.id})" class="history-item">
-        <div class="history-item-image">
-          ${imgUrl ? `<img src="${imgUrl}" alt="${name}">` : ''}
+      <div onclick="RentalsManager.openHistoryModal(${rental.id})" class="history-item" style="display: flex; align-items: center; gap: 16px; padding: 16px; border: 1px solid #e5e5e5; margin-bottom: 12px; cursor: pointer;">
+        <div style="width: 80px; height: 107px; background: #f5f5f5; flex-shrink: 0; overflow: hidden;">
+          ${imgUrl ? `<img src="${imgUrl}" alt="${name}" style="width: 100%; height: 100%; object-fit: cover;">` : ''}
         </div>
-        <div class="history-item-info">
-          <div class="history-item-date">${returnDate}</div>
-          <div class="history-item-count">1 item</div>
+        <div style="flex: 1; text-align: right;">
+          <div style="font-size: 14px; font-weight: 500; color: #000;">${returnDate}</div>
+          <div style="font-size: 13px; color: #666;">1 item</div>
         </div>
-        <div class="history-item-arrow">
-          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+        <div style="color: #999;">
+          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1">
             <path d="m9 18 6-6-6-6"></path>
           </svg>
         </div>
@@ -164,14 +204,19 @@ window.RentalsManager = {
 
     if (loadingEl) loadingEl.style.display = 'none';
 
+    // Render active rentals
     if (activeRentals && activeRentals.length > 0) {
       const activeList = document.getElementById('active-rentals-list');
       if (activeList) {
         activeList.innerHTML = activeRentals.map(r => this.renderActiveRentalCard(r)).join('');
       }
       if (activeEl) activeEl.style.display = 'block';
+      
+      // Add purchase cart summary if items in cart
+      this.renderPurchaseCartSummary();
     }
 
+    // Render rental history
     const returnedRentals = (allRentals || []).filter(r => r.status === 'Returned');
     returnedRentals.sort((a, b) => new Date(b.rental_return_date) - new Date(a.rental_return_date));
 
@@ -183,11 +228,70 @@ window.RentalsManager = {
       if (historyEl) historyEl.style.display = 'block';
     }
 
+    // Show empty state if no rentals at all
     if ((!activeRentals || activeRentals.length === 0) && returnedRentals.length === 0) {
       if (emptyEl) emptyEl.style.display = 'block';
     }
 
     console.log('👕 Rentals page rendered');
+  },
+  
+  renderPurchaseCartSummary() {
+    // Check if purchase cart has items
+    if (!window.PurchaseCartManager) return;
+    
+    const cart = PurchaseCartManager.getCart();
+    if (cart.length === 0) return;
+    
+    // Find or create the summary container
+    let summaryEl = document.getElementById('purchase-cart-summary');
+    if (!summaryEl) {
+      summaryEl = document.createElement('div');
+      summaryEl.id = 'purchase-cart-summary';
+      
+      // Insert at the top of active rentals section
+      const activeSection = document.getElementById('rentals-active');
+      if (activeSection) {
+        activeSection.insertBefore(summaryEl, activeSection.firstChild);
+      }
+    }
+    
+    const subtotal = PurchaseCartManager.getSubtotal();
+    
+    summaryEl.innerHTML = `
+      <div style="
+        background: linear-gradient(135deg, #1a1a1a 0%, #333 100%);
+        color: #fff;
+        padding: 20px;
+        margin-bottom: 24px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 16px;
+      ">
+        <div>
+          <div style="font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px; opacity: 0.8; margin-bottom: 4px;">
+            Purchase Cart
+          </div>
+          <div style="font-size: 18px; font-weight: 500;">
+            ${cart.length} item${cart.length !== 1 ? 's' : ''} · ${PurchaseCartManager.formatPrice(subtotal)}
+          </div>
+        </div>
+        <button onclick="PurchaseCheckoutModal.open()" style="
+          padding: 12px 24px;
+          background: #fff;
+          color: #000;
+          border: none;
+          font-family: 'Urbanist', sans-serif;
+          font-size: 13px;
+          font-weight: 500;
+          cursor: pointer;
+        ">
+          Checkout →
+        </button>
+      </div>
+    `;
   },
 
   openHistoryModal(rentalId) {
@@ -218,25 +322,26 @@ window.RentalsManager = {
 
     if (modalContent) {
       modalContent.innerHTML = `
-        <a href="/product?sku=${encodeURIComponent(sku)}" class="rental-modal-image">
-          ${imgUrl ? `<img src="${imgUrl}" alt="${name}">` : ''}
+        <a href="/product?sku=${encodeURIComponent(sku)}" style="display: block; width: 100%; max-width: 280px; margin: 0 auto 20px; aspect-ratio: 3/4; background: #f5f5f5; overflow: hidden;">
+          ${imgUrl ? `<img src="${imgUrl}" alt="${name}" style="width: 100%; height: 100%; object-fit: cover;">` : ''}
         </a>
-        <div class="rental-modal-details">
-          ${brand ? `<div class="rental-modal-brand">${brand}</div>` : ''}
-          <div class="rental-modal-name">${name}</div>
-          ${colors || size ? `<div class="rental-modal-meta">${colors}${colors && size ? ' · ' : ''}${size ? `Size: ${size}` : ''}</div>` : ''}
+        <div style="text-align: center; margin-bottom: 20px;">
+          ${brand ? `<div style="font-size: 11px; color: #666; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 4px;">${brand}</div>` : ''}
+          <div style="font-size: 16px; font-weight: 500; color: #000;">${name}</div>
+          ${colors ? `<div style="font-size: 13px; color: #666; margin-top: 6px;">${colors}</div>` : ''}
+          ${size ? `<div style="font-size: 13px; color: #666;">Size: ${size}</div>` : ''}
         </div>
-        <div class="rental-modal-dates">
+        <div style="background: #fafafa; padding: 14px; display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 20px;">
           <div>
-            <div class="rental-modal-date-label">Rented</div>
-            <div class="rental-modal-date-value">${this.formatDate(rental.rental_start_date)}</div>
+            <div style="font-size: 10px; color: #999; text-transform: uppercase; margin-bottom: 2px;">Rented</div>
+            <div style="font-size: 13px; color: #333;">${this.formatDate(rental.rental_start_date)}</div>
           </div>
           <div>
-            <div class="rental-modal-date-label">Returned</div>
-            <div class="rental-modal-date-value">${this.formatDate(rental.rental_return_date)}</div>
+            <div style="font-size: 10px; color: #999; text-transform: uppercase; margin-bottom: 2px;">Returned</div>
+            <div style="font-size: 13px; color: #333;">${this.formatDate(rental.rental_return_date)}</div>
           </div>
         </div>
-        <a href="/product?sku=${encodeURIComponent(sku)}" class="rental-modal-btn">
+        <a href="/product?sku=${encodeURIComponent(sku)}" style="display: block; width: 100%; padding: 12px; background: #000; color: #fff; text-align: center; text-decoration: none; font-family: 'Urbanist', sans-serif; font-size: 13px;">
           View Item
         </a>
       `;
@@ -256,8 +361,22 @@ window.RentalsManager = {
   },
 
   openPurchaseModal(rentalId) {
-    console.log('👕 Purchase rental:', rentalId);
-    alert('Purchase flow coming soon!');
+    console.log('👕 Opening purchase modal for rental:', rentalId);
+    
+    // Find rental in active cache
+    const rental = this._activeRentalsCache?.find(r => r.id === rentalId);
+    if (!rental) {
+      console.error('Rental not found in cache');
+      return;
+    }
+    
+    // Use the PurchaseModal from purchase-cart.js
+    if (window.PurchaseModal) {
+      PurchaseModal.open(rental);
+    } else {
+      console.error('PurchaseModal not loaded');
+      alert('Purchase functionality not available. Please refresh the page.');
+    }
   }
 };
 
@@ -266,14 +385,12 @@ window.closeRentalModal = function() {
   RentalsManager.closeModal();
 };
 
-// Close on Escape key
 document.addEventListener('keydown', function(e) {
   if (e.key === 'Escape') {
     RentalsManager.closeModal();
   }
 });
 
-// Close on backdrop click
 document.addEventListener('click', function(e) {
   if (e.target.id === 'rental-detail-backdrop') {
     RentalsManager.closeModal();
@@ -300,10 +417,10 @@ document.addEventListener('DOMContentLoaded', function() {
           const container = document.getElementById('rentals-container');
           if (container) {
             container.innerHTML = `
-              <div class="rentals-signin">
-                <h2 class="rentals-signin-title">Sign in to view your rentals</h2>
-                <p class="rentals-signin-text">You need to be logged in to see your rentals.</p>
-                <button onclick="openAuthModal()" class="rentals-signin-btn">
+              <div style="text-align: center; padding: 60px 20px;">
+                <h2 style="font-size: 20px; margin-bottom: 12px;">Sign in to view your rentals</h2>
+                <p style="color: #666; margin-bottom: 20px;">You need to be logged in to see your rentals.</p>
+                <button onclick="openAuthModal()" style="padding: 12px 24px; background: #000; color: #fff; border: none; font-family: 'Urbanist', sans-serif; cursor: pointer;">
                   Sign In
                 </button>
               </div>
