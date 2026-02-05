@@ -42,6 +42,13 @@ window.RentalsManager = {
       const data = await response.json();
       console.log('👕 Rentals fetched:', data.length);
 
+      // DEBUG: Log first item's full clothing_item structure
+      if (data.length > 0) {
+        console.log('👕 DEBUG - First rental clothing_item keys:', data[0].clothing_item ? Object.keys(data[0].clothing_item) : 'NO clothing_item');
+        console.log('👕 DEBUG - First rental full CI:', JSON.stringify(data[0].clothing_item, null, 2).substring(0, 800));
+        console.log('👕 DEBUG - First rental top-level keys:', Object.keys(data[0]));
+      }
+
       if (includeHistory) {
         this._historyCache = data;
       } else {
