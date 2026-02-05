@@ -83,9 +83,29 @@ window.RentalsManager = {
 
   getItemImage(rental) {
     const ci = rental.clothing_item;
-    if (ci?.images && ci.images.length > 0) {
-      return ci.images[0].image_url || ci.images[0].url || '';
+    if (!ci) return '';
+
+    // Try multiple possible image structures
+    // 1. images array with image_url or url
+    if (ci.images && ci.images.length > 0) {
+      const img = ci.images[0];
+      const url = img.image_url || img.url || img.src || img.thumbnail || '';
+      if (url) return url;
     }
+
+    // 2. Direct image properties on clothing_item
+    if (ci.image_url) return ci.image_url;
+    if (ci.image) return ci.image;
+    if (ci.thumbnail_url) return ci.thumbnail_url;
+    if (ci.thumbnail) return ci.thumbnail;
+    if (ci.photo_url) return ci.photo_url;
+
+    // 3. Nested image object
+    if (ci.image && typeof ci.image === 'object') {
+      return ci.image.url || ci.image.image_url || ci.image.src || '';
+    }
+
+    console.log('👕 No image found for item:', ci.name, '| Keys:', Object.keys(ci));
     return '';
   },
 
@@ -172,6 +192,7 @@ window.RentalsManager = {
     const thumbs = group.rentals.slice(0, 4).map(r => {
       const imgUrl = this.getItemImage(r);
       const name = r.clothing_item?.name || 'Item';
+      console.log('👕 History thumb:', name, '| imgUrl:', imgUrl ? imgUrl.substring(0, 60) + '...' : '(empty)');
       return `
         <div class="history-group-thumb">
           ${imgUrl ? `<img src="${imgUrl}" alt="${name}">` : ''}
