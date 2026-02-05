@@ -105,7 +105,7 @@ window.RentalsManager = {
       return ci.image.url || ci.image.image_url || ci.image.src || '';
     }
 
-    console.log('👕 No image found for item:', ci.name, '| Keys:', Object.keys(ci));
+    console.log('👕 No image found for item:', ci.name, '| Keys:', Object.keys(ci), '| Full object:', JSON.stringify(ci).substring(0, 500));
     return '';
   },
 
