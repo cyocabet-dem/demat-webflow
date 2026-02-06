@@ -211,31 +211,27 @@ window.ReservationsManager = {
       '</div>';
   },
   
-  // Find modal elements - supports both old and new ID patterns + class fallbacks
+  // Find modal elements - works with old Webflow modal structure
   _getModalElements() {
     var modal = document.getElementById('reservation-detail-modal');
     var backdrop = document.getElementById('reservation-detail-backdrop');
     
-    // Try IDs first, then class-based lookups inside the modal
-    var modalId = document.getElementById('reservation-modal-id') 
-      || document.getElementById('detail-modal-id');
-    var modalContent = document.getElementById('reservation-modal-content') 
-      || document.getElementById('detail-modal-content');
+    var modalId = null;
+    var modalContent = null;
     
-    // If still no content element, search by class inside the modal
-    if (!modalContent && modal) {
-      modalContent = modal.querySelector('.modal-body') 
-        || modal.querySelector('.modal-scroll')
-        || modal.querySelector('[id*="content"]');
-    }
-    if (!modalId && modal) {
+    if (modal) {
+      // Find the title element (could be .modal-title or new ID)
       modalId = modal.querySelector('.modal-title');
+      // Find the content/body area inside THIS modal
+      modalContent = modal.querySelector('.modal-body') 
+        || modal.querySelector('#detail-modal-content')
+        || modal.querySelector('#reservation-modal-content');
     }
     
     console.log('📋 Modal elements found:', {
       modal: !!modal, backdrop: !!backdrop, 
       modalId: !!modalId, modalContent: !!modalContent,
-      contentId: modalContent?.id, contentClass: modalContent?.className
+      modalClasses: modal?.className
     });
     
     return { modal: modal, backdrop: backdrop, modalId: modalId, modalContent: modalContent };
@@ -312,12 +308,7 @@ window.ReservationsManager = {
     }
     
     if (modalContent) {
-      console.log('📋 Reservation data:', JSON.stringify(reservation, null, 2));
-      var html = this.renderDetailModalContent(reservation);
-      console.log('📋 Generated HTML length:', html.length);
-      console.log('📋 Generated HTML preview:', html.substring(0, 500));
-      modalContent.innerHTML = html;
-      console.log('📋 modalContent innerHTML length after set:', modalContent.innerHTML.length);
+      modalContent.innerHTML = this.renderDetailModalContent(reservation);
     }
     
     // Hide old footer/close button if it exists
