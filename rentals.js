@@ -143,9 +143,7 @@ window.RentalsManager = {
         </a>
         <div class="rental-card-content">
           <div class="rental-card-name">${name.toLowerCase()}</div>
-          ${colors ? `<div class="rental-card-detail">${colors.toLowerCase()}</div>` : ''}
-          ${size ? `<div class="rental-card-detail">size: ${size}</div>` : ''}
-          <div class="rental-card-date">rented: ${this.formatDate(rental.rental_start_date)}</div>
+          <div class="rental-card-date">rented on ${this.formatDate(rental.rental_start_date)}</div>
           
           ${hasRetailPrice ? `
             <div class="rental-card-purchase-price">
