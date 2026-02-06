@@ -1,0 +1,206 @@
+/* ============================================
+   ACCOUNT SIDE NAVIGATION
+   Sticky, colorful, on-brand
+   Add to Page Settings → Head Code in <style> tags
+   ============================================ */
+
+/* ── Variables (shared with rentals) ───────── */
+:root {
+  --nav-purple: #4b073f;
+  --nav-purple-light: #6b1a5e;
+  --nav-pink: #e84dd8;
+  --nav-pink-soft: #f5c6ef;
+  --nav-pink-glow: rgba(232, 77, 216, 0.08);
+  --nav-cyan: #2cc4ff;
+  --nav-teal: #008ad4;
+  --nav-white: #ffffff;
+  --nav-gray-light: #f8f5f7;
+  --nav-gray-text: #6b6b6b;
+  --nav-gray-dark: #2a2a2a;
+}
+
+/* ── Container ─────────────────────────────── */
+.account-sidenav {
+  position: sticky;
+  top: 100px;
+  width: 240px;
+  flex-shrink: 0;
+  align-self: flex-start;
+}
+
+.account-sidenav-inner {
+  background: var(--nav-white);
+  border-radius: 24px;
+  padding: 8px;
+  border: 1px solid rgba(75, 7, 63, 0.06);
+  box-shadow:
+    0 1px 3px rgba(75, 7, 63, 0.04),
+    0 8px 24px rgba(75, 7, 63, 0.03);
+}
+
+/* ── Nav Items ─────────────────────────────── */
+.account-sidenav-link {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 18px;
+  border-radius: 18px;
+  text-decoration: none;
+  font-size: 15px;
+  font-weight: 500;
+  color: var(--nav-gray-text);
+  transition: all 0.2s ease;
+  position: relative;
+  letter-spacing: 0.01em;
+}
+
+.account-sidenav-link:hover {
+  background: var(--nav-pink-glow);
+  color: var(--nav-purple);
+}
+
+.account-sidenav-link.active {
+  background: linear-gradient(135deg, var(--nav-purple) 0%, var(--nav-purple-light) 100%);
+  color: var(--nav-white);
+  font-weight: 600;
+  box-shadow: 0 4px 16px rgba(75, 7, 63, 0.2);
+}
+
+.account-sidenav-link.active .account-sidenav-icon {
+  color: var(--nav-white);
+}
+
+.account-sidenav-link.active .account-sidenav-icon svg {
+  stroke: var(--nav-white);
+}
+
+/* ── Icons ─────────────────────────────────── */
+.account-sidenav-icon {
+  width: 20px;
+  height: 20px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--nav-gray-text);
+  transition: color 0.2s ease;
+}
+
+.account-sidenav-icon svg {
+  width: 20px;
+  height: 20px;
+  stroke: currentColor;
+  stroke-width: 1.5;
+  fill: none;
+}
+
+.account-sidenav-link:hover .account-sidenav-icon {
+  color: var(--nav-purple);
+}
+
+/* ── Accent dot on active ──────────────────── */
+.account-sidenav-link.active::after {
+  content: '';
+  position: absolute;
+  right: 14px;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--nav-pink);
+  box-shadow: 0 0 8px rgba(232, 77, 216, 0.5);
+}
+
+/* ── Separator ─────────────────────────────── */
+.account-sidenav-sep {
+  height: 1px;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(232, 77, 216, 0.12) 30%,
+    rgba(44, 196, 255, 0.12) 70%,
+    transparent 100%
+  );
+  margin: 4px 18px;
+}
+
+/* ── Membership badge ──────────────────────── */
+.account-sidenav-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  padding: 2px 8px;
+  border-radius: 20px;
+  background: linear-gradient(135deg, var(--nav-cyan), var(--nav-teal));
+  color: var(--nav-white);
+  margin-left: auto;
+  line-height: 1.4;
+}
+
+/* ── Page layout helper ────────────────────── */
+.account-page-layout {
+  display: flex;
+  gap: 48px;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 40px 24px;
+  align-items: flex-start;
+}
+
+.account-page-content {
+  flex: 1;
+  min-width: 0;
+}
+
+/* ── Mobile: hide sidebar, show top bar ────── */
+@media (max-width: 768px) {
+  .account-sidenav {
+    position: relative;
+    top: 0;
+    width: 100%;
+  }
+
+  .account-sidenav-inner {
+    display: flex;
+    overflow-x: auto;
+    gap: 4px;
+    padding: 6px;
+    border-radius: 18px;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+  }
+
+  .account-sidenav-inner::-webkit-scrollbar {
+    display: none;
+  }
+
+  .account-sidenav-link {
+    flex-shrink: 0;
+    padding: 10px 16px;
+    border-radius: 14px;
+    font-size: 14px;
+    gap: 8px;
+    white-space: nowrap;
+  }
+
+  .account-sidenav-link.active::after {
+    display: none;
+  }
+
+  .account-sidenav-sep {
+    display: none;
+  }
+
+  .account-sidenav-badge {
+    font-size: 9px;
+    padding: 1px 6px;
+  }
+
+  .account-page-layout {
+    flex-direction: column;
+    gap: 24px;
+    padding: 16px;
+  }
+}
