@@ -312,7 +312,12 @@ window.ReservationsManager = {
     }
     
     if (modalContent) {
-      modalContent.innerHTML = this.renderDetailModalContent(reservation);
+      console.log('📋 Reservation data:', JSON.stringify(reservation, null, 2));
+      var html = this.renderDetailModalContent(reservation);
+      console.log('📋 Generated HTML length:', html.length);
+      console.log('📋 Generated HTML preview:', html.substring(0, 500));
+      modalContent.innerHTML = html;
+      console.log('📋 modalContent innerHTML length after set:', modalContent.innerHTML.length);
     }
     
     // Hide old footer/close button if it exists
