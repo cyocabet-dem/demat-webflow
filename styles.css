@@ -1360,38 +1360,11 @@ body.onboarding-modal-open {
 
 /* ── Credit Balance Card ─────────────────── */
 .donations-balance-card {
-  background: linear-gradient(135deg, #4b073f 0%, #6b1a5e 100%);
+  background: #04314d;
   color: #fff;
   padding: 36px;
   margin-bottom: 36px;
   border-radius: 20px;
-  position: relative;
-  overflow: hidden;
-}
-
-.donations-balance-decor-1 {
-  position: absolute;
-  top: -20px;
-  right: -20px;
-  width: 120px;
-  height: 120px;
-  border: 1px solid rgba(255,255,255,0.15);
-  border-radius: 50%;
-}
-
-.donations-balance-decor-2 {
-  position: absolute;
-  bottom: -40px;
-  right: 60px;
-  width: 80px;
-  height: 80px;
-  border: 1px solid rgba(255,255,255,0.08);
-  border-radius: 50%;
-}
-
-.donations-balance-inner {
-  position: relative;
-  z-index: 1;
 }
 
 .donations-balance-label {
@@ -1399,7 +1372,7 @@ body.onboarding-modal-open {
   font-weight: 600;
   letter-spacing: 1px;
   opacity: 0.85;
-  margin-bottom: 16px;
+  margin-bottom: 1rem;
 }
 
 .donations-balance-amount {
@@ -1424,7 +1397,7 @@ body.onboarding-modal-open {
 }
 
 .donations-section-title {
-  font-size: 18px;
+  font-size: 28px;
   font-weight: 700;
   letter-spacing: 1.5px;
   color: #46535e;
