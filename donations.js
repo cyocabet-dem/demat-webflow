@@ -102,15 +102,11 @@ window.DonationsManager = {
     
     return `
       <div class="donations-balance-card">
-        <div class="donations-balance-decor-1"></div>
-        <div class="donations-balance-decor-2"></div>
-        <div class="donations-balance-inner">
-          <div class="donations-balance-label">available store credit</div>
-          <div class="donations-balance-amount">${this.formatCredits(balance)}</div>
-          <div class="donations-balance-desc">
-            earn credits by donating your pre-loved clothing.<br>
-            use credits towards eligible purchases in store (online coming soon).
-          </div>
+        <div class="donations-balance-label">available store credit</div>
+        <div class="donations-balance-amount">${this.formatCredits(balance)}</div>
+        <div class="donations-balance-desc">
+          earn credits by donating your pre-loved clothing.<br>
+          use credits towards eligible purchases in store (online coming soon).
         </div>
       </div>
     `;
