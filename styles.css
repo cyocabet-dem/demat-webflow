@@ -1160,7 +1160,7 @@ body.onboarding-modal-open {
 .account-sidenav {
   position: sticky;
   top: 100px;
-  width: 240px;
+  width: 300px;
   flex-shrink: 0;
   align-self: flex-start;
 }
@@ -1168,7 +1168,7 @@ body.onboarding-modal-open {
 .account-sidenav-inner {
   background: var(--nav-white);
   border-radius: 24px;
-  padding: 8px;
+  padding: 10px;
   border: 1px solid rgba(75, 7, 63, 0.06);
   box-shadow:
     0 1px 3px rgba(75, 7, 63, 0.04),
@@ -1178,11 +1178,11 @@ body.onboarding-modal-open {
 .account-sidenav-link {
   display: flex;
   align-items: center;
-  gap: 12px;
-  padding: 14px 18px;
+  gap: 14px;
+  padding: 16px 20px;
   border-radius: 18px;
   text-decoration: none;
-  font-size: 15px;
+  font-size: 17px;
   font-weight: 500;
   color: var(--nav-gray-text);
   transition: all 0.2s ease;
@@ -1211,8 +1211,8 @@ body.onboarding-modal-open {
 }
 
 .account-sidenav-icon {
-  width: 20px;
-  height: 20px;
+  width: 22px;
+  height: 22px;
   flex-shrink: 0;
   display: flex;
   align-items: center;
@@ -1222,8 +1222,8 @@ body.onboarding-modal-open {
 }
 
 .account-sidenav-icon svg {
-  width: 20px;
-  height: 20px;
+  width: 22px;
+  height: 22px;
   stroke: currentColor;
   stroke-width: 1.5;
   fill: none;
@@ -1254,21 +1254,6 @@ body.onboarding-modal-open {
     transparent 100%
   );
   margin: 4px 18px;
-}
-
-.account-sidenav-badge {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 10px;
-  font-weight: 700;
-  letter-spacing: 0.04em;
-  padding: 2px 8px;
-  border-radius: 20px;
-  background: linear-gradient(135deg, var(--nav-cyan), var(--nav-teal));
-  color: var(--nav-white);
-  margin-left: auto;
-  line-height: 1.4;
 }
 
 .account-page-layout {
@@ -1310,7 +1295,7 @@ body.onboarding-modal-open {
     flex-shrink: 0;
     padding: 10px 16px;
     border-radius: 14px;
-    font-size: 14px;
+    font-size: 15px;
     gap: 8px;
     white-space: nowrap;
   }
@@ -1321,11 +1306,6 @@ body.onboarding-modal-open {
 
   .account-sidenav-sep {
     display: none;
-  }
-
-  .account-sidenav-badge {
-    font-size: 9px;
-    padding: 1px 6px;
   }
 
   .account-page-layout {
