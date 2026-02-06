@@ -1175,7 +1175,7 @@ body.onboarding-modal-open {
     0 8px 24px rgba(75, 7, 63, 0.03);
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 12px;
 }
 
 .account-sidenav-link {
