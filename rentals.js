@@ -120,7 +120,6 @@ window.RentalsManager = {
   renderActiveRentalCard(rental) {
     const ci = rental.clothing_item;
     const imgUrl = this.getItemImage(rental);
-    const brand = ci?.brand?.brand_name || '';
     const name = ci?.name || 'Unknown Item';
     const size = ci?.size?.size || ci?.size?.standard_size?.standard_size || '';
     const colors = ci?.colors?.map(c => c.name).join(', ') || '';
@@ -137,15 +136,14 @@ window.RentalsManager = {
           ${imgUrl ? `<img src="${imgUrl}" alt="${name}">` : ''}
         </a>
         <div class="rental-card-content">
-          ${brand ? `<div class="rental-card-brand">${brand}</div>` : ''}
-          <div class="rental-card-name">${name}</div>
-          ${colors ? `<div class="rental-card-detail">${colors}</div>` : ''}
-          ${size ? `<div class="rental-card-detail">Size: ${size}</div>` : ''}
-          <div class="rental-card-date">Rented: ${this.formatDate(rental.rental_start_date)}</div>
+          <div class="rental-card-name">${name.toLowerCase()}</div>
+          ${colors ? `<div class="rental-card-detail">${colors.toLowerCase()}</div>` : ''}
+          ${size ? `<div class="rental-card-detail">size: ${size}</div>` : ''}
+          <div class="rental-card-date">rented: ${this.formatDate(rental.rental_start_date)}</div>
           
           ${hasRetailPrice ? `
             <div class="rental-card-purchase-price">
-              <span class="price-label">Purchase price:</span>
+              <span class="price-label">purchase price:</span>
               <span class="price-original">${this.formatPrice(retailPrice)}</span>
               <span class="price-discount">${this.formatPrice(purchasePrice)}</span>
               <span class="price-badge">50% off</span>
@@ -153,7 +151,7 @@ window.RentalsManager = {
           ` : ''}
           
           <div class="rental-card-actions">
-            <a href="/product?sku=${encodeURIComponent(sku)}" class="rental-card-link">View item</a>
+            <a href="/product?sku=${encodeURIComponent(sku)}" class="rental-card-link">view item</a>
             ${hasRetailPrice ? `
               <button onclick="RentalsManager.addToCart(${rental.id})" class="rental-card-btn">
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-right: 6px;">
@@ -161,7 +159,7 @@ window.RentalsManager = {
                   <circle cx="20" cy="21" r="1"/>
                   <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/>
                 </svg>
-                Add to Cart
+                add to cart
               </button>
             ` : ''}
           </div>
@@ -319,7 +317,7 @@ window.RentalsManager = {
 
     // Update modal title
     if (modalTitle) {
-      modalTitle.textContent = rentals.length === 1 ? 'Rental details' : `Rental details · ${rentals.length} items`;
+      modalTitle.textContent = rentals.length === 1 ? 'rental details' : `rental details · ${rentals.length} items`;
     }
 
     // Build modal content
@@ -331,7 +329,6 @@ window.RentalsManager = {
       const rental = rentals[0];
       const ci = rental.clothing_item;
       const imgUrl = this.getItemImage(rental);
-      const brand = ci?.brand?.brand_name || '';
       const name = ci?.name || 'Unknown Item';
       const size = ci?.size?.size || ci?.size?.standard_size?.standard_size || '';
       const colors = ci?.colors?.map(c => c.name).join(', ') || '';
@@ -343,22 +340,21 @@ window.RentalsManager = {
             ${imgUrl ? `<img src="${imgUrl}" alt="${name}">` : ''}
           </a>
           <div class="rental-modal-details">
-            ${brand ? `<div class="rental-modal-brand">${brand}</div>` : ''}
-            <div class="rental-modal-name">${name}</div>
-            ${colors || size ? `<div class="rental-modal-meta">${colors}${colors && size ? ' · ' : ''}${size ? `Size: ${size}` : ''}</div>` : ''}
+            <div class="rental-modal-name">${name.toLowerCase()}</div>
+            ${colors || size ? `<div class="rental-modal-meta">${colors.toLowerCase()}${colors && size ? ' · ' : ''}${size ? `size: ${size}` : ''}</div>` : ''}
           </div>
           <div class="rental-modal-dates">
             <div>
-              <div class="rental-modal-date-label">Rented</div>
+              <div class="rental-modal-date-label">rented</div>
               <div class="rental-modal-date-value">${rentedDate}</div>
             </div>
             <div>
-              <div class="rental-modal-date-label">Returned</div>
+              <div class="rental-modal-date-label">returned</div>
               <div class="rental-modal-date-value">${displayDate}</div>
             </div>
           </div>
           <a href="/product?sku=${encodeURIComponent(sku)}" class="rental-modal-btn">
-            View item
+            view item
           </a>
         `;
       }
@@ -367,7 +363,6 @@ window.RentalsManager = {
       const itemsHtml = rentals.map(rental => {
         const ci = rental.clothing_item;
         const imgUrl = this.getItemImage(rental);
-        const brand = ci?.brand?.brand_name || '';
         const name = ci?.name || 'Unknown Item';
         const size = ci?.size?.size || ci?.size?.standard_size?.standard_size || '';
         const colors = ci?.colors?.map(c => c.name).join(', ') || '';
@@ -379,11 +374,10 @@ window.RentalsManager = {
               ${imgUrl ? `<img src="${imgUrl}" alt="${name}">` : ''}
             </div>
             <div class="rental-modal-group-details">
-              ${brand ? `<div class="rental-modal-group-brand">${brand}</div>` : ''}
-              <div class="rental-modal-group-name">${name}</div>
-              ${colors || size ? `<div class="rental-modal-group-meta">${colors}${colors && size ? ' · ' : ''}${size ? `Size: ${size}` : ''}</div>` : ''}
+              <div class="rental-modal-group-name">${name.toLowerCase()}</div>
+              ${colors || size ? `<div class="rental-modal-group-meta">${colors.toLowerCase()}${colors && size ? ' · ' : ''}${size ? `size: ${size}` : ''}</div>` : ''}
               <a href="/product?sku=${encodeURIComponent(sku)}" class="rental-modal-group-link" onclick="event.stopPropagation()">
-                View item →
+                view item →
               </a>
             </div>
           </div>
@@ -395,11 +389,11 @@ window.RentalsManager = {
           ${itemsHtml}
           <div class="rental-modal-group-dates">
             <div>
-              <div class="rental-modal-date-label">Rented</div>
+              <div class="rental-modal-date-label">rented</div>
               <div class="rental-modal-date-value">${rentedDate}</div>
             </div>
             <div>
-              <div class="rental-modal-date-label">Returned</div>
+              <div class="rental-modal-date-label">returned</div>
               <div class="rental-modal-date-value">${displayDate}</div>
             </div>
           </div>
@@ -479,10 +473,10 @@ function initRentalsPage() {
           if (container) {
             container.innerHTML = `
               <div class="rentals-signin">
-                <h2 class="rentals-signin-title">Sign in to view your rentals</h2>
-                <p class="rentals-signin-text">You need to be logged in to see your rentals.</p>
+                <h2 class="rentals-signin-title">sign in to view your rentals</h2>
+                <p class="rentals-signin-text">you need to be logged in to see your rentals.</p>
                 <button onclick="openAuthModal()" class="rentals-signin-btn">
-                  Sign In
+                  sign in
                 </button>
               </div>
             `;
