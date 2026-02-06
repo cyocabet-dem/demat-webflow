@@ -459,7 +459,7 @@ document.addEventListener('click', function(e) {
 });
 
 // ── Auto-initialize ──────────────────────────
-document.addEventListener('DOMContentLoaded', function() {
+function initRentalsPage() {
   if (document.getElementById('rentals-container')) {
     console.log('👕 Rentals page detected');
 
@@ -493,4 +493,11 @@ document.addEventListener('DOMContentLoaded', function() {
 
     initRentals();
   }
-});
+}
+
+// Run immediately if DOM already loaded, otherwise wait
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', initRentalsPage);
+} else {
+  initRentalsPage();
+}
