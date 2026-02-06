@@ -2255,97 +2255,13 @@ body.onboarding-modal-open {
   background: #a92296;
 }
 
-/* ── Detail Modal: NEW structure ─────────── */
-.reservation-modal-backdrop {
-  display: none;
-  position: fixed;
-  top: 0; left: 0; right: 0; bottom: 0;
-  background: rgba(0, 0, 0, 0.5);
-  z-index: 9998;
-  backdrop-filter: blur(2px);
-}
-
-.reservation-modal {
-  display: none;
-  position: fixed;
-  top: 0; left: 0; right: 0; bottom: 0;
-  z-index: 9999;
-  justify-content: center;
-  align-items: center;
-  padding: 20px;
-}
-
-.reservation-modal-container {
-  background: #fff;
-  width: 100%;
-  max-width: 480px;
-  max-height: 90vh;
-  overflow-y: auto;
-  border-radius: 20px;
-}
-
-.reservation-modal-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 24px 28px;
-  border-bottom: 1px solid #ced5da;
-  position: sticky;
-  top: 0;
-  background: #fff;
-  border-radius: 20px 20px 0 0;
-  z-index: 1;
-}
-
-.reservation-modal-title {
-  font-size: 22px;
-  font-weight: 600;
-  color: #24282d;
-}
-
-.reservation-modal-id {
-  font-size: 16px;
-  color: #46535e;
-  font-family: monospace;
-  margin-top: 4px;
-}
-
-.reservation-modal-close {
-  background: none;
-  border: none;
-  font-size: 28px;
-  cursor: pointer;
-  color: #46535e;
-  padding: 0;
-  line-height: 1;
-  transition: color 0.2s ease;
-}
-
-.reservation-modal-close:hover {
-  color: #24282d;
-}
-
-.reservation-modal-content {
-  padding: 28px;
-}
-
 /* ── Detail Modal: OLD structure overrides ── */
-/* When JS adds .reservation-modal-redesigned to #reservation-detail-modal,
-   override the generic .modal-* classes from styles.css */
+/* The #reservation-detail-modal IS .modal-container.modal-large.
+   When JS adds .reservation-modal-redesigned, restyle it. */
 
 #reservation-detail-modal.reservation-modal-redesigned {
-  justify-content: center;
-  align-items: center;
-  padding: 20px;
-}
-
-#reservation-detail-modal.reservation-modal-redesigned .modal-container {
-  position: static;
-  transform: none;
   border-radius: 20px;
-  max-height: 90vh;
   overflow-y: auto;
-  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
 }
 
 #reservation-detail-modal.reservation-modal-redesigned .modal-header {
@@ -2388,6 +2304,8 @@ body.onboarding-modal-open {
 
 #reservation-detail-modal.reservation-modal-redesigned .modal-body {
   padding: 28px;
+  flex: 1;
+  overflow-y: auto;
 }
 
 #reservation-detail-modal.reservation-modal-redesigned .modal-footer {
