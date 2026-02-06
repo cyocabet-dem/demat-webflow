@@ -66,7 +66,7 @@ window.ReservationsManager = {
       'expired':   { cls: 'reservation-badge-expired', label: 'expired' }
     };
     const s = styles[status] || styles['pending'];
-    return `<span class="reservation-badge ${s.cls}">${s.label}</span>`;
+    return '<span class="reservation-badge ' + s.cls + '">' + s.label + '</span>';
   },
   
   getStatusText(status) {
@@ -102,60 +102,47 @@ window.ReservationsManager = {
     const itemCount = reservation.items?.length || 0;
     const hasItems = itemCount > 0;
     
-    // Preview thumbnails (first 4)
     const previewImages = (reservation.items || []).slice(0, 4).map(item => {
       const imgUrl = this.getItemImage(item);
-      return `<div class="reservation-card-thumb">
-        ${imgUrl ? `<img src="${imgUrl}" alt="">` : ''}
-      </div>`;
+      return '<div class="reservation-card-thumb">' +
+        (imgUrl ? '<img src="' + imgUrl + '" alt="">' : '') +
+      '</div>';
     }).join('');
     
     const moreCount = itemCount > 4 
-      ? `<div class="reservation-card-thumb-more">+${itemCount - 4}</div>` 
+      ? '<div class="reservation-card-thumb-more">+' + (itemCount - 4) + '</div>' 
       : '';
     
-    return `
-      <div class="reservation-card">
-        
-        <div class="reservation-card-header">
-          <div>
-            <div class="reservation-card-id-label">reservation</div>
-            <div class="reservation-card-id">#${reservation.hash_id?.substring(0, 8) || reservation.id}</div>
-          </div>
-          ${this.getStatusBadge(reservation.status)}
-        </div>
-        
-        <div class="reservation-card-stats">
-          <div>
-            <div class="reservation-card-stat-label">requested</div>
-            <div class="reservation-card-stat-value">${this.formatDate(reservation.request_date)}</div>
-          </div>
-          <div>
-            <div class="reservation-card-stat-label">ready by</div>
-            <div class="reservation-card-stat-value">${this.formatDate(reservation.ready_for_pickup_date)}</div>
-          </div>
-          <div>
-            <div class="reservation-card-stat-label">pickup by</div>
-            <div class="reservation-card-stat-value reservation-card-stat-value--highlight">${this.formatDate(reservation.reservation_due_date)}</div>
-          </div>
-        </div>
-        
-        ${hasItems ? `
-          <div class="reservation-card-items-label">${itemCount} item${itemCount !== 1 ? 's' : ''}</div>
-          <div class="reservation-card-items-preview">
-            ${previewImages}
-            ${moreCount}
-          </div>
-        ` : `
-          <div class="reservation-card-no-items">no items in this reservation</div>
-        `}
-        
-        <button onclick="ReservationsManager.viewReservation(${reservation.id})" class="reservation-card-btn">
-          view details
-        </button>
-        
-      </div>
-    `;
+    return '<div class="reservation-card">' +
+      '<div class="reservation-card-header">' +
+        '<div>' +
+          '<div class="reservation-card-id-label">reservation</div>' +
+          '<div class="reservation-card-id">#' + (reservation.hash_id?.substring(0, 8) || reservation.id) + '</div>' +
+        '</div>' +
+        this.getStatusBadge(reservation.status) +
+      '</div>' +
+      '<div class="reservation-card-stats">' +
+        '<div>' +
+          '<div class="reservation-card-stat-label">requested</div>' +
+          '<div class="reservation-card-stat-value">' + this.formatDate(reservation.request_date) + '</div>' +
+        '</div>' +
+        '<div>' +
+          '<div class="reservation-card-stat-label">ready by</div>' +
+          '<div class="reservation-card-stat-value">' + this.formatDate(reservation.ready_for_pickup_date) + '</div>' +
+        '</div>' +
+        '<div>' +
+          '<div class="reservation-card-stat-label">pickup by</div>' +
+          '<div class="reservation-card-stat-value reservation-card-stat-value--highlight">' + this.formatDate(reservation.reservation_due_date) + '</div>' +
+        '</div>' +
+      '</div>' +
+      (hasItems ? 
+        '<div class="reservation-card-items-label">' + itemCount + ' item' + (itemCount !== 1 ? 's' : '') + '</div>' +
+        '<div class="reservation-card-items-preview">' + previewImages + moreCount + '</div>'
+        :
+        '<div class="reservation-card-no-items">no items in this reservation</div>'
+      ) +
+      '<button onclick="ReservationsManager.viewReservation(' + reservation.id + ')" class="reservation-card-btn">view details</button>' +
+    '</div>';
   },
   
   renderDetailModalContent(reservation) {
@@ -166,66 +153,72 @@ window.ReservationsManager = {
       const imgUrl = this.getItemImage(item);
       const name = (ci?.name || 'unknown item').toLowerCase();
       const sku = ci?.sku || '';
-      const itemUrl = sku ? `/product?sku=${encodeURIComponent(sku)}` : '';
+      const itemUrl = sku ? '/product?sku=' + encodeURIComponent(sku) : '';
       
-      return `
-        <${itemUrl ? `a href="${itemUrl}"` : 'div'} class="reservation-modal-item"${!itemUrl ? ' style="cursor: default;"' : ''}>
-          <div class="reservation-modal-item-img">
-            ${imgUrl ? `<img src="${imgUrl}" alt="${name}">` : ''}
-          </div>
-          <div class="reservation-modal-item-details">
-            <div class="reservation-modal-item-name">${name}</div>
-            <div class="reservation-modal-item-status ${item.picked_up ? 'reservation-modal-item-status--picked-up' : 'reservation-modal-item-status--awaiting'}">
-              ${item.picked_up ? '✓ picked up' : 'awaiting pickup'}
-            </div>
-            ${itemUrl ? `<span class="reservation-modal-item-link">view item →</span>` : ''}
-          </div>
-        </${itemUrl ? 'a' : 'div'}>
-      `;
+      const tag = itemUrl ? 'a' : 'div';
+      const hrefAttr = itemUrl ? ' href="' + itemUrl + '"' : ' style="cursor: default;"';
+      
+      return '<' + tag + hrefAttr + ' class="reservation-modal-item">' +
+        '<div class="reservation-modal-item-img">' +
+          (imgUrl ? '<img src="' + imgUrl + '" alt="' + name + '">' : '') +
+        '</div>' +
+        '<div class="reservation-modal-item-details">' +
+          '<div class="reservation-modal-item-name">' + name + '</div>' +
+          '<div class="reservation-modal-item-status ' + (item.picked_up ? 'reservation-modal-item-status--picked-up' : 'reservation-modal-item-status--awaiting') + '">' +
+            (item.picked_up ? '✓ picked up' : 'awaiting pickup') +
+          '</div>' +
+          (itemUrl ? '<span class="reservation-modal-item-link">view item →</span>' : '') +
+        '</div>' +
+      '</' + tag + '>';
     }).join('');
     
-    return `
-      <div class="reservation-modal-status">
-        ${this.getStatusBadge(reservation.status)}
-        <span class="reservation-modal-status-text">${this.getStatusText(reservation.status)}</span>
-      </div>
-      
-      <div>
-        <div class="reservation-modal-summary-title">reservation details</div>
-        <div class="reservation-modal-summary-grid">
-          <div class="reservation-modal-summary-item">
-            <div class="reservation-modal-summary-label">requested</div>
-            <div class="reservation-modal-summary-value">${this.formatDate(reservation.request_date)}</div>
-          </div>
-          <div class="reservation-modal-summary-item">
-            <div class="reservation-modal-summary-label">ready for pickup</div>
-            <div class="reservation-modal-summary-value">${this.formatDate(reservation.ready_for_pickup_date)}</div>
-          </div>
-          <div class="reservation-modal-summary-item reservation-modal-summary-item--highlight">
-            <div class="reservation-modal-summary-label">pickup deadline</div>
-            <div class="reservation-modal-summary-value reservation-modal-summary-value--highlight">${this.formatDate(reservation.reservation_due_date)}</div>
-          </div>
-          <div class="reservation-modal-summary-item">
-            <div class="reservation-modal-summary-label">items</div>
-            <div class="reservation-modal-summary-value">${items.length} item${items.length !== 1 ? 's' : ''}</div>
-          </div>
-        </div>
-      </div>
-      
-      <div>
-        <div class="reservation-modal-items-title">reserved items</div>
-        ${itemsHtml || '<div style="padding: 20px; text-align: center; color: #46535e;">no items in this reservation</div>'}
-      </div>
-      
-      <div class="reservation-modal-location">
-        <div class="reservation-modal-location-title">pickup location</div>
-        <div class="reservation-modal-location-text">
-          dematerialized<br>
-          lange putstraat 4<br>
-          5211 kn 's-hertogenbosch
-        </div>
-      </div>
-    `;
+    return '<div class="reservation-modal-status">' +
+        this.getStatusBadge(reservation.status) +
+        '<span class="reservation-modal-status-text">' + this.getStatusText(reservation.status) + '</span>' +
+      '</div>' +
+      '<div>' +
+        '<div class="reservation-modal-summary-title">reservation details</div>' +
+        '<div class="reservation-modal-summary-grid">' +
+          '<div class="reservation-modal-summary-item">' +
+            '<div class="reservation-modal-summary-label">requested</div>' +
+            '<div class="reservation-modal-summary-value">' + this.formatDate(reservation.request_date) + '</div>' +
+          '</div>' +
+          '<div class="reservation-modal-summary-item">' +
+            '<div class="reservation-modal-summary-label">ready for pickup</div>' +
+            '<div class="reservation-modal-summary-value">' + this.formatDate(reservation.ready_for_pickup_date) + '</div>' +
+          '</div>' +
+          '<div class="reservation-modal-summary-item reservation-modal-summary-item--highlight">' +
+            '<div class="reservation-modal-summary-label">pickup deadline</div>' +
+            '<div class="reservation-modal-summary-value reservation-modal-summary-value--highlight">' + this.formatDate(reservation.reservation_due_date) + '</div>' +
+          '</div>' +
+          '<div class="reservation-modal-summary-item">' +
+            '<div class="reservation-modal-summary-label">items</div>' +
+            '<div class="reservation-modal-summary-value">' + items.length + ' item' + (items.length !== 1 ? 's' : '') + '</div>' +
+          '</div>' +
+        '</div>' +
+      '</div>' +
+      '<div>' +
+        '<div class="reservation-modal-items-title">reserved items</div>' +
+        (itemsHtml || '<div style="padding: 20px; text-align: center; color: #46535e;">no items in this reservation</div>') +
+      '</div>' +
+      '<div class="reservation-modal-location">' +
+        '<div class="reservation-modal-location-title">pickup location</div>' +
+        '<div class="reservation-modal-location-text">' +
+          'dematerialized<br>' +
+          'lange putstraat 4<br>' +
+          "5211 kn 's-hertogenbosch" +
+        '</div>' +
+      '</div>';
+  },
+  
+  // Find modal elements - supports both old and new ID patterns
+  _getModalElements() {
+    return {
+      modal: document.getElementById('reservation-detail-modal'),
+      backdrop: document.getElementById('reservation-detail-backdrop'),
+      modalId: document.getElementById('reservation-modal-id') || document.getElementById('detail-modal-id'),
+      modalContent: document.getElementById('reservation-modal-content') || document.getElementById('detail-modal-content')
+    };
   },
   
   async renderReservationsPage() {
@@ -259,16 +252,13 @@ window.ReservationsManager = {
       return;
     }
     
-    // Sort newest first
     validReservations.sort((a, b) => new Date(b.request_date) - new Date(a.request_date));
     
     if (listEl) {
-      let html = `
-        <div class="reservations-section-header">
-          <div class="reservations-section-title">your reservations</div>
-          <div class="reservations-section-count">${validReservations.length} reservation${validReservations.length !== 1 ? 's' : ''}</div>
-        </div>
-      `;
+      let html = '<div class="reservations-section-header">' +
+          '<div class="reservations-section-title">your reservations</div>' +
+          '<div class="reservations-section-count">' + validReservations.length + ' reservation' + (validReservations.length !== 1 ? 's' : '') + '</div>' +
+        '</div>';
       html += validReservations.map(r => this.renderReservationCard(r)).join('');
       listEl.innerHTML = html;
       listEl.style.display = 'block';
@@ -287,23 +277,31 @@ window.ReservationsManager = {
       return;
     }
     
-    const modal = document.getElementById('reservation-detail-modal');
-    const backdrop = document.getElementById('reservation-detail-backdrop');
-    const modalId = document.getElementById('reservation-modal-id');
-    const modalContent = document.getElementById('reservation-modal-content');
+    const { modal, backdrop, modalId, modalContent } = this._getModalElements();
     
     if (!modal || !backdrop) {
       console.error('Detail modal not found');
       return;
     }
     
+    // Add redesign class for CSS overrides on old modal structure
+    modal.classList.add('reservation-modal-redesigned');
+    
     if (modalId) {
-      modalId.textContent = `#${reservation.hash_id?.substring(0, 8) || reservation.id}`;
+      modalId.textContent = '#' + (reservation.hash_id?.substring(0, 8) || reservation.id);
     }
     
     if (modalContent) {
       modalContent.innerHTML = this.renderDetailModalContent(reservation);
     }
+    
+    // Hide old footer/close button if it exists
+    const oldFooter = modal.querySelector('.modal-footer');
+    if (oldFooter) oldFooter.style.display = 'none';
+    
+    // Update old label if it exists
+    const oldLabel = modal.querySelector('.modal-label');
+    if (oldLabel) oldLabel.textContent = 'reservation details';
     
     backdrop.style.display = 'block';
     modal.style.display = 'flex';
@@ -312,8 +310,8 @@ window.ReservationsManager = {
 };
 
 function closeReservationDetailModal() {
-  const modal = document.getElementById('reservation-detail-modal');
-  const backdrop = document.getElementById('reservation-detail-backdrop');
+  var modal = document.getElementById('reservation-detail-modal');
+  var backdrop = document.getElementById('reservation-detail-backdrop');
   
   if (modal) modal.style.display = 'none';
   if (backdrop) backdrop.style.display = 'none';
@@ -324,7 +322,7 @@ window.closeReservationDetailModal = closeReservationDetailModal;
 
 document.addEventListener('keydown', function(e) {
   if (e.key === 'Escape') {
-    const detailModal = document.getElementById('reservation-detail-modal');
+    var detailModal = document.getElementById('reservation-detail-modal');
     if (detailModal && detailModal.style.display === 'flex') {
       closeReservationDetailModal();
       return;
@@ -345,27 +343,25 @@ document.addEventListener('click', function(e) {
     
     console.log('📋 Reservations page detected, initializing...');
     
-    const initReservations = async () => {
-      let attempts = 0;
+    var initReservations = async function() {
+      var attempts = 0;
       while (!window.auth0Client && attempts < 50) {
-        await new Promise(resolve => setTimeout(resolve, 100));
+        await new Promise(function(resolve) { setTimeout(resolve, 100); });
         attempts++;
       }
       
       if (window.auth0Client) {
-        const isAuth = await window.auth0Client.isAuthenticated();
+        var isAuth = await window.auth0Client.isAuthenticated();
         if (isAuth) {
           ReservationsManager.renderReservationsPage();
         } else {
-          const container = document.getElementById('reservations-container');
+          var container = document.getElementById('reservations-container');
           if (container) {
-            container.innerHTML = `
-              <div class="reservations-signin">
-                <h2 class="reservations-signin-title">sign in to view your reservations</h2>
-                <p class="reservations-signin-text">you need to be logged in to see your reservations.</p>
-                <button onclick="openAuthModal()" class="reservations-signin-btn">sign in</button>
-              </div>
-            `;
+            container.innerHTML = '<div class="reservations-signin">' +
+              '<h2 class="reservations-signin-title">sign in to view your reservations</h2>' +
+              '<p class="reservations-signin-text">you need to be logged in to see your reservations.</p>' +
+              '<button onclick="openAuthModal()" class="reservations-signin-btn">sign in</button>' +
+            '</div>';
           }
         }
       }
