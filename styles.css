@@ -2804,3 +2804,314 @@ select.profile-form-input {
     max-width: 100%;
   }
 }
+/* ============================================
+   MY MEMBERSHIP PAGE STYLES
+   ============================================ */
+
+/* ── Loading ──────────────────────────────── */
+.membership-redesigned .membership-loading {
+  text-align: center;
+  padding: 80px 20px;
+}
+
+.membership-redesigned .membership-loading-spinner {
+  width: 44px;
+  height: 44px;
+  border: 3px solid #ced5da;
+  border-radius: 50%;
+  border-top-color: #4b073f;
+  animation: membershipSpin 1s linear infinite;
+  margin: 0 auto 16px;
+}
+
+.membership-redesigned .membership-loading-text {
+  color: #46535e;
+  font-size: 1rem;
+  font-family: 'Urbanist', sans-serif;
+}
+
+@keyframes membershipSpin {
+  to { transform: rotate(360deg); }
+}
+
+/* ── Section Header ──────────────────────── */
+.membership-redesigned .membership-section-header {
+  margin-bottom: 24px;
+}
+
+.membership-redesigned .membership-section-title {
+  font-size: 28px;
+  font-weight: 700;
+  letter-spacing: 1.5px;
+  color: #46535e;
+  font-family: 'Urbanist', sans-serif;
+}
+
+/* ── Plan Card ───────────────────────────── */
+.membership-redesigned .membership-plan-card {
+  background: #fff;
+  border: 1px solid #ced5da;
+  border-radius: 20px;
+  padding: 32px;
+  margin-bottom: 20px;
+}
+
+.membership-redesigned .membership-plan-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 16px;
+  margin-bottom: 8px;
+  flex-wrap: wrap;
+}
+
+.membership-redesigned .membership-plan-name {
+  font-family: 'Urbanist', sans-serif;
+  font-weight: 700;
+  font-size: 22px;
+  color: #24282d;
+  margin: 0;
+}
+
+.membership-redesigned .membership-status-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 16px;
+  border-radius: 50px;
+  font-family: 'Urbanist', sans-serif;
+  font-size: 14px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.membership-redesigned .membership-status-badge.active {
+  background: #eff9ff;
+  color: #008ad4;
+}
+
+.membership-redesigned .membership-status-badge.inactive {
+  background: #f6f8f9;
+  color: #46535e;
+}
+
+.membership-redesigned .membership-status-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.membership-redesigned .membership-status-badge.active .membership-status-dot {
+  background: #008ad4;
+}
+
+.membership-redesigned .membership-status-badge.inactive .membership-status-dot {
+  background: #46535e;
+}
+
+.membership-redesigned .membership-member-since {
+  font-family: 'Urbanist', sans-serif;
+  font-size: 16px;
+  color: #46535e;
+  margin: 0 0 28px 0;
+}
+
+/* ── Price Display ───────────────────────── */
+.membership-redesigned .membership-price-row {
+  background: #04314d;
+  border-radius: 16px;
+  padding: 24px 28px;
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+  margin-bottom: 28px;
+}
+
+.membership-redesigned .membership-price-amount {
+  font-family: 'Urbanist', sans-serif;
+  font-size: 40px;
+  font-weight: 700;
+  color: #fff;
+  line-height: 1;
+}
+
+.membership-redesigned .membership-price-period {
+  font-family: 'Urbanist', sans-serif;
+  font-size: 16px;
+  color: rgba(255, 255, 255, 0.65);
+  font-weight: 400;
+}
+
+/* ── Features List ───────────────────────── */
+.membership-redesigned .membership-features {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+.membership-redesigned .membership-feature-item {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 16px 0;
+  border-bottom: 1px solid #f0f2f4;
+}
+
+.membership-redesigned .membership-feature-item:last-child {
+  border-bottom: none;
+  padding-bottom: 0;
+}
+
+.membership-redesigned .membership-feature-item:first-child {
+  padding-top: 0;
+}
+
+.membership-redesigned .membership-feature-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: 12px;
+  background: #fff4fe;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.membership-redesigned .membership-feature-icon svg {
+  width: 20px;
+  height: 20px;
+  color: #4b073f;
+}
+
+.membership-redesigned .membership-feature-text {
+  font-family: 'Urbanist', sans-serif;
+  font-size: 16px;
+  color: #24282d;
+  font-weight: 500;
+}
+
+/* ── Info Card ───────────────────────────── */
+.membership-redesigned .membership-info-card {
+  background: #fff4fe;
+  border: 1px solid #e8c4e3;
+  border-radius: 20px;
+  padding: 28px 32px;
+  margin-bottom: 20px;
+}
+
+.membership-redesigned .membership-info-title {
+  font-family: 'Urbanist', sans-serif;
+  font-weight: 700;
+  font-size: 18px;
+  color: #4b073f;
+  margin: 0 0 8px 0;
+}
+
+.membership-redesigned .membership-info-text {
+  font-family: 'Urbanist', sans-serif;
+  font-size: 16px;
+  color: #46535e;
+  line-height: 1.6;
+  margin: 0;
+}
+
+.membership-redesigned .membership-info-email {
+  color: #4b073f;
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.membership-redesigned .membership-info-email:hover {
+  text-decoration: underline;
+  color: #a92296;
+}
+
+/* ── Empty State ─────────────────────────── */
+.membership-redesigned .membership-empty {
+  background: #fff4fe;
+  border: 1px solid #e8c4e3;
+  border-radius: 20px;
+  padding: 60px 32px;
+  text-align: center;
+}
+
+.membership-redesigned .membership-empty-icon {
+  width: 64px;
+  height: 64px;
+  margin: 0 auto 20px;
+  color: #4b073f;
+  opacity: 0.5;
+}
+
+.membership-redesigned .membership-empty-title {
+  font-family: 'Urbanist', sans-serif;
+  font-weight: 700;
+  font-size: 22px;
+  color: #24282d;
+  margin: 0 0 8px 0;
+}
+
+.membership-redesigned .membership-empty-text {
+  font-family: 'Urbanist', sans-serif;
+  font-size: 16px;
+  color: #46535e;
+  line-height: 1.6;
+  margin: 0 0 28px 0;
+  max-width: 400px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.membership-redesigned .membership-cta-btn {
+  display: inline-block;
+  padding: 16px 40px;
+  background: #4b073f;
+  color: #fff;
+  text-align: center;
+  font-family: 'Urbanist', sans-serif;
+  font-size: 16px;
+  font-weight: 600;
+  border-radius: 50px;
+  border: none;
+  cursor: pointer;
+  text-decoration: none;
+  transition: background 0.2s ease, transform 0.2s ease;
+}
+
+.membership-redesigned .membership-cta-btn:hover {
+  background: #a92296;
+  transform: translateY(-1px);
+  color: #fff;
+  text-decoration: none;
+}
+
+/* ── Hidden utility ──────────────────────── */
+.membership-redesigned .is-hidden {
+  display: none !important;
+}
+
+/* ── Responsive ──────────────────────────── */
+@media (max-width: 600px) {
+  .membership-redesigned .membership-plan-card,
+  .membership-redesigned .membership-info-card {
+    padding: 24px;
+  }
+
+  .membership-redesigned .membership-price-row {
+    padding: 20px 24px;
+  }
+
+  .membership-redesigned .membership-price-amount {
+    font-size: 32px;
+  }
+
+  .membership-redesigned .membership-plan-header {
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .membership-redesigned .membership-empty {
+    padding: 40px 24px;
+  }
+}
