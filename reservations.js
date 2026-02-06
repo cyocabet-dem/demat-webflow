@@ -211,14 +211,34 @@ window.ReservationsManager = {
       '</div>';
   },
   
-  // Find modal elements - supports both old and new ID patterns
+  // Find modal elements - supports both old and new ID patterns + class fallbacks
   _getModalElements() {
-    return {
-      modal: document.getElementById('reservation-detail-modal'),
-      backdrop: document.getElementById('reservation-detail-backdrop'),
-      modalId: document.getElementById('reservation-modal-id') || document.getElementById('detail-modal-id'),
-      modalContent: document.getElementById('reservation-modal-content') || document.getElementById('detail-modal-content')
-    };
+    var modal = document.getElementById('reservation-detail-modal');
+    var backdrop = document.getElementById('reservation-detail-backdrop');
+    
+    // Try IDs first, then class-based lookups inside the modal
+    var modalId = document.getElementById('reservation-modal-id') 
+      || document.getElementById('detail-modal-id');
+    var modalContent = document.getElementById('reservation-modal-content') 
+      || document.getElementById('detail-modal-content');
+    
+    // If still no content element, search by class inside the modal
+    if (!modalContent && modal) {
+      modalContent = modal.querySelector('.modal-body') 
+        || modal.querySelector('.modal-scroll')
+        || modal.querySelector('[id*="content"]');
+    }
+    if (!modalId && modal) {
+      modalId = modal.querySelector('.modal-title');
+    }
+    
+    console.log('📋 Modal elements found:', {
+      modal: !!modal, backdrop: !!backdrop, 
+      modalId: !!modalId, modalContent: !!modalContent,
+      contentId: modalContent?.id, contentClass: modalContent?.className
+    });
+    
+    return { modal: modal, backdrop: backdrop, modalId: modalId, modalContent: modalContent };
   },
   
   async renderReservationsPage() {
