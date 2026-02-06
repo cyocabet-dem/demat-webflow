@@ -1173,6 +1173,9 @@ body.onboarding-modal-open {
   box-shadow:
     0 1px 3px rgba(75, 7, 63, 0.04),
     0 8px 24px rgba(75, 7, 63, 0.03);
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
 }
 
 .account-sidenav-link {
@@ -1279,6 +1282,7 @@ body.onboarding-modal-open {
 
   .account-sidenav-inner {
     display: flex;
+    flex-direction: row;
     overflow-x: auto;
     gap: 4px;
     padding: 6px;
@@ -1312,5 +1316,10 @@ body.onboarding-modal-open {
     flex-direction: column;
     gap: 24px;
     padding: 16px;
+  }
+
+  .account-page-content {
+    width: 100%;
+    display: block;
   }
 }
