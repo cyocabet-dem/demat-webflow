@@ -2255,7 +2255,7 @@ body.onboarding-modal-open {
   background: #a92296;
 }
 
-/* ── Detail Modal ────────────────────────── */
+/* ── Detail Modal: NEW structure ─────────── */
 .reservation-modal-backdrop {
   display: none;
   position: fixed;
@@ -2329,7 +2329,72 @@ body.onboarding-modal-open {
   padding: 28px;
 }
 
-/* Modal: Status Banner */
+/* ── Detail Modal: OLD structure overrides ── */
+/* When JS adds .reservation-modal-redesigned to #reservation-detail-modal,
+   override the generic .modal-* classes from styles.css */
+
+#reservation-detail-modal.reservation-modal-redesigned {
+  justify-content: center;
+  align-items: center;
+  padding: 20px;
+}
+
+#reservation-detail-modal.reservation-modal-redesigned .modal-container {
+  position: static;
+  transform: none;
+  border-radius: 20px;
+  max-height: 90vh;
+  overflow-y: auto;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+}
+
+#reservation-detail-modal.reservation-modal-redesigned .modal-header {
+  padding: 24px 28px;
+  border-bottom: 1px solid #ced5da;
+  position: sticky;
+  top: 0;
+  background: #fff;
+  border-radius: 20px 20px 0 0;
+  z-index: 1;
+}
+
+#reservation-detail-modal.reservation-modal-redesigned .modal-label {
+  font-size: 16px;
+  color: #46535e;
+  text-transform: lowercase;
+  letter-spacing: normal;
+  font-weight: 600;
+}
+
+#reservation-detail-modal.reservation-modal-redesigned .modal-title {
+  font-size: 16px;
+  color: #46535e;
+  font-family: monospace;
+  font-weight: 400;
+}
+
+#reservation-detail-modal.reservation-modal-redesigned .modal-close {
+  font-size: 28px;
+  color: #46535e;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+#reservation-detail-modal.reservation-modal-redesigned .modal-close:hover {
+  color: #24282d;
+}
+
+#reservation-detail-modal.reservation-modal-redesigned .modal-body {
+  padding: 28px;
+}
+
+#reservation-detail-modal.reservation-modal-redesigned .modal-footer {
+  display: none !important;
+}
+
+/* ── Modal inner content (shared) ────────── */
 .reservation-modal-status {
   display: flex;
   align-items: center;
@@ -2345,7 +2410,6 @@ body.onboarding-modal-open {
   color: #46535e;
 }
 
-/* Modal: Summary Grid */
 .reservation-modal-summary-title {
   font-size: 16px;
   font-weight: 700;
@@ -2388,7 +2452,6 @@ body.onboarding-modal-open {
   font-weight: 700;
 }
 
-/* Modal: Items List */
 .reservation-modal-items-title {
   font-size: 16px;
   font-weight: 700;
@@ -2482,7 +2545,6 @@ body.onboarding-modal-open {
   color: #a92296;
 }
 
-/* Modal: Pickup Location */
 .reservation-modal-location {
   margin-top: 28px;
   padding: 18px;
