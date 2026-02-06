@@ -345,7 +345,6 @@ window.RentalsManager = {
           </a>
           <div class="rental-modal-details">
             <div class="rental-modal-name">${name.toLowerCase()}</div>
-            ${colors || size ? `<div class="rental-modal-meta">${colors.toLowerCase()}${colors && size ? ' · ' : ''}${size ? `size: ${size}` : ''}</div>` : ''}
           </div>
           <div class="rental-modal-dates">
             <div>
@@ -379,7 +378,6 @@ window.RentalsManager = {
             </div>
             <div class="rental-modal-group-details">
               <div class="rental-modal-group-name">${name.toLowerCase()}</div>
-              ${colors || size ? `<div class="rental-modal-group-meta">${colors.toLowerCase()}${colors && size ? ' · ' : ''}${size ? `size: ${size}` : ''}</div>` : ''}
               <a href="/product?sku=${encodeURIComponent(sku)}" class="rental-modal-group-link" onclick="event.stopPropagation()">
                 view item →
               </a>
