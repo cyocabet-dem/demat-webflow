@@ -93,10 +93,16 @@ window.RentalsManager = {
     if (!ci) return '';
 
     // Try multiple possible image structures
-    // 1. images array
+    // 1. images array - prefer front image (0_front in key)
     if (ci.images && ci.images.length > 0) {
-      const img = ci.images[0];
-      const url = img.object_url || img.image_url || img.url || img.src || '';
+      const sorted = [...ci.images].sort((a, b) => {
+        const aKey = a.image_key || '';
+        const bKey = b.image_key || '';
+        // Prefer 0_front over 1_front, etc.
+        return aKey.localeCompare(bKey);
+      });
+      const frontImg = sorted.find(img => img.image_type === 'front') || sorted[0];
+      const url = frontImg.object_url || frontImg.image_url || frontImg.url || frontImg.src || '';
       if (url) return url;
     }
 
