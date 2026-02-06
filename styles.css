@@ -1324,3 +1324,647 @@ body.onboarding-modal-open {
     display: block;
   }
 }
+/* ============================================
+   DONATIONS & CREDITS PAGE STYLES
+   Matches rentals page design system
+   ============================================ */
+
+/* ── Container ────────────────────────────── */
+#donations-container {
+  font-family: 'Urbanist', sans-serif;
+  color: var(--gray-dark);
+}
+
+/* ── Loading State ────────────────────────── */
+.donations-loading {
+  text-align: center;
+  padding: 80px 20px;
+}
+
+.donations-loading-spinner {
+  width: 44px;
+  height: 44px;
+  border: 3px solid var(--gray-light);
+  border-radius: 50%;
+  border-top-color: var(--purple);
+  animation: spin 1s linear infinite;
+  margin: 0 auto 16px;
+}
+
+.donations-loading-text {
+  color: var(--gray-medium);
+  font-size: 1rem;
+}
+
+/* ── Credit Balance Card ─────────────────── */
+.donations-balance-card {
+  background: linear-gradient(135deg, var(--purple) 0%, #6b1a5e 100%);
+  color: var(--white);
+  padding: 32px;
+  margin-bottom: 32px;
+  border-radius: var(--radius);
+  position: relative;
+  overflow: hidden;
+}
+
+.donations-balance-decor-1 {
+  position: absolute;
+  top: -20px;
+  right: -20px;
+  width: 120px;
+  height: 120px;
+  border: 1px solid rgba(255,255,255,0.15);
+  border-radius: 50%;
+}
+
+.donations-balance-decor-2 {
+  position: absolute;
+  bottom: -40px;
+  right: 60px;
+  width: 80px;
+  height: 80px;
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 50%;
+}
+
+.donations-balance-inner {
+  position: relative;
+  z-index: 1;
+}
+
+.donations-balance-label {
+  font-size: 13px;
+  letter-spacing: 1px;
+  opacity: 0.8;
+  margin-bottom: 16px;
+}
+
+.donations-balance-amount {
+  font-size: 42px;
+  font-weight: 600;
+  letter-spacing: -1px;
+  margin-bottom: 24px;
+}
+
+.donations-balance-desc {
+  font-size: 13px;
+  opacity: 0.7;
+  line-height: 1.5;
+}
+
+/* ── Section Header ──────────────────────── */
+.donations-section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.donations-section-title {
+  font-size: 16px;
+  font-weight: 700;
+  letter-spacing: 1.5px;
+  color: var(--gray-medium);
+}
+
+.donations-section-count {
+  font-size: 14px;
+  color: var(--gray-medium);
+}
+
+/* ── Donation Card ───────────────────────── */
+.donation-card {
+  background: var(--white);
+  border: 1px solid var(--gray-light);
+  border-radius: var(--radius);
+  padding: 24px;
+  margin-bottom: 16px;
+  transition: box-shadow 0.2s ease;
+}
+
+.donation-card:hover {
+  box-shadow: 0 4px 20px rgba(75, 7, 63, 0.08);
+}
+
+.donation-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 16px;
+}
+
+.donation-card-id-label {
+  font-size: 13px;
+  color: var(--gray-medium);
+  margin-bottom: 4px;
+}
+
+.donation-card-id {
+  font-size: 14px;
+  color: var(--gray-dark);
+  font-family: monospace;
+  font-weight: 500;
+}
+
+/* Status Badges */
+.donation-badge {
+  display: inline-block;
+  padding: 4px 12px;
+  font-size: 12px;
+  font-weight: 600;
+  border-radius: 50px;
+  letter-spacing: 0.3px;
+}
+
+.donation-badge-complete {
+  background: var(--blue-very-light);
+  color: var(--teal);
+}
+
+.donation-badge-processing {
+  background: var(--pink-light);
+  color: var(--purple);
+}
+
+/* Stats Grid */
+.donation-card-stats {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+  margin-bottom: 16px;
+  padding: 14px;
+  background: var(--gray-very-light);
+  border-radius: 12px;
+}
+
+.donation-card-stat-label {
+  font-size: 12px;
+  color: var(--gray-medium);
+  margin-bottom: 4px;
+}
+
+.donation-card-stat-value {
+  font-size: 14px;
+  color: var(--gray-dark);
+  font-weight: 500;
+}
+
+.donation-card-stat-value--credits {
+  color: var(--teal);
+  font-weight: 600;
+}
+
+/* Notes */
+.donation-card-notes {
+  margin-bottom: 16px;
+  padding: 14px;
+  background: var(--pink-light);
+  border-radius: 12px;
+}
+
+.donation-card-notes-label {
+  font-size: 12px;
+  color: var(--purple);
+  font-weight: 600;
+  margin-bottom: 6px;
+}
+
+.donation-card-notes-text {
+  font-size: 14px;
+  color: var(--gray-dark);
+  line-height: 1.5;
+}
+
+/* View Details Button */
+.donation-card-btn {
+  display: block;
+  width: 100%;
+  padding: 14px;
+  background: var(--purple);
+  color: var(--white);
+  text-align: center;
+  text-decoration: none;
+  font-family: 'Urbanist', sans-serif;
+  font-size: 15px;
+  font-weight: 600;
+  border-radius: 50px;
+  border: none;
+  cursor: pointer;
+  transition: background 0.2s ease, transform 0.2s ease;
+}
+
+.donation-card-btn:hover {
+  background: var(--purple-dark);
+  transform: translateY(-1px);
+}
+
+/* ── Empty State ─────────────────────────── */
+.donations-empty {
+  text-align: center;
+  padding: 60px 24px;
+  background: var(--pink-light);
+  border-radius: var(--radius);
+}
+
+.donations-empty-title {
+  font-size: 22px;
+  font-weight: 600;
+  color: var(--gray-dark);
+  margin: 0 0 8px 0;
+}
+
+.donations-empty-text {
+  font-size: 16px;
+  color: var(--gray-medium);
+  margin: 0 0 28px 0;
+  max-width: 300px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.donations-empty-btn {
+  display: inline-block;
+  padding: 14px 36px;
+  background: var(--purple);
+  color: var(--white);
+  text-decoration: none;
+  font-family: 'Urbanist', sans-serif;
+  font-size: 16px;
+  font-weight: 600;
+  border-radius: 50px;
+  transition: background 0.2s ease, transform 0.2s ease;
+}
+
+.donations-empty-btn:hover {
+  background: var(--purple-dark);
+  transform: translateY(-1px);
+}
+
+/* ── Error State ─────────────────────────── */
+.donations-error {
+  text-align: center;
+  padding: 40px 20px;
+  background: var(--pink-light);
+  border-radius: var(--radius);
+}
+
+.donations-error-icon {
+  font-size: 32px;
+  margin-bottom: 12px;
+}
+
+.donations-error-text {
+  color: var(--purple);
+  font-size: 14px;
+}
+
+/* ── Sign In State ───────────────────────── */
+.donations-signin {
+  text-align: center;
+  padding: 80px 24px;
+  background: var(--pink-light);
+  border-radius: var(--radius);
+}
+
+.donations-signin-title {
+  font-size: 22px;
+  font-weight: 600;
+  color: var(--gray-dark);
+  margin-bottom: 12px;
+}
+
+.donations-signin-text {
+  font-size: 16px;
+  color: var(--gray-medium);
+  margin-bottom: 28px;
+}
+
+.donations-signin-btn {
+  display: inline-block;
+  padding: 14px 36px;
+  background: var(--purple);
+  color: var(--white);
+  border: none;
+  border-radius: 50px;
+  font-family: 'Urbanist', sans-serif;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s ease;
+}
+
+.donations-signin-btn:hover {
+  background: var(--purple-dark);
+}
+
+/* ── Detail Modal ────────────────────────── */
+.donation-modal-backdrop {
+  display: none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  z-index: 9998;
+  backdrop-filter: blur(2px);
+}
+
+.donation-modal {
+  display: none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 9999;
+  justify-content: center;
+  align-items: center;
+  padding: 20px;
+}
+
+.donation-modal-container {
+  background: var(--white);
+  width: 100%;
+  max-width: 480px;
+  max-height: 90vh;
+  overflow-y: auto;
+  border-radius: var(--radius);
+}
+
+.donation-modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20px 24px;
+  border-bottom: 1px solid var(--gray-light);
+  position: sticky;
+  top: 0;
+  background: var(--white);
+  border-radius: var(--radius) var(--radius) 0 0;
+  z-index: 1;
+}
+
+.donation-modal-title {
+  font-size: 22px;
+  font-weight: 600;
+  color: var(--gray-dark);
+}
+
+.donation-modal-id {
+  font-size: 14px;
+  color: var(--gray-medium);
+  font-family: monospace;
+}
+
+.donation-modal-close {
+  background: none;
+  border: none;
+  font-size: 28px;
+  cursor: pointer;
+  color: var(--gray-medium);
+  padding: 0;
+  line-height: 1;
+  transition: color 0.2s ease;
+}
+
+.donation-modal-close:hover {
+  color: var(--gray-dark);
+}
+
+.donation-modal-content {
+  padding: 24px;
+}
+
+/* Modal: Status Banner */
+.donation-modal-status {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 16px;
+  background: var(--gray-very-light);
+  border-radius: 12px;
+  margin-bottom: 20px;
+}
+
+.donation-modal-status-text {
+  font-size: 13px;
+  color: var(--gray-medium);
+}
+
+/* Modal: Summary Grid */
+.donation-modal-summary-title {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--gray-medium);
+  letter-spacing: 1px;
+  margin-bottom: 12px;
+}
+
+.donation-modal-summary-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  margin-bottom: 24px;
+}
+
+.donation-modal-summary-item {
+  padding: 14px;
+  background: var(--gray-very-light);
+  border-radius: 12px;
+}
+
+.donation-modal-summary-item--highlight {
+  background: var(--blue-very-light);
+}
+
+.donation-modal-summary-label {
+  font-size: 12px;
+  color: var(--gray-medium);
+  margin-bottom: 4px;
+}
+
+.donation-modal-summary-value {
+  font-size: 15px;
+  color: var(--gray-dark);
+  font-weight: 500;
+}
+
+.donation-modal-summary-value--credits {
+  color: var(--teal);
+  font-weight: 600;
+}
+
+/* Modal: Notes */
+.donation-modal-notes {
+  margin-bottom: 24px;
+  padding: 16px;
+  background: var(--pink-light);
+  border-radius: 12px;
+}
+
+.donation-modal-notes-label {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--purple);
+  margin-bottom: 8px;
+}
+
+.donation-modal-notes-text {
+  font-size: 14px;
+  color: var(--gray-dark);
+  line-height: 1.6;
+}
+
+/* Modal: Items List */
+.donation-modal-items-title {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--gray-medium);
+  letter-spacing: 1px;
+  margin-bottom: 12px;
+}
+
+.donation-modal-item {
+  display: flex;
+  gap: 16px;
+  align-items: center;
+  padding: 16px;
+  background: var(--gray-very-light);
+  border-radius: 16px;
+  margin-bottom: 12px;
+  text-decoration: none;
+  color: inherit;
+  transition: background 0.2s ease;
+}
+
+.donation-modal-item:hover {
+  background: var(--pink-light);
+}
+
+.donation-modal-item:last-child {
+  margin-bottom: 0;
+}
+
+.donation-modal-item-img {
+  width: 90px;
+  height: 112px;
+  border-radius: 16px;
+  overflow: hidden;
+  background: var(--white);
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 6px;
+}
+
+.donation-modal-item-img img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  object-position: center;
+  display: block;
+}
+
+.donation-modal-item-placeholder {
+  color: var(--gray-light);
+  font-size: 24px;
+}
+
+.donation-modal-item-details {
+  flex: 1;
+  min-width: 0;
+}
+
+.donation-modal-item-name {
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--gray-dark);
+  margin-bottom: 4px;
+}
+
+.donation-modal-item-credits {
+  font-size: 14px;
+  color: var(--teal);
+  font-weight: 600;
+  margin-top: 6px;
+}
+
+.donation-modal-item-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--purple);
+  text-decoration: none;
+  margin-top: 6px;
+  transition: color 0.2s ease;
+}
+
+.donation-modal-item-link:hover {
+  color: var(--purple-dark);
+}
+
+/* Modal: How Credits Work */
+.donation-modal-info {
+  margin-top: 24px;
+  padding: 16px;
+  background: var(--gray-very-light);
+  border-radius: 12px;
+}
+
+.donation-modal-info-title {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--gray-medium);
+  letter-spacing: 1px;
+  margin-bottom: 8px;
+}
+
+.donation-modal-info-text {
+  font-size: 13px;
+  color: var(--gray-medium);
+  line-height: 1.6;
+}
+
+/* ── Responsive ──────────────────────────── */
+@media (max-width: 600px) {
+  .donations-balance-card {
+    padding: 24px;
+  }
+
+  .donations-balance-amount {
+    font-size: 36px;
+  }
+
+  .donation-card-stats {
+    grid-template-columns: 1fr;
+    gap: 8px;
+  }
+
+  .donation-card-stats > div {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .donation-card-stat-label {
+    margin-bottom: 0;
+  }
+
+  .donation-modal-summary-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .donation-modal-item {
+    gap: 12px;
+    padding: 12px;
+  }
+
+  .donation-modal-item-img {
+    width: 64px;
+    height: 80px;
+  }
+}
