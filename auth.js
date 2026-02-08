@@ -1,3 +1,9 @@
+// ============================================
+// DEMATERIALIZED - AUTH.JS
+// Updated: Simplified signup flow for in-store QR code
+// Flow: Signup → Memberships → Payment → Onboarding Modal
+// ============================================
+
 document.addEventListener('DOMContentLoaded', function() {
 
   // --- Auth0 Configuration ---
@@ -38,13 +44,13 @@ document.addEventListener('DOMContentLoaded', function() {
         const returnPath = sessionStorage.getItem('auth_return_path') || '/';
         sessionStorage.removeItem('auth_return_path');
         
-        console.log('🔙 Returning to:', returnPath);
+        console.log('🔙 Return path was:', returnPath);
         
-        // Clean up URL and redirect to return path
+        // Clean up URL first
         window.history.replaceState({}, document.title, returnPath);
         
-        // After successful login, check user status
-        await checkUserStatusAndRedirect();
+        // After successful login, check user status and handle redirect
+        await checkUserStatusAndRedirect(returnPath);
       }
       
       // Update UI
@@ -64,14 +70,28 @@ document.addEventListener('DOMContentLoaded', function() {
     }
   }
 
-  // Check user status and show onboarding modal if needed
+  // ============================================
+  // CHECK USER STATUS (on page load)
+  // Shows onboarding modal if:
+  // - User HAS active membership
+  // - User has NOT completed profile
+  // - Modal hasn't been dismissed this session
+  // Redirects to /memberships if:
+  // - User does NOT have active membership
+  // - User is not already on memberships page
+  // ============================================
   async function checkUserStatus() {
     try {
-      // Don't show onboarding modal if we're already on the onboarding page!
-        const excludedPaths = ['/onboarding', '/complete-your-profile', '/profile'];
-        if (excludedPaths.includes(window.location.pathname)) {
+      // Pages where we skip the redirect/modal logic
+      const skipPages = ['/onboarding', '/profile', '/memberships', '/welcome-to-dematerialized', '/error-membership-signup'];
+      const currentPath = window.location.pathname;
+      
+      if (skipPages.includes(currentPath)) {
+        console.log('⏭️ On excluded page, skipping status check');
         return;
-        }
+      }
+      
+      console.log('🔍 Checking user status...');
       const token = await window.auth0Client.getTokenSilently();
       const response = await fetch(`${API_URL}/users/me`, {
         headers: { Authorization: `Bearer ${token}` }
@@ -85,25 +105,49 @@ document.addEventListener('DOMContentLoaded', function() {
       const userData = await response.json();
       console.log('User data:', userData);
       
-      // Check if user needs to complete their profile
-        if (!userData.provided_information) {
-        // Only show once per session
-        if (!sessionStorage.getItem('onboarding_modal_dismissed')) {
-            console.log('⚠️ User has not completed their profile');
-            showOnboardingModal();
-        }
-        }
-      
-      // Store user data globally for easy access
+      // Store user data globally
       window.currentUserData = userData;
+      
+      // Check membership and profile status
+      const hasActiveMembership = userData.membership && userData.membership.active;
+      const hasCompletedProfile = userData.provided_information;
+      const modalDismissed = sessionStorage.getItem('onboarding_modal_dismissed') === 'true';
+      
+      console.log('📋 User status:', {
+        hasActiveMembership,
+        hasCompletedProfile,
+        modalDismissed,
+        currentPath
+      });
+      
+      // FLOW LOGIC:
+      // 1. No membership → redirect to /memberships
+      // 2. Has membership + incomplete profile + modal not dismissed → show modal
+      // 3. Otherwise → do nothing
+      
+      if (!hasActiveMembership) {
+        console.log('⚠️ User has no active membership - redirecting to /memberships');
+        window.location.href = '/memberships';
+        return;
+      }
+      
+      if (hasActiveMembership && !hasCompletedProfile && !modalDismissed) {
+        console.log('⚠️ User has membership but incomplete profile - showing onboarding modal');
+        setTimeout(() => {
+          showOnboardingModal();
+        }, 500);
+      }
       
     } catch (error) {
       console.error('Error checking user status:', error);
     }
   }
 
-  // Check user status and redirect to onboarding if needed (after login)
-  async function checkUserStatusAndRedirect() {
+  // ============================================
+  // CHECK USER STATUS AND REDIRECT (after login)
+  // Called immediately after Auth0 callback
+  // ============================================
+  async function checkUserStatusAndRedirect(returnPath) {
     try {
       console.log('🔍 Checking user status after login...');
       const token = await window.auth0Client.getTokenSilently();
@@ -119,50 +163,78 @@ document.addEventListener('DOMContentLoaded', function() {
       const userData = await response.json();
       console.log('User data after login:', userData);
       
-      // Check if user needs to complete their profile
-      if (!userData.provided_information) {
-        console.log('🚀 Redirecting to onboarding page...');
-        // Redirect to onboarding page
-        window.location.href = '/onboarding';
-      } else {
-        console.log('✅ User profile is complete');
-        // User stays on current page (which is the return path)
-      }
-      
       // Store user data globally
       window.currentUserData = userData;
+      
+      // Check membership status
+      const hasActiveMembership = userData.membership && userData.membership.active;
+      const hasCompletedProfile = userData.provided_information;
+      
+      console.log('📋 Post-login status:', {
+        hasActiveMembership,
+        hasCompletedProfile,
+        returnPath
+      });
+      
+      // FLOW LOGIC:
+      // 1. No membership → redirect to /memberships (new users need to pay first)
+      // 2. Has membership + incomplete profile → stay on page, modal will show
+      // 3. Has membership + complete profile → stay on return path
+      
+      if (!hasActiveMembership) {
+        console.log('🚀 User has no membership - redirecting to /memberships');
+        window.location.href = '/memberships';
+        return;
+      }
+      
+      // User has membership - stay on current page
+      // The checkUserStatus() call in initializeAuth0 will handle showing the modal
+      console.log('✅ User has active membership, staying on:', returnPath);
       
     } catch (error) {
       console.error('Error checking user status:', error);
     }
   }
 
-  // Show onboarding modal (for when user is already logged in but hasn't completed profile)
+  // Show onboarding modal
   function showOnboardingModal() {
     if (typeof window.openOnboardingModal === 'function') {
       window.openOnboardingModal();
+    } else {
+      console.warn('openOnboardingModal function not found');
     }
   }
 
-  // Update UI
+  // Update UI based on auth state
   function updateUI(isAuthenticated) {
     const loggedInElements = document.querySelectorAll('[data-auth="logged-in"]');
     const loggedOutElements = document.querySelectorAll('[data-auth="logged-out"]');
     
-     loggedInElements.forEach(el => {
-    el.style.display = isAuthenticated ? 'block' : 'none';
-  });
-  
-  loggedOutElements.forEach(el => {
-    el.style.display = !isAuthenticated ? 'block' : 'none';
-  });
+    loggedInElements.forEach(el => {
+      el.style.display = isAuthenticated ? 'block' : 'none';
+    });
+    
+    loggedOutElements.forEach(el => {
+      el.style.display = !isAuthenticated ? 'block' : 'none';
+    });
   }
 
-  // Display user info
+  // Display user info in elements with data-auth attributes
   function displayUserInfo(user) {
     if (!user) return;
+    
+    // Try to get first name from API data if available
+    let displayName = user.name || user.email || 'User';
+    
+    if (window.currentUserData && window.currentUserData.attributes) {
+      const firstNameAttr = window.currentUserData.attributes.find(attr => attr.key === 'first_name');
+      if (firstNameAttr && firstNameAttr.value) {
+        displayName = firstNameAttr.value;
+      }
+    }
+    
     document.querySelectorAll('[data-auth="user-name"]').forEach(el => {
-      el.textContent = user.name || user.email || 'User';
+      el.textContent = displayName;
     });
     document.querySelectorAll('[data-auth="user-email"]').forEach(el => {
       el.textContent = user.email || '';
@@ -186,6 +258,11 @@ document.addEventListener('DOMContentLoaded', function() {
   // Logout
   async function logout() {
     if (!window.auth0Client) return;
+    
+    // Clear any session storage items
+    sessionStorage.removeItem('onboarding_modal_dismissed');
+    sessionStorage.removeItem('auth_return_path');
+    
     await window.auth0Client.logout({
       logoutParams: {
         returnTo: window.location.origin + '/'
@@ -193,7 +270,7 @@ document.addEventListener('DOMContentLoaded', function() {
     });
   }
 
-  // API Calling Function
+  // API Calling Function (for testing)
   async function callApi() {
     console.log("Attempting to call API...");
     try {
@@ -211,9 +288,10 @@ document.addEventListener('DOMContentLoaded', function() {
     }
   }
 
-  // Initialize and connect buttons
+  // Initialize Auth0
   initializeAuth0();
   
+  // Connect buttons after a short delay
   setTimeout(() => {
     // Connect login/logout by data-attribute
     document.querySelectorAll('[data-auth-action="login"]').forEach(btn => {
@@ -245,6 +323,9 @@ document.addEventListener('DOMContentLoaded', function() {
         const user = await window.auth0Client.getUser();
         console.log('User:', user);
         console.log('User Data from API:', window.currentUserData);
+        console.log('Has active membership:', window.currentUserData?.membership?.active);
+        console.log('Has completed profile:', window.currentUserData?.provided_information);
+        console.log('Modal dismissed:', sessionStorage.getItem('onboarding_modal_dismissed'));
         try {
           const token = await window.auth0Client.getTokenSilently();
           console.log('Access Token:', token.substring(0, 20) + "...");
@@ -256,8 +337,10 @@ document.addEventListener('DOMContentLoaded', function() {
     console.log('Stored return path:', sessionStorage.getItem('auth_return_path'));
   };
   
-  // Expose check function globally
+  // Expose functions globally
   window.checkUserStatus = checkUserStatus;
+  window.login = login;
+  window.logout = logout;
   
   console.log('Auth0 script loaded. Type debugAuth() in console for debug info.');
 });
