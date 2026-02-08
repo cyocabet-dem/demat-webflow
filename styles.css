@@ -382,16 +382,11 @@ body.auth-modal-open {
 }
 
 /* ============================================
-   ONBOARDING MODAL - MATCHES RENTALS DESIGN SYSTEM
-   Replace the existing ONBOARDING MODAL section in styles.css
-   ============================================ */
-
-/* ============================================
    MULTI-STEP ONBOARDING MODAL STYLES
-   Design system matching rentals page
+   Full-screen overlay, larger fonts
    ============================================ */
 
-/* Overlay */
+/* Overlay - FULL SCREEN */
 .onboarding-modal-overlay {
   display: none;
   position: fixed;
@@ -399,39 +394,35 @@ body.auth-modal-open {
   left: 0;
   width: 100%;
   height: 100%;
-  background: rgba(75, 7, 63, 0.6);
+  background: #ffffff;
   z-index: 10000;
-  justify-content: center;
-  align-items: center;
-  padding: 20px;
-  box-sizing: border-box;
   overflow-y: auto;
 }
 
 .onboarding-modal-overlay.is-visible {
-  display: flex;
+  display: block;
 }
 
 /* Container */
 .onboarding-modal-container {
-  background: #ffffff;
-  border-radius: 20px;
   width: 100%;
-  max-width: 600px;
-  max-height: 90vh;
-  overflow-y: auto;
-  position: relative;
-  box-shadow: 0 20px 60px rgba(75, 7, 63, 0.3);
+  min-height: 100%;
+  max-width: 700px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
 }
 
 /* Progress Bar */
 .onboarding-progress {
   display: flex;
-  padding: 24px 32px;
-  gap: 16px;
+  padding: 24px 40px;
+  gap: 20px;
   border-bottom: 1px solid #f0f0f0;
   background: #fafafa;
-  border-radius: 20px 20px 0 0;
+  position: sticky;
+  top: 0;
+  z-index: 10;
 }
 
 .onboarding-progress-step {
@@ -443,11 +434,11 @@ body.auth-modal-open {
 
 .progress-label {
   font-family: 'Urbanist', sans-serif;
-  font-size: 11px;
+  font-size: 12px;
   font-weight: 600;
   text-transform: lowercase;
   color: #999;
-  letter-spacing: 0.5px;
+  letter-spacing: 0.3px;
 }
 
 .onboarding-progress-step.active .progress-label,
@@ -481,7 +472,8 @@ body.auth-modal-open {
 /* Steps */
 .onboarding-step {
   display: none;
-  padding: 48px 40px;
+  padding: 60px 40px 80px;
+  flex: 1;
 }
 
 .onboarding-step.active {
@@ -493,47 +485,52 @@ body.auth-modal-open {
   flex-direction: column;
   align-items: center;
   text-align: center;
+  max-width: 500px;
+  margin: 0 auto;
 }
 
 /* Icon */
 .onboarding-icon {
-  margin-bottom: 24px;
+  margin-bottom: 32px;
 }
 
-/* Typography */
+/* Typography - LARGER SIZES */
 .onboarding-title {
   font-family: 'Urbanist', sans-serif;
-  font-size: 28px;
+  font-size: 36px;
   font-weight: 700;
   color: #1a1a1a;
-  margin: 0 0 12px 0;
+  margin: 0 0 16px 0;
   text-transform: lowercase;
   line-height: 1.2;
+  letter-spacing: 0.3px;
 }
 
 .onboarding-subtitle {
   font-family: 'Urbanist', sans-serif;
-  font-size: 16px;
+  font-size: 18px;
   color: #666;
-  margin: 0 0 32px 0;
-  line-height: 1.5;
-  max-width: 400px;
+  margin: 0 0 40px 0;
+  line-height: 1.6;
+  letter-spacing: 0.3px;
+  max-width: 450px;
 }
 
-/* Buttons */
+/* Buttons - LARGER */
 .onboarding-btn-primary {
   font-family: 'Urbanist', sans-serif;
-  font-size: 16px;
+  font-size: 18px;
   font-weight: 600;
   color: #ffffff;
   background: #4b073f;
   border: none;
   border-radius: 50px;
-  padding: 16px 48px;
+  padding: 18px 56px;
   cursor: pointer;
   transition: all 0.2s ease;
   text-transform: lowercase;
-  min-width: 200px;
+  letter-spacing: 0.3px;
+  min-width: 220px;
 }
 
 .onboarding-btn-primary:hover {
@@ -549,15 +546,16 @@ body.auth-modal-open {
 
 .onboarding-btn-secondary {
   font-family: 'Urbanist', sans-serif;
-  font-size: 14px;
+  font-size: 16px;
   font-weight: 500;
   color: #4b073f;
   background: transparent;
   border: none;
-  padding: 12px 24px;
+  padding: 14px 28px;
   cursor: pointer;
-  margin-top: 12px;
+  margin-top: 16px;
   text-transform: lowercase;
+  letter-spacing: 0.3px;
   transition: color 0.2s ease;
 }
 
@@ -567,15 +565,16 @@ body.auth-modal-open {
 
 .onboarding-btn-back {
   font-family: 'Urbanist', sans-serif;
-  font-size: 14px;
+  font-size: 16px;
   font-weight: 500;
   color: #4b073f;
   background: transparent;
   border: none;
-  padding: 12px 24px;
+  padding: 14px 28px;
   cursor: pointer;
-  margin-top: 8px;
+  margin-top: 12px;
   text-transform: lowercase;
+  letter-spacing: 0.3px;
 }
 
 .onboarding-btn-back:hover {
@@ -585,13 +584,13 @@ body.auth-modal-open {
 /* Form Styles */
 .onboarding-form {
   width: 100%;
-  max-width: 400px;
-  margin-bottom: 32px;
+  max-width: 450px;
+  margin-bottom: 40px;
 }
 
 .onboarding-form-row {
   display: flex;
-  gap: 16px;
+  gap: 20px;
 }
 
 .onboarding-form-row .onboarding-input-group {
@@ -599,32 +598,34 @@ body.auth-modal-open {
 }
 
 .onboarding-input-group {
-  margin-bottom: 20px;
+  margin-bottom: 24px;
   text-align: left;
   position: relative;
 }
 
 .onboarding-label {
   font-family: 'Urbanist', sans-serif;
-  font-size: 12px;
+  font-size: 14px;
   font-weight: 500;
   color: #999;
   text-transform: lowercase;
   display: block;
-  margin-bottom: 8px;
+  margin-bottom: 10px;
+  letter-spacing: 0.3px;
 }
 
 .onboarding-input {
   font-family: 'Urbanist', sans-serif;
-  font-size: 16px;
+  font-size: 18px;
   color: #1a1a1a;
   background: transparent;
   border: none;
   border-bottom: 2px solid #e0e0e0;
-  padding: 12px 0;
+  padding: 14px 0;
   width: 100%;
   outline: none;
   transition: border-color 0.2s ease;
+  letter-spacing: 0.3px;
 }
 
 .onboarding-input:focus {
@@ -633,6 +634,11 @@ body.auth-modal-open {
 
 .onboarding-input::placeholder {
   color: #ccc;
+}
+
+/* Select dropdown styling */
+.onboarding-input option {
+  font-size: 16px;
 }
 
 /* Address Suggestions */
@@ -656,11 +662,12 @@ body.auth-modal-open {
 }
 
 .address-suggestion {
-  padding: 12px 16px;
+  padding: 14px 18px;
   cursor: pointer;
   font-family: 'Urbanist', sans-serif;
-  font-size: 14px;
+  font-size: 16px;
   border-bottom: 1px solid #f0f0f0;
+  letter-spacing: 0.3px;
 }
 
 .address-suggestion:last-child {
@@ -671,47 +678,13 @@ body.auth-modal-open {
   background: #fff4fe;
 }
 
-/* Size Options */
-.onboarding-sizes {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 12px;
-  justify-content: center;
-  margin-bottom: 32px;
-  max-width: 450px;
-}
-
-.size-option {
-  font-family: 'Urbanist', sans-serif;
-  font-size: 14px;
-  font-weight: 500;
-  color: #1a1a1a;
-  background: #ffffff;
-  border: 2px solid #e0e0e0;
-  border-radius: 8px;
-  padding: 12px 20px;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  min-width: 90px;
-}
-
-.size-option:hover {
-  border-color: #4b073f;
-}
-
-.size-option.selected {
-  background: #4b073f;
-  border-color: #4b073f;
-  color: #ffffff;
-}
-
 /* Body Type Options */
 .onboarding-body-types {
   display: flex;
   flex-wrap: wrap;
   gap: 16px;
   justify-content: center;
-  margin-bottom: 32px;
+  margin-bottom: 40px;
   max-width: 500px;
 }
 
@@ -719,8 +692,8 @@ body.auth-modal-open {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 8px;
-  padding: 16px;
+  gap: 10px;
+  padding: 18px;
   background: transparent;
   border: 2px solid transparent;
   border-radius: 12px;
@@ -748,31 +721,33 @@ body.auth-modal-open {
 
 .body-type-label {
   font-family: 'Urbanist', sans-serif;
-  font-size: 12px;
+  font-size: 14px;
   font-weight: 500;
   color: #1a1a1a;
   text-transform: lowercase;
   text-align: center;
+  letter-spacing: 0.3px;
 }
 
 /* Checkbox Options */
 .onboarding-checkboxes {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 12px 32px;
-  margin-bottom: 32px;
+  gap: 16px 40px;
+  margin-bottom: 40px;
   text-align: left;
-  max-width: 400px;
+  max-width: 450px;
 }
 
 .checkbox-option {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 14px;
   cursor: pointer;
   font-family: 'Urbanist', sans-serif;
-  font-size: 15px;
+  font-size: 18px;
   color: #1a1a1a;
+  letter-spacing: 0.3px;
 }
 
 .checkbox-option input[type="checkbox"] {
@@ -780,8 +755,8 @@ body.auth-modal-open {
 }
 
 .checkbox-custom {
-  width: 22px;
-  height: 22px;
+  width: 24px;
+  height: 24px;
   border: 2px solid #e0e0e0;
   border-radius: 4px;
   display: flex;
@@ -820,12 +795,12 @@ body.auth-modal-open {
 .onboarding-btn-primary.loading::after {
   content: '';
   position: absolute;
-  width: 20px;
-  height: 20px;
+  width: 22px;
+  height: 22px;
   top: 50%;
   left: 50%;
-  margin-left: -10px;
-  margin-top: -10px;
+  margin-left: -11px;
+  margin-top: -11px;
   border: 2px solid #ffffff;
   border-top-color: transparent;
   border-radius: 50%;
@@ -838,31 +813,29 @@ body.auth-modal-open {
 
 /* Mobile Responsive */
 @media (max-width: 600px) {
-  .onboarding-modal-container {
-    max-height: 100vh;
-    border-radius: 0;
-    min-height: 100vh;
-  }
-  
   .onboarding-progress {
-    padding: 16px 20px;
-    border-radius: 0;
+    padding: 20px 24px;
   }
   
   .progress-label {
-    font-size: 9px;
+    font-size: 10px;
   }
   
   .onboarding-step {
-    padding: 32px 24px;
+    padding: 40px 24px 60px;
   }
   
   .onboarding-title {
-    font-size: 24px;
+    font-size: 28px;
   }
   
   .onboarding-subtitle {
-    font-size: 14px;
+    font-size: 16px;
+  }
+  
+  .onboarding-btn-primary {
+    font-size: 16px;
+    padding: 16px 40px;
   }
   
   .onboarding-form-row {
@@ -870,23 +843,13 @@ body.auth-modal-open {
     gap: 0;
   }
   
-  .onboarding-sizes {
-    gap: 8px;
-  }
-  
-  .size-option {
-    padding: 10px 16px;
-    font-size: 13px;
-    min-width: 80px;
-  }
-  
   .onboarding-body-types {
-    gap: 8px;
+    gap: 10px;
   }
   
   .body-type-option {
-    width: 70px;
-    padding: 10px;
+    width: 75px;
+    padding: 12px;
   }
   
   .body-type-icon {
@@ -900,13 +863,22 @@ body.auth-modal-open {
   }
   
   .body-type-label {
-    font-size: 10px;
+    font-size: 11px;
   }
   
   .onboarding-checkboxes {
     grid-template-columns: 1fr;
-    gap: 12px;
+    gap: 14px;
   }
+  
+  .checkbox-option {
+    font-size: 16px;
+  }
+}
+
+/* Body scroll lock */
+body.onboarding-modal-open {
+  overflow: hidden;
 }
 
 /* ============================================
