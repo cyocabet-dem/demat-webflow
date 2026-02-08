@@ -382,6 +382,11 @@ body.auth-modal-open {
 }
 
 /* ============================================
+   ONBOARDING MODAL - MATCHES RENTALS DESIGN SYSTEM
+   Replace the existing ONBOARDING MODAL section in styles.css
+   ============================================ */
+
+/* ============================================
    ONBOARDING MODAL
    ============================================ */
 
@@ -392,7 +397,7 @@ body.auth-modal-open {
   left: 0;
   right: 0;
   bottom: 0;
-  background-color: rgba(0, 0, 0, 0.85);
+  background-color: rgba(75, 7, 63, 0.85);
   z-index: 1000000;
   align-items: center;
   justify-content: center;
@@ -404,10 +409,10 @@ body.auth-modal-open {
 }
 
 .onboarding-modal-container {
-  background-color: #fff;
-  border-radius: 2px;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
-  max-width: 500px;
+  background-color: #ffffff;
+  border-radius: 20px;
+  box-shadow: 0 8px 40px rgba(75, 7, 63, 0.25);
+  max-width: 480px;
   width: 90%;
   max-height: 90vh;
   overflow-y: auto;
@@ -429,74 +434,80 @@ body.auth-modal-open {
 .onboarding-modal-header {
   padding: 40px 32px 24px;
   text-align: center;
-  border-bottom: 1px solid #f0f0f0;
+  background: #fff4fe;
+  border-radius: 20px 20px 0 0;
 }
 
 .onboarding-modal-title {
-  color: #000;
-  letter-spacing: .3px;
+  color: #4b073f;
   font-family: 'Urbanist', sans-serif;
-  font-size: 28px;
-  font-weight: 500;
-  text-transform: uppercase;
-  letter-spacing: 1px;
-  margin: 0 0 8px 0;
+  font-size: 22px;
+  font-weight: 600;
+  text-transform: lowercase;
+  letter-spacing: 0.3px;
+  margin: 0 0 12px 0;
   line-height: 1.3;
 }
 
 .onboarding-modal-subtitle {
-  color: #666;
+  color: #46535e;
   font-family: 'Urbanist', sans-serif;
-  font-size: 14px;
-  font-weight: 300;
+  font-size: 16px;
+  font-weight: 400;
   margin: 0;
-  line-height: 22px;
+  line-height: 1.5;
 }
 
 .onboarding-modal-body {
-  padding: 40px 32px;
+  padding: 36px 32px 40px;
   text-align: center;
 }
 
 .onboarding-icon {
   display: flex;
   justify-content: center;
-  margin-bottom: 24px;
-  color: #000;
+  align-items: center;
+  width: 88px;
+  height: 88px;
+  margin: 0 auto 28px;
+  background: #eff9ff;
+  border-radius: 50%;
 }
 
 .onboarding-icon svg {
-  opacity: 0.8;
+  stroke: #008ad4;
+  width: 44px;
+  height: 44px;
 }
 
 .onboarding-text {
-  color: #000;
-  letter-spacing: .3px;
+  color: #46535e;
   font-family: 'Urbanist', sans-serif;
-  font-size: 14px;
-  font-weight: 300;
-  line-height: 24px;
-  margin: 0 0 32px 0;
+  font-size: 16px;
+  font-weight: 400;
+  line-height: 1.65;
+  margin: 0 0 36px 0;
 }
 
 .onboarding-buttons-container {
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 16px;
 }
 
 .onboarding-button-primary {
-  color: #fff;
-  letter-spacing: 2px;
-  text-transform: uppercase;
-  background-color: #000;
-  padding: 16px 32px;
+  color: #ffffff;
+  text-transform: lowercase;
+  background-color: #4b073f;
+  padding: 18px 36px;
   font-family: 'Urbanist', sans-serif;
-  font-size: 14px;
-  font-weight: 500;
-  line-height: 20px;
-  transition: all 0.2s;
+  font-size: 16px;
+  font-weight: 600;
+  letter-spacing: 0.3px;
+  line-height: 1.25;
+  transition: all 0.2s ease;
   border: none;
+  border-radius: 50px;
   cursor: pointer;
   text-decoration: none;
   text-align: center;
@@ -505,23 +516,22 @@ body.auth-modal-open {
 }
 
 .onboarding-button-primary:hover {
-  background-color: #32343a;
+  background-color: #a92296;
   transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  box-shadow: 0 4px 16px rgba(75, 7, 63, 0.25);
 }
 
 .onboarding-button-secondary {
-  color: #666;
-  letter-spacing: 1px;
-  text-transform: uppercase;
+  color: #46535e;
+  text-transform: lowercase;
   background-color: transparent;
   border: none;
-  padding: 12px 32px;
+  padding: 14px 32px;
   font-family: 'Urbanist', sans-serif;
-  font-size: 12px;
-  font-weight: 400;
-  line-height: 20px;
-  transition: all 0.2s;
+  font-size: 15px;
+  font-weight: 500;
+  line-height: 1.25;
+  transition: all 0.2s ease;
   cursor: pointer;
   text-decoration: none;
   text-align: center;
@@ -530,11 +540,58 @@ body.auth-modal-open {
 }
 
 .onboarding-button-secondary:hover {
-  color: #000;
+  color: #4b073f;
 }
 
 body.onboarding-modal-open {
   overflow: hidden;
+}
+
+/* ============================================
+   MOBILE RESPONSIVE - ONBOARDING
+   ============================================ */
+
+@media screen and (max-width: 767px) {
+  .onboarding-modal-container {
+    width: 95%;
+    max-width: none;
+    margin: 16px;
+  }
+
+  .onboarding-modal-header {
+    padding: 32px 24px 20px;
+  }
+
+  .onboarding-modal-body {
+    padding: 28px 24px 32px;
+  }
+
+  .onboarding-modal-title {
+    font-size: 20px;
+  }
+
+  .onboarding-modal-subtitle {
+    font-size: 15px;
+  }
+
+  .onboarding-icon {
+    width: 76px;
+    height: 76px;
+  }
+
+  .onboarding-icon svg {
+    width: 38px;
+    height: 38px;
+  }
+
+  .onboarding-text {
+    font-size: 15px;
+  }
+
+  .onboarding-button-primary {
+    font-size: 15px;
+    padding: 16px 28px;
+  }
 }
 
 /* ============================================
