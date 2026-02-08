@@ -1,5 +1,6 @@
 // ============================================
 // DEMATERIALIZED - INJECTED COMPONENTS
+// Updated: Onboarding modal messaging for post-payment flow
 // ============================================
 
 (function() {
@@ -164,24 +165,24 @@
   </div>
 </div>
 
-<!-- Onboarding Modal -->
+<!-- Onboarding Modal - Updated for post-payment flow with new design system -->
 <div class="onboarding-modal-overlay" id="onboardingModal">
   <div class="onboarding-modal-container" onclick="event.stopPropagation()">
     <div class="onboarding-modal-header">
-      <h2 class="onboarding-modal-title">Complete Your Profile</h2>
-      <p class="onboarding-modal-subtitle">You're almost there! Let's finish setting up your account</p>
+      <h2 class="onboarding-modal-title">welcome to dematerialized!</h2>
+      <p class="onboarding-modal-subtitle">one last step to get the most out of your membership</p>
     </div>
     <div class="onboarding-modal-body">
       <div class="onboarding-icon">
-        <svg width="80" height="80" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+        <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
           <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
           <circle cx="12" cy="7" r="4"></circle>
         </svg>
       </div>
-      <p class="onboarding-text">To access all features and start browsing our collection, please complete your profile information.</p>
+      <p class="onboarding-text">help us personalize your experience by telling us a bit about yourself — your sizes, style preferences, and contact info so we can notify you when items are ready.</p>
       <div class="onboarding-buttons-container">
-        <button class="onboarding-button-primary" id="complete-profile-btn" onclick="window.location.href='/profile'">Complete Profile</button>
-        <button class="onboarding-button-secondary" id="onboarding-later-btn">I'll do this later</button>
+        <button class="onboarding-button-primary" id="complete-profile-btn">complete profile</button>
+        <button class="onboarding-button-secondary" id="onboarding-later-btn">i'll do this later</button>
       </div>
     </div>
   </div>
