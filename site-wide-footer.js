@@ -1471,9 +1471,8 @@ addSafeAreaStyles();
 
 // ============================================
 // MULTI-STEP ONBOARDING MODAL
-// Data structure matches profile.js approach:
-// - Direct API fields: phone_number, date_of_birth, address_house_number, address_zipcode, address_city
-// - Attributes array: first_name, last_name, address_street, address_unit, height_cm, preferred_fit, shirt_size, pants_size, shoe_size, body_type, referral_sources
+// 8 Steps: Welcome, Name, Contact/Address, Birthday, Sizes, Body Type, Referral, Complete
+// Data structure matches profile.js approach
 // ============================================
 (function() {
   console.log('🎓 Multi-step onboarding initializing...');
@@ -1483,7 +1482,7 @@ addSafeAreaStyles();
   
   // State
   let currentStep = 1;
-  const totalSteps = 7;
+  const totalSteps = 8;
   let addressDebounce = null;
   
   const formData = {
@@ -1512,14 +1511,16 @@ addSafeAreaStyles();
   };
   
   // Step to progress section mapping
+  // Steps 1 = welcome, Steps 2-4 = your info, Steps 5-8 = your profile
   const stepToProgress = {
     1: 1,  // Welcome -> welcome
-    2: 2,  // Your info -> your info
-    3: 2,  // Birthday -> your info
-    4: 3,  // Sizes -> your profile
-    5: 3,  // Body type -> your profile
-    6: 3,  // Referral -> your profile
-    7: 3   // Complete -> your profile
+    2: 2,  // Name -> your info
+    3: 2,  // Contact/Address -> your info
+    4: 2,  // Birthday -> your info
+    5: 3,  // Sizes -> your profile
+    6: 3,  // Body type -> your profile
+    7: 3,  // Referral -> your profile
+    8: 3   // Complete -> your profile
   };
   
   // ===== MODAL FUNCTIONS =====
@@ -1683,24 +1684,28 @@ addSafeAreaStyles();
   
   function collectStepData(step) {
     switch(step) {
-      case 2: // Personal info + Address
+      case 2: // Name only
         formData.firstName = document.getElementById('onboarding-firstname')?.value || '';
         formData.lastName = document.getElementById('onboarding-lastname')?.value || '';
+        console.log('🎓 Collected name:', formData.firstName, formData.lastName);
+        break;
+        
+      case 3: // Contact & Address
         formData.phoneNumber = document.getElementById('onboarding-phone')?.value || '';
         formData.addressStreet = document.getElementById('onboarding-street')?.value || '';
         formData.addressHouseNumber = document.getElementById('onboarding-house-number')?.value || '';
         formData.addressUnit = document.getElementById('onboarding-unit')?.value || '';
         formData.addressZipcode = document.getElementById('onboarding-zipcode')?.value || '';
         formData.addressCity = document.getElementById('onboarding-city')?.value || '';
-        console.log('🎓 Collected personal info:', formData.firstName, formData.lastName);
+        console.log('🎓 Collected contact/address:', formData.phoneNumber, formData.addressCity);
         break;
         
-      case 3: // Birthday
+      case 4: // Birthday
         formData.dateOfBirth = document.getElementById('onboarding-birthday')?.value || '';
         console.log('🎓 Collected birthday:', formData.dateOfBirth);
         break;
         
-      case 4: // Size profile
+      case 5: // Size profile
         formData.heightCm = document.getElementById('onboarding-height')?.value || '';
         formData.preferredFit = document.getElementById('onboarding-preferred-fit')?.value || '';
         formData.shirtSize = document.getElementById('onboarding-shirt-size')?.value || '';
@@ -1709,13 +1714,13 @@ addSafeAreaStyles();
         console.log('🎓 Collected sizes:', formData.heightCm, formData.shirtSize);
         break;
         
-      case 5: // Body type
+      case 6: // Body type
         const selectedBodyType = document.querySelector('.body-type-option.selected');
         formData.bodyType = selectedBodyType?.getAttribute('data-body-type') || '';
         console.log('🎓 Collected body type:', formData.bodyType);
         break;
         
-      case 6: // Referral sources
+      case 7: // Referral sources
         formData.referralSources = Array.from(document.querySelectorAll('.checkbox-option input:checked'))
           .map(el => el.value);
         console.log('🎓 Collected referral sources:', formData.referralSources);
@@ -1731,7 +1736,7 @@ addSafeAreaStyles();
     // Collect data from current step
     collectStepData(currentStep);
     
-    const btn = document.querySelector('.onboarding-step[data-step="6"] .onboarding-btn-primary');
+    const btn = document.querySelector('.onboarding-step[data-step="7"] .onboarding-btn-primary');
     if (btn) {
       btn.classList.add('loading');
       btn.disabled = true;
@@ -1825,15 +1830,15 @@ addSafeAreaStyles();
       }
       
       // Move to completion step regardless
-      currentStep = 7;
-      showStep(7);
+      currentStep = 8;
+      showStep(8);
       updateProgress();
       
     } catch (error) {
       console.error('🎓 Submit error:', error);
       // Still show completion - don't block the user
-      currentStep = 7;
-      showStep(7);
+      currentStep = 8;
+      showStep(8);
       updateProgress();
     } finally {
       if (btn) {
