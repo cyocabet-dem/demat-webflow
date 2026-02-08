@@ -1,7 +1,7 @@
 // ============================================
 // DEMATERIALIZED - SITE-WIDE FOOTER JS
-// Updated: Simplified signup flow for in-store QR code
-// Flow: Signup → Memberships → Payment → Onboarding Modal
+// Updated: Multi-step onboarding modal
+// Flow: Signup → Memberships → Payment → Multi-step Onboarding
 // ============================================
 
 console.log("🎯 Filter menu script loading...");
@@ -82,47 +82,13 @@ function closeAuthModal() {
   console.log("✅ Auth modal closed");
 }
 
-// ===== ONBOARDING MODAL FUNCTIONS =====
-function openOnboardingModal() {
-  console.log("🎓 openOnboardingModal() CALLED!");
-  
-  const modal = document.getElementById('onboardingModal');
-  if (!modal) {
-    console.error("❌ Onboarding modal not found!");
-    return;
-  }
-  
-  modal.classList.add('is-visible');
-  document.body.classList.add('onboarding-modal-open');
-  console.log("✅ Onboarding modal opened");
-}
-
-function closeOnboardingModal() {
-  console.log("🔒 closeOnboardingModal() called");
-  
-  const modal = document.getElementById('onboardingModal');
-  if (!modal) return;
-  
-  modal.classList.remove('is-visible');
-  document.body.classList.remove('onboarding-modal-open');
-  console.log("✅ Onboarding modal closed");
-}
-
-// ===== SHOW ONBOARDING MODAL (alias for compatibility) =====
-function showOnboardingModal() {
-  openOnboardingModal();
-}
-
-// Make functions globally accessible
+// Make auth functions globally accessible
 window.openAuthModal = openAuthModal;
 window.closeAuthModal = closeAuthModal;
-window.openOnboardingModal = openOnboardingModal;
-window.closeOnboardingModal = closeOnboardingModal;
-window.showOnboardingModal = showOnboardingModal;
 
-console.log("✅ Modal functions registered on window object");
+console.log("✅ Auth modal functions registered on window object");
 
-// Wait for DOM and connect all controls
+// Wait for DOM and connect auth modal controls
 document.addEventListener('DOMContentLoaded', function() {
   console.log("🔌 Connecting modal controls...");
   
@@ -195,57 +161,17 @@ document.addEventListener('DOMContentLoaded', function() {
       });
     });
     
-    // ===== ONBOARDING MODAL CONTROLS =====
-    
-    // "I'll do this later" button
-    const onboardingLaterBtn = document.getElementById('onboarding-later-btn');
-    if (onboardingLaterBtn) {
-      onboardingLaterBtn.addEventListener('click', function(e) {
-        e.preventDefault();
-        sessionStorage.setItem('onboarding_modal_dismissed', 'true');
-        closeOnboardingModal();
-      });
-    }
-    
-    // "Complete Profile" button
-    const completeProfileBtn = document.getElementById('complete-profile-btn');
-    if (completeProfileBtn) {
-      completeProfileBtn.addEventListener('click', function(e) {
-        e.preventDefault();
-        window.location.href = '/profile';
-      });
-    }
-    
-    // Close onboarding modal on overlay click
-    const onboardingModal = document.getElementById('onboardingModal');
-    if (onboardingModal) {
-      onboardingModal.addEventListener('click', function(e) {
-        if (e.target.id === 'onboardingModal' || e.target.classList.contains('onboarding-modal-overlay')) {
-          sessionStorage.setItem('onboarding_modal_dismissed', 'true');
-          closeOnboardingModal();
-        }
-      });
-    }
-    
-    console.log("✅ All modal controls connected");
+    console.log("✅ Auth modal controls connected");
   }, 500);
 });
 
-// Escape key handling for both modals
+// Escape key handling for auth modal
 document.addEventListener('keydown', function(e) {
   if (e.key === 'Escape') {
     const authModal = document.getElementById('authModal');
-    const onboardingModal = document.getElementById('onboardingModal');
-    
     if (authModal && authModal.classList.contains('is-visible')) {
       console.log("⎋ Escape pressed - closing auth modal");
       closeAuthModal();
-    }
-    
-    if (onboardingModal && onboardingModal.classList.contains('is-visible')) {
-      console.log("⎋ Escape pressed - closing onboarding modal");
-      sessionStorage.setItem('onboarding_modal_dismissed', 'true');
-      closeOnboardingModal();
     }
   }
 });
@@ -299,7 +225,11 @@ window.testAuthModal = function() {
 
 window.testOnboardingModal = function() {
   console.log("🧪 TEST: Opening onboarding modal...");
-  openOnboardingModal();
+  if (window.openOnboardingModal) {
+    openOnboardingModal();
+  } else {
+    console.error("Onboarding modal not initialized");
+  }
 };
 
 console.log("✅ All modal scripts loaded successfully!");
@@ -1536,4 +1466,306 @@ addSafeAreaStyles();
   } else {
     initNavScroll();
   }
+})();
+
+
+// ============================================
+// MULTI-STEP ONBOARDING MODAL
+// ============================================
+(function() {
+  console.log('🎓 Multi-step onboarding initializing...');
+  
+  // State
+  let currentStep = 1;
+  const totalSteps = 7;
+  const formData = {
+    first_name: '',
+    last_name: '',
+    phone: '',
+    address: '',
+    birthday: '',
+    sizes: [],
+    body_type: '',
+    referral_sources: []
+  };
+  
+  // Step to progress section mapping
+  const stepToProgress = {
+    1: 1,  // Welcome -> welcome
+    2: 2,  // Your info -> your info
+    3: 2,  // Birthday -> your info
+    4: 3,  // Sizes -> your profile
+    5: 3,  // Body type -> your profile
+    6: 3,  // Referral -> your profile
+    7: 3   // Complete -> your profile
+  };
+  
+  // ===== MODAL FUNCTIONS =====
+  
+  window.openOnboardingModal = function() {
+    console.log('🎓 Opening onboarding modal');
+    const modal = document.getElementById('onboardingModal');
+    if (modal) {
+      modal.classList.add('is-visible');
+      document.body.style.overflow = 'hidden';
+      currentStep = 1;
+      showStep(1);
+      updateProgress();
+    }
+  };
+  
+  window.closeOnboardingModal = function() {
+    console.log('🎓 Closing onboarding modal');
+    const modal = document.getElementById('onboardingModal');
+    if (modal) {
+      modal.classList.remove('is-visible');
+      document.body.style.overflow = '';
+    }
+  };
+  
+  window.showOnboardingModal = window.openOnboardingModal;
+  
+  // ===== NAVIGATION =====
+  
+  window.nextOnboardingStep = function() {
+    console.log('🎓 Next step from', currentStep);
+    
+    // Collect data from current step before advancing
+    collectStepData(currentStep);
+    
+    if (currentStep < totalSteps) {
+      currentStep++;
+      showStep(currentStep);
+      updateProgress();
+    }
+  };
+  
+  window.prevOnboardingStep = function() {
+    console.log('🎓 Previous step from', currentStep);
+    if (currentStep > 1) {
+      currentStep--;
+      showStep(currentStep);
+      updateProgress();
+    }
+  };
+  
+  window.skipOnboarding = function() {
+    console.log('🎓 Skipping onboarding');
+    sessionStorage.setItem('onboarding_modal_dismissed', 'true');
+    closeOnboardingModal();
+  };
+  
+  function showStep(step) {
+    console.log('🎓 Showing step', step);
+    
+    // Hide all steps
+    document.querySelectorAll('.onboarding-step').forEach(el => {
+      el.classList.remove('active');
+    });
+    
+    // Show current step
+    const stepEl = document.querySelector(`.onboarding-step[data-step="${step}"]`);
+    if (stepEl) {
+      stepEl.classList.add('active');
+    }
+  }
+  
+  function updateProgress() {
+    const progressSection = stepToProgress[currentStep];
+    
+    document.querySelectorAll('.onboarding-progress-step').forEach(el => {
+      const stepNum = parseInt(el.getAttribute('data-step'));
+      el.classList.remove('active', 'completed');
+      
+      if (stepNum < progressSection) {
+        el.classList.add('completed');
+      } else if (stepNum === progressSection) {
+        el.classList.add('active');
+      }
+    });
+  }
+  
+  // ===== DATA COLLECTION =====
+  
+  function collectStepData(step) {
+    switch(step) {
+      case 2: // Personal info
+        formData.first_name = document.getElementById('onboarding-firstname')?.value || '';
+        formData.last_name = document.getElementById('onboarding-lastname')?.value || '';
+        formData.phone = document.getElementById('onboarding-phone')?.value || '';
+        formData.address = document.getElementById('onboarding-address')?.value || '';
+        console.log('🎓 Collected personal info:', formData.first_name, formData.last_name);
+        break;
+        
+      case 3: // Birthday
+        formData.birthday = document.getElementById('onboarding-birthday')?.value || '';
+        console.log('🎓 Collected birthday:', formData.birthday);
+        break;
+        
+      case 4: // Sizes
+        formData.sizes = Array.from(document.querySelectorAll('.size-option.selected'))
+          .map(el => el.getAttribute('data-size'));
+        console.log('🎓 Collected sizes:', formData.sizes);
+        break;
+        
+      case 5: // Body type
+        const selectedBodyType = document.querySelector('.body-type-option.selected');
+        formData.body_type = selectedBodyType?.getAttribute('data-body-type') || '';
+        console.log('🎓 Collected body type:', formData.body_type);
+        break;
+        
+      case 6: // Referral
+        formData.referral_sources = Array.from(document.querySelectorAll('.checkbox-option input:checked'))
+          .map(el => el.value);
+        console.log('🎓 Collected referral sources:', formData.referral_sources);
+        break;
+    }
+  }
+  
+  // ===== SUBMIT =====
+  
+  window.submitOnboarding = async function() {
+    console.log('🎓 Submitting onboarding data...');
+    
+    // Collect data from current step
+    collectStepData(currentStep);
+    
+    const btn = document.querySelector('.onboarding-step[data-step="6"] .onboarding-btn-primary');
+    if (btn) {
+      btn.classList.add('loading');
+      btn.disabled = true;
+    }
+    
+    try {
+      if (!window.auth0Client) {
+        throw new Error('Authentication not available');
+      }
+      
+      const token = await window.auth0Client.getTokenSilently();
+      
+      // Build the API payload
+      const payload = {
+        provided_information: true
+      };
+      
+      if (formData.first_name) payload.first_name = formData.first_name;
+      if (formData.last_name) payload.last_name = formData.last_name;
+      if (formData.phone) payload.phone_number = formData.phone;
+      if (formData.birthday) payload.date_of_birth = formData.birthday;
+      if (formData.sizes.length > 0) payload.sizes = formData.sizes;
+      if (formData.body_type) payload.body_type = formData.body_type;
+      if (formData.referral_sources.length > 0) payload.referral_sources = formData.referral_sources;
+      
+      // Address might need special handling depending on API
+      if (formData.address) {
+        payload.address = formData.address;
+      }
+      
+      console.log('🎓 Sending payload:', payload);
+      
+      const response = await fetch(`${window.API_BASE_URL}/users/me`, {
+        method: 'PATCH',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(payload)
+      });
+      
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        console.error('🎓 API error:', errorData);
+        // Don't block the user, just log the error and continue
+        console.warn('🎓 Profile update failed, but continuing to completion');
+      } else {
+        console.log('🎓 Profile updated successfully');
+      }
+      
+      // Move to completion step regardless
+      currentStep = 7;
+      showStep(7);
+      updateProgress();
+      
+    } catch (error) {
+      console.error('🎓 Submit error:', error);
+      // Still show completion - don't block the user
+      currentStep = 7;
+      showStep(7);
+      updateProgress();
+    } finally {
+      if (btn) {
+        btn.classList.remove('loading');
+        btn.disabled = false;
+      }
+    }
+  };
+  
+  window.completeOnboarding = function() {
+    console.log('🎓 Completing onboarding');
+    sessionStorage.setItem('onboarding_completed', 'true');
+    closeOnboardingModal();
+    
+    // Redirect to rentals page
+    window.location.href = '/rentals';
+  };
+  
+  // ===== EVENT LISTENERS =====
+  
+  function setupEventListeners() {
+    // Size option toggles (multi-select)
+    document.addEventListener('click', function(e) {
+      if (e.target.classList.contains('size-option')) {
+        e.target.classList.toggle('selected');
+      }
+    });
+    
+    // Body type selection (single select)
+    document.addEventListener('click', function(e) {
+      const bodyTypeBtn = e.target.closest('.body-type-option');
+      if (bodyTypeBtn) {
+        document.querySelectorAll('.body-type-option').forEach(el => {
+          el.classList.remove('selected');
+        });
+        bodyTypeBtn.classList.add('selected');
+      }
+    });
+    
+    // Escape key to close
+    document.addEventListener('keydown', function(e) {
+      if (e.key === 'Escape') {
+        const modal = document.getElementById('onboardingModal');
+        if (modal && modal.classList.contains('is-visible')) {
+          skipOnboarding();
+        }
+      }
+    });
+    
+    // Click outside to close (on overlay)
+    document.addEventListener('click', function(e) {
+      if (e.target.id === 'onboardingModal' || e.target.classList.contains('onboarding-modal-overlay')) {
+        // Only close if clicking on the overlay itself, not the content
+        if (e.target === document.getElementById('onboardingModal')) {
+          skipOnboarding();
+        }
+      }
+    });
+    
+    // Address autocomplete (basic implementation - can be enhanced with Google Places API)
+    const addressInput = document.getElementById('onboarding-address');
+    if (addressInput) {
+      // Check if existing address autocomplete exists from site
+      if (window.initAddressAutocomplete) {
+        window.initAddressAutocomplete(addressInput, 'onboarding-address-suggestions');
+      }
+    }
+  }
+  
+  // Initialize when DOM is ready
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', setupEventListeners);
+  } else {
+    setupEventListeners();
+  }
+  
+  console.log('🎓 Multi-step onboarding ready');
 })();
