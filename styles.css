@@ -822,43 +822,80 @@ body.auth-modal-open {
 /* Mobile Responsive */
 @media (max-width: 768px) {
   .onboarding-modal-overlay {
-    padding: 20px 16px;
+    padding: 16px 12px;
+    align-items: flex-start;
+    padding-top: 40px;
   }
   
   .onboarding-modal-container {
     min-width: auto;
-    max-height: calc(100vh - 40px);
+    max-height: calc(100vh - 80px);
     border-radius: 20px;
   }
   
   .onboarding-progress {
-    padding: 20px 24px;
+    padding: 16px 20px;
     border-radius: 20px 20px 0 0;
+    gap: 16px;
   }
   
   .progress-label {
-    font-size: 18px;
+    font-size: 16px;
   }
   
   .onboarding-step {
-    padding: 40px 24px 40px;
+    padding: 24px 20px 30px;
+  }
+  
+  .onboarding-icon {
+    margin-bottom: 20px;
+  }
+  
+  .onboarding-icon svg {
+    width: 100px;
+    height: 100px;
   }
   
   .onboarding-title {
-    font-size: 28px;
+    font-size: 24px;
+    margin-bottom: 12px;
   }
   
   .onboarding-subtitle {
-    font-size: 18px;
+    font-size: 16px;
+    margin-bottom: 28px;
+    line-height: 1.4;
   }
   
   .onboarding-label {
+    font-size: 16px;
+    margin-bottom: 8px;
+  }
+  
+  .onboarding-input {
     font-size: 18px;
+    padding: 10px 0;
+  }
+  
+  .onboarding-input-group {
+    margin-bottom: 20px;
+  }
+  
+  .onboarding-form {
+    margin-bottom: 28px;
   }
   
   .onboarding-btn-primary {
     font-size: 18px;
-    padding: 18px 48px;
+    padding: 16px 40px;
+    min-width: 200px;
+  }
+  
+  .onboarding-btn-secondary,
+  .onboarding-btn-back {
+    font-size: 16px;
+    padding: 12px 24px;
+    margin-top: 8px;
   }
   
   .onboarding-form-row {
@@ -867,35 +904,108 @@ body.auth-modal-open {
   }
   
   .onboarding-body-types {
-    gap: 12px;
+    gap: 10px;
+    margin-bottom: 28px;
   }
   
   .body-type-option {
-    width: 80px;
-    padding: 14px;
+    width: 70px;
+    padding: 10px;
   }
   
   .body-type-icon {
-    width: 50px;
-    height: 65px;
+    width: 45px;
+    height: 60px;
   }
   
   .body-type-icon svg {
-    width: 50px;
-    height: 65px;
+    width: 45px;
+    height: 60px;
   }
   
   .body-type-label {
-    font-size: 14px;
+    font-size: 12px;
   }
   
   .onboarding-checkboxes {
     grid-template-columns: 1fr;
-    gap: 16px;
+    gap: 14px;
+    margin-bottom: 28px;
   }
   
   .checkbox-option {
-    font-size: 18px;
+    font-size: 16px;
+  }
+  
+  .checkbox-custom {
+    width: 22px;
+    height: 22px;
+  }
+}
+
+@media (max-width: 480px) {
+  .onboarding-modal-overlay {
+    padding: 12px 10px;
+    padding-top: 24px;
+  }
+  
+  .onboarding-progress {
+    padding: 12px 16px;
+    gap: 12px;
+  }
+  
+  .progress-label {
+    font-size: 14px;
+  }
+  
+  .onboarding-step {
+    padding: 20px 16px 24px;
+  }
+  
+  .onboarding-icon {
+    margin-bottom: 16px;
+  }
+  
+  .onboarding-icon svg {
+    width: 80px;
+    height: 80px;
+  }
+  
+  .onboarding-title {
+    font-size: 22px;
+  }
+  
+  .onboarding-subtitle {
+    font-size: 15px;
+    margin-bottom: 24px;
+  }
+  
+  .onboarding-input {
+    font-size: 16px;
+  }
+  
+  .onboarding-btn-primary {
+    font-size: 16px;
+    padding: 14px 32px;
+  }
+  
+  .body-type-option {
+    width: 60px;
+    padding: 8px;
+  }
+  
+  .body-type-icon {
+    width: 40px;
+    height: 50px;
+  }
+  
+  .body-type-icon svg {
+    width: 40px;
+    height: 50px;
+  }
+  
+  .body-type-label {
+    font-size: 10px;
   }
 }
 
