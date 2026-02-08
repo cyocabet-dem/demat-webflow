@@ -1323,19 +1323,22 @@ window.addEventListener('load', function() {
 
 // ============================================
 // MEMBERSHIP SIGNUP HANDLER
+// Uses membership_id instead of membership_name for stability
 // ============================================
 document.addEventListener('DOMContentLoaded', function() {
   console.log('🎫 Membership script loading...');
   
   const API_BASE = window.API_BASE_URL;
 
-  const buttons = document.querySelectorAll('[data-membership]');
+  // Look for buttons with data-membership-id attribute
+  const buttons = document.querySelectorAll('[data-membership-id]');
   console.log('🎫 Found membership buttons:', buttons.length);
     
   buttons.forEach(button => {
     button.addEventListener('click', async function(e) {
       e.preventDefault();
-      console.log('🎫 Button clicked:', this.getAttribute('data-membership'));
+      const membershipId = this.getAttribute('data-membership-id');
+      console.log('🎫 Button clicked, membership ID:', membershipId);
       
       if (!window.auth0Client) {
         console.error('🎫 Auth0 not initialized yet');
@@ -1348,16 +1351,14 @@ document.addEventListener('DOMContentLoaded', function() {
       if (!isAuthenticated) {
         sessionStorage.setItem('postLoginAction', JSON.stringify({
           type: 'membership_signup',
-          membership: this.getAttribute('data-membership')
+          membershipId: membershipId
         }));
         openAuthModal();
         return;
       }
       
-      const membershipName = this.getAttribute('data-membership');
-      
-      if (!membershipName) {
-        console.error('🎫 No membership name found');
+      if (!membershipId) {
+        console.error('🎫 No membership ID found');
         return;
       }
       
@@ -1375,14 +1376,16 @@ document.addEventListener('DOMContentLoaded', function() {
             'Content-Type': 'application/json'
           },
           body: JSON.stringify({
-            membership_name: membershipName,
+            membership_id: parseInt(membershipId),
             success_url: `${window.location.origin}/welcome-to-dematerialized`,
             cancel_url: `${window.location.origin}/error-membership-signup`
           })
         });
         
         if (!response.ok) {
-          throw new Error('Failed to create checkout session');
+          const errorData = await response.json().catch(() => ({}));
+          console.error('🎫 API error:', errorData);
+          throw new Error(errorData.detail || 'Failed to create checkout session');
         }
         
         const data = await response.json();
@@ -1409,7 +1412,7 @@ document.addEventListener('DOMContentLoaded', function() {
       const parsed = JSON.parse(action);
       if (parsed.type === 'membership_signup') {
         sessionStorage.removeItem('postLoginAction');
-        const button = document.querySelector(`[data-membership="${parsed.membership}"]`);
+        const button = document.querySelector(`[data-membership-id="${parsed.membershipId}"]`);
         if (button) {
           setTimeout(() => button.click(), 500);
         }
