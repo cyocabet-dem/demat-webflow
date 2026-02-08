@@ -1322,33 +1322,41 @@ window.addEventListener('load', function() {
 
 
 // ============================================
-// MEMBERSHIP SIGNUP HANDLER
-// Uses membership_id instead of membership_name for stability
-// Uses event delegation to handle dynamically loaded buttons
+// MEMBERSHIP SIGNUP HANDLER - FIXED
+// Uses capture phase to catch clicks before anything else
 // ============================================
 (function() {
-  console.log('🎫 Membership script loading...');
+  console.log('🎫 Membership handler initializing (capture phase)...');
   
-  const API_BASE = window.API_BASE_URL;
-
-  // Use event delegation - attach to document, filter by selector
+  // Use capture phase (third param = true) to catch clicks FIRST
   document.addEventListener('click', async function(e) {
+    // Check if clicked element or any parent has data-membership-id
     const button = e.target.closest('[data-membership-id]');
+    
     if (!button) return;
     
+    console.log('🎫 CAPTURED membership button click!');
     e.preventDefault();
+    e.stopPropagation();
+    e.stopImmediatePropagation();
+    
     const membershipId = button.getAttribute('data-membership-id');
-    console.log('🎫 Membership button clicked, ID:', membershipId);
+    console.log('🎫 Membership ID:', membershipId);
+    
+    const API_BASE = window.API_BASE_URL;
+    console.log('🎫 API Base:', API_BASE);
     
     if (!window.auth0Client) {
-      console.error('🎫 Auth0 not initialized yet');
+      console.error('🎫 Auth0 not initialized');
       alert('Please wait a moment and try again');
       return;
     }
     
     const isAuthenticated = await window.auth0Client.isAuthenticated();
+    console.log('🎫 Is authenticated:', isAuthenticated);
     
     if (!isAuthenticated) {
+      console.log('🎫 Not authenticated, saving action and opening auth modal');
       sessionStorage.setItem('postLoginAction', JSON.stringify({
         type: 'membership_signup',
         membershipId: membershipId
@@ -1357,17 +1365,22 @@ window.addEventListener('load', function() {
       return;
     }
     
-    if (!membershipId) {
-      console.error('🎫 No membership ID found');
-      return;
-    }
-    
-    const originalText = button.textContent;
-    button.textContent = 'Loading...';
+    // Show loading state
+    const originalHTML = button.innerHTML;
+    button.innerHTML = 'Loading...';
     button.style.pointerEvents = 'none';
+    button.style.opacity = '0.7';
     
     try {
       const token = await window.auth0Client.getTokenSilently();
+      console.log('🎫 Got token, creating checkout session...');
+      
+      const requestBody = {
+        membership_id: parseInt(membershipId),
+        success_url: `${window.location.origin}/welcome-to-dematerialized`,
+        cancel_url: `${window.location.origin}/error-membership-signup`
+      };
+      console.log('🎫 Request body:', requestBody);
       
       const response = await fetch(`${API_BASE}/stripe/create-checkout-session`, {
         method: 'POST',
@@ -1375,64 +1388,68 @@ window.addEventListener('load', function() {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json'
         },
-        body: JSON.stringify({
-          membership_id: parseInt(membershipId),
-          success_url: `${window.location.origin}/welcome-to-dematerialized`,
-          cancel_url: `${window.location.origin}/error-membership-signup`
-        })
+        body: JSON.stringify(requestBody)
       });
+      
+      console.log('🎫 Response status:', response.status);
       
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
         console.error('🎫 API error:', errorData);
-        throw new Error(errorData.detail || 'Failed to create checkout session');
+        throw new Error(errorData.detail || `API error: ${response.status}`);
       }
       
       const data = await response.json();
+      console.log('🎫 Checkout URL:', data.checkout_url);
       window.location.href = data.checkout_url;
       
     } catch (error) {
       console.error('🎫 Checkout error:', error);
-      alert('Something went wrong. Please try again.');
-      button.textContent = originalText;
+      alert('Something went wrong: ' + error.message);
+      button.innerHTML = originalHTML;
       button.style.pointerEvents = 'auto';
+      button.style.opacity = '1';
     }
-  });
+  }, true); // <-- CAPTURE PHASE
   
-  // Handle post-login redirect
+  // Post-login handler
   async function checkPostLoginAction() {
     if (!window.auth0Client) {
       setTimeout(checkPostLoginAction, 500);
       return;
     }
     
-    const isAuthenticated = await window.auth0Client.isAuthenticated();
-    if (!isAuthenticated) return;
-    
-    const action = sessionStorage.getItem('postLoginAction');
-    if (action) {
-      const parsed = JSON.parse(action);
-      if (parsed.type === 'membership_signup') {
-        sessionStorage.removeItem('postLoginAction');
-        // Wait for embed to load
-        setTimeout(() => {
-          const button = document.querySelector(`[data-membership-id="${parsed.membershipId}"]`);
-          if (button) {
-            button.click();
-          }
-        }, 1000);
+    try {
+      const isAuthenticated = await window.auth0Client.isAuthenticated();
+      if (!isAuthenticated) return;
+      
+      const action = sessionStorage.getItem('postLoginAction');
+      if (action) {
+        const parsed = JSON.parse(action);
+        if (parsed.type === 'membership_signup') {
+          console.log('🎫 Post-login: triggering membership signup for ID:', parsed.membershipId);
+          sessionStorage.removeItem('postLoginAction');
+          
+          // Wait for embed to load, then click
+          setTimeout(() => {
+            const button = document.querySelector(`[data-membership-id="${parsed.membershipId}"]`);
+            if (button) {
+              console.log('🎫 Found button, clicking...');
+              button.click();
+            } else {
+              console.error('🎫 Button not found for ID:', parsed.membershipId);
+            }
+          }, 1500);
+        }
       }
+    } catch (err) {
+      console.error('🎫 Post-login check error:', err);
     }
   }
   
-  // Check on load and after a delay (for embeds)
-  if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', () => setTimeout(checkPostLoginAction, 500));
-  } else {
-    setTimeout(checkPostLoginAction, 500);
-  }
+  setTimeout(checkPostLoginAction, 1000);
   
-  console.log('🎫 Membership script loaded (event delegation)');
+  console.log('🎫 Membership handler ready (capture phase)');
 })();
 
 // Add safe area styles for iOS
