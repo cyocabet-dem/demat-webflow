@@ -1658,6 +1658,7 @@ addSafeAreaStyles();
     if (!feature) return;
     
     const props = feature.properties;
+    console.log('🎓 Selected address properties:', props);
     
     // Update input fields
     const searchInput = document.getElementById('onboarding-address-search');
@@ -1666,11 +1667,48 @@ addSafeAreaStyles();
     const zipcodeInput = document.getElementById('onboarding-zipcode');
     const cityInput = document.getElementById('onboarding-city');
     
-    if (searchInput) searchInput.value = props.formatted;
-    if (streetInput) streetInput.value = props.street || '';
-    if (houseNumberInput) houseNumberInput.value = props.housenumber || '';
+    // Set the search field to formatted address
+    if (searchInput) searchInput.value = props.formatted || '';
+    
+    // Try to get street from various possible properties
+    let street = props.street || props.road || props.name || '';
+    
+    // Try to get house number from various possible properties
+    let houseNumber = props.housenumber || props.house_number || '';
+    
+    // If we have address_line1, try to parse street and number from it
+    if ((!street || !houseNumber) && props.address_line1) {
+      const addressLine1 = props.address_line1;
+      // Dutch format is usually "Street Name 123" or "Street Name 123a"
+      const match = addressLine1.match(/^(.+?)\s+(\d+\s*\w*)$/);
+      if (match) {
+        if (!street) street = match[1];
+        if (!houseNumber) houseNumber = match[2];
+      } else if (!street) {
+        street = addressLine1;
+      }
+    }
+    
+    // If still no street/number, try parsing from formatted
+    if ((!street || !houseNumber) && props.formatted) {
+      // formatted is usually "Street Name 123, PostalCode City, Country"
+      const firstPart = props.formatted.split(',')[0];
+      if (firstPart) {
+        const match = firstPart.trim().match(/^(.+?)\s+(\d+\s*\w*)$/);
+        if (match) {
+          if (!street) street = match[1];
+          if (!houseNumber) houseNumber = match[2];
+        }
+      }
+    }
+    
+    // Set the values
+    if (streetInput) streetInput.value = street;
+    if (houseNumberInput) houseNumberInput.value = houseNumber;
     if (zipcodeInput) zipcodeInput.value = props.postcode || '';
-    if (cityInput) cityInput.value = props.city || '';
+    if (cityInput) cityInput.value = props.city || props.town || props.municipality || '';
+    
+    console.log('🎓 Parsed address - Street:', street, 'House:', houseNumber, 'Postcode:', props.postcode, 'City:', props.city);
     
     // Hide suggestions
     const suggestionsContainer = document.getElementById('onboarding-address-suggestions');
