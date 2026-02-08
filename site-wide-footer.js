@@ -1491,6 +1491,7 @@ addSafeAreaStyles();
     lastName: '',
     phoneNumber: '',
     // Address
+    addressFull: '',  // Backup: full address from search field
     addressStreet: '',
     addressHouseNumber: '',
     addressUnit: '',
@@ -1730,12 +1731,13 @@ addSafeAreaStyles();
         
       case 3: // Contact & Address
         formData.phoneNumber = document.getElementById('onboarding-phone')?.value || '';
+        formData.addressFull = document.getElementById('onboarding-address-search')?.value || '';
         formData.addressStreet = document.getElementById('onboarding-street')?.value || '';
         formData.addressHouseNumber = document.getElementById('onboarding-house-number')?.value || '';
         formData.addressUnit = document.getElementById('onboarding-unit')?.value || '';
         formData.addressZipcode = document.getElementById('onboarding-zipcode')?.value || '';
         formData.addressCity = document.getElementById('onboarding-city')?.value || '';
-        console.log('🎓 Collected contact/address:', formData.phoneNumber, formData.addressCity);
+        console.log('🎓 Collected contact/address:', formData.phoneNumber, formData.addressFull);
         break;
         
       case 4: // Birthday
@@ -1798,6 +1800,9 @@ addSafeAreaStyles();
       }
       if (formData.addressStreet) {
         customAttributes.push({ key: 'address_street', value: formData.addressStreet });
+      }
+      if (formData.addressFull) {
+        customAttributes.push({ key: 'address_full', value: formData.addressFull });
       }
       if (formData.addressUnit) {
         customAttributes.push({ key: 'address_unit', value: formData.addressUnit });
@@ -1891,8 +1896,8 @@ addSafeAreaStyles();
     sessionStorage.setItem('onboarding_completed', 'true');
     closeOnboardingModal();
     
-    // Redirect to rentals page
-    window.location.href = '/rentals';
+    // Redirect to clothing page
+    window.location.href = '/clothing';
   };
   
   // ===== EVENT LISTENERS =====
