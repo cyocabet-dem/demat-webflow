@@ -1,13 +1,8 @@
-// // Redirect staging to production (unless bypass parameter is present)
-// (function() {
-//   if (window.location.hostname.includes('webflow.io')) {
-//     const params = new URLSearchParams(window.location.search);
-//     if (!params.has('staging')) {
-//       window.location.replace('https://dematerialized.nl' + window.location.pathname + window.location.search);
-//       return;
-//     }
-//   }
-// })();
+// ============================================
+// DEMATERIALIZED - SITE-WIDE FOOTER JS
+// Updated: Simplified signup flow for in-store QR code
+// Flow: Signup → Memberships → Payment → Onboarding Modal
+// ============================================
 
 console.log("🎯 Filter menu script loading...");
 
@@ -113,11 +108,17 @@ function closeOnboardingModal() {
   console.log("✅ Onboarding modal closed");
 }
 
+// ===== SHOW ONBOARDING MODAL (alias for compatibility) =====
+function showOnboardingModal() {
+  openOnboardingModal();
+}
+
 // Make functions globally accessible
 window.openAuthModal = openAuthModal;
 window.closeAuthModal = closeAuthModal;
 window.openOnboardingModal = openOnboardingModal;
 window.closeOnboardingModal = closeOnboardingModal;
+window.showOnboardingModal = showOnboardingModal;
 
 console.log("✅ Modal functions registered on window object");
 
@@ -201,13 +202,33 @@ document.addEventListener('DOMContentLoaded', function() {
     if (onboardingLaterBtn) {
       onboardingLaterBtn.addEventListener('click', function(e) {
         e.preventDefault();
-        sessionStorage.setItem('onboarding_modal_dismissed', 'true');  // ADD THIS
+        sessionStorage.setItem('onboarding_modal_dismissed', 'true');
         closeOnboardingModal();
       });
     }
     
+    // "Complete Profile" button
+    const completeProfileBtn = document.getElementById('complete-profile-btn');
+    if (completeProfileBtn) {
+      completeProfileBtn.addEventListener('click', function(e) {
+        e.preventDefault();
+        window.location.href = '/profile';
+      });
+    }
+    
+    // Close onboarding modal on overlay click
+    const onboardingModal = document.getElementById('onboardingModal');
+    if (onboardingModal) {
+      onboardingModal.addEventListener('click', function(e) {
+        if (e.target.id === 'onboardingModal' || e.target.classList.contains('onboarding-modal-overlay')) {
+          sessionStorage.setItem('onboarding_modal_dismissed', 'true');
+          closeOnboardingModal();
+        }
+      });
+    }
+    
     console.log("✅ All modal controls connected");
-  }, 500); // Wait for auth0Client to initialize
+  }, 500);
 });
 
 // Escape key handling for both modals
@@ -223,6 +244,7 @@ document.addEventListener('keydown', function(e) {
     
     if (onboardingModal && onboardingModal.classList.contains('is-visible')) {
       console.log("⎋ Escape pressed - closing onboarding modal");
+      sessionStorage.setItem('onboarding_modal_dismissed', 'true');
       closeOnboardingModal();
     }
   }
@@ -283,10 +305,19 @@ window.testOnboardingModal = function() {
 console.log("✅ All modal scripts loaded successfully!");
 
 
-// NEW: Added by Courtney on 25/11/25
+// ============================================
+// NOTE: User status checking is handled by auth.js
+// auth.js calls checkUserStatus() which handles:
+// - Redirecting users without membership to /memberships
+// - Showing onboarding modal for users with membership but incomplete profile
+// ============================================
+
+
+// ============================================
+// AUTH UI CONTROLLER
+// ============================================
 console.log("🔐 Auth UI controller loading...");
 
-// Function to update UI based on authentication state
 function updateAuthUI(isAuthenticated) {
   console.log("🔄 Updating auth UI. Is authenticated:", isAuthenticated);
   
@@ -304,7 +335,6 @@ function updateAuthUI(isAuthenticated) {
   console.log("✅ Auth UI updated");
 }
 
-// Make it globally accessible so your auth.js can call it
 window.updateAuthUI = updateAuthUI;
 
 console.log("✅ Auth UI controller ready");
@@ -322,7 +352,6 @@ window.CartManager = {
   
   // ========== INITIALIZATION ==========
   
-  // Initialize cart - call this on page load
   async init() {
     if (this._initialized) return;
     
@@ -382,7 +411,6 @@ window.CartManager = {
     }
   },
   
-  // Fetch cart from API
   async fetchAPICart() {
     const token = await this.getToken();
     if (!token) return null;
@@ -403,7 +431,6 @@ window.CartManager = {
       const data = await response.json();
       console.log('🛒 [Cart] API cart loaded:', data);
       
-      // Handle response format - adjust if needed
       return Array.isArray(data) ? data : (data.items || data.clothing_items || []);
     } catch (err) {
       console.error('🛒 [Cart] API fetch error:', err);
@@ -411,7 +438,6 @@ window.CartManager = {
     }
   },
   
-  // Add item to API
   async addToAPI(itemId) {
     const token = await this.getToken();
     if (!token) return false;
@@ -438,7 +464,6 @@ window.CartManager = {
     }
   },
   
-  // Remove item from API
   async removeFromAPI(itemId) {
     const token = await this.getToken();
     if (!token) return false;
@@ -466,13 +491,11 @@ window.CartManager = {
   
   // ========== SYNC LOGIC ==========
   
-  // Sync sessionStorage with API (merge strategy)
   async syncWithAPI() {
     if (this._syncing) return;
     this._syncing = true;
     
     try {
-      // Get both sources
       const localCart = this.getLocalCart();
       const apiCart = await this.fetchAPICart();
       
@@ -482,38 +505,33 @@ window.CartManager = {
         return;
       }
       
-      // Build merged cart
       const mergedMap = new Map();
       
-    // Add API items first (these are authoritative)
-    apiCart.forEach(item => {
-      // Extract front image from images array
-      let frontImage = '';
-      if (item.images && item.images.length > 0) {
-        const frontImg = item.images.find(img => 
-          img.image_type === 'front' || 
-          (img.image_name && img.image_name.toLowerCase().includes('front'))
-        );
-        frontImage = frontImg?.object_url || item.images[0]?.object_url || '';
-      }
-      
-      mergedMap.set(item.id, {
-        id: item.id,
-        sku: item.sku,
-        name: item.name,
-        brand: item.brand?.brand_name || item.brand || '',
-        size: item.size?.size || item.size || '',
-        image: frontImage || item.front_image || item.frontImage || item.image || '',
-        addedAt: item.started_at || new Date().toISOString()
+      apiCart.forEach(item => {
+        let frontImage = '';
+        if (item.images && item.images.length > 0) {
+          const frontImg = item.images.find(img => 
+            img.image_type === 'front' || 
+            (img.image_name && img.image_name.toLowerCase().includes('front'))
+          );
+          frontImage = frontImg?.object_url || item.images[0]?.object_url || '';
+        }
+        
+        mergedMap.set(item.id, {
+          id: item.id,
+          sku: item.sku,
+          name: item.name,
+          brand: item.brand?.brand_name || item.brand || '',
+          size: item.size?.size || item.size || '',
+          image: frontImage || item.front_image || item.frontImage || item.image || '',
+          addedAt: item.started_at || new Date().toISOString()
+        });
       });
-    });
       
-      // Find local items not in API (need to upload)
       const localOnlyItems = localCart.filter(
         localItem => !apiCart.some(apiItem => apiItem.id === localItem.id)
       );
       
-      // Upload local-only items to API (respecting max limit)
       for (const item of localOnlyItems) {
         if (mergedMap.size >= this.MAX_ITEMS) {
           console.warn('🛒 [Cart] Max items reached, skipping upload of:', item.name);
@@ -528,7 +546,6 @@ window.CartManager = {
         }
       }
       
-      // Save merged cart to sessionStorage
       const mergedCart = Array.from(mergedMap.values());
       this.saveLocalCart(mergedCart);
       
@@ -567,49 +584,40 @@ window.CartManager = {
   
   // ========== PUBLIC METHODS ==========
   
-  // Get all cart items
   getCart() {
     return this.getLocalCart();
   },
   
-  // Get cart count
   getCartCount() {
     return this.getLocalCart().length;
   },
   
-  // Check if item is in cart
   isInCart(itemId) {
     const cart = this.getLocalCart();
     return cart.some(item => item.id === itemId);
   },
   
-  // Add item to cart
   async addToCart(item) {
     const cart = this.getLocalCart();
     
-    // Check max limit
     if (cart.length >= this.MAX_ITEMS) {
-      console.warn('Cart is full (max 10 items)');
+      console.warn('Cart is full (max 5 items)');
       return { success: false, reason: 'max_items' };
     }
     
-    // Check if already in cart
     if (this.isInCart(item.id)) {
       console.warn('Item already in cart');
       return { success: false, reason: 'already_in_cart' };
     }
     
-    // If authenticated, add to API first
     const isAuth = await this.isUserAuthenticated();
     if (isAuth) {
       const apiSuccess = await this.addToAPI(item.id);
       if (!apiSuccess) {
         console.error('🛒 [Cart] Failed to add to API');
-        // Continue anyway to add to local storage
       }
     }
     
-    // Add item to local storage
     const cartItem = {
       id: item.id,
       sku: item.sku,
@@ -627,14 +635,12 @@ window.CartManager = {
     return { success: true };
   },
   
-  // Remove item from cart
   async removeFromCart(itemId) {
     let cart = this.getLocalCart();
     const initialLength = cart.length;
     cart = cart.filter(item => item.id !== itemId);
     
     if (cart.length < initialLength) {
-      // If authenticated, remove from API too
       const isAuth = await this.isUserAuthenticated();
       if (isAuth) {
         await this.removeFromAPI(itemId);
@@ -647,14 +653,12 @@ window.CartManager = {
     return false;
   },
   
-  // Clear entire cart (local only - for after reservation)
   clearCart() {
     sessionStorage.removeItem(this.STORAGE_KEY);
     this.updateCartBadge();
     console.log('✅ Cart cleared');
   },
   
-  // Update cart badge in navbar
   updateCartBadge() {
     const count = this.getCartCount();
     const badges = document.querySelectorAll('[data-cart-count]');
@@ -666,10 +670,10 @@ window.CartManager = {
   }
 };
 
-// Initialize cart when DOM is ready
 document.addEventListener('DOMContentLoaded', function() {
   CartManager.init();
 });
+
 
 // ============================================
 // USER MEMBERSHIP HELPER
@@ -677,7 +681,7 @@ document.addEventListener('DOMContentLoaded', function() {
 window.UserMembership = {
   _cache: null,
   _cacheTime: null,
-  CACHE_DURATION: 5 * 60 * 1000, // 5 minutes
+  CACHE_DURATION: 5 * 60 * 1000,
   API_BASE: window.API_BASE_URL,
   premium_name: 'Premium',
   basic_name: 'Basic',
@@ -753,8 +757,9 @@ window.UserMembership = {
   }
 };
 
+
 // ============================================
-// CART OVERLAY FUNCTIONS (updated for async API)
+// CART OVERLAY FUNCTIONS
 // ============================================
 
 async function openCartOverlay() {
@@ -767,7 +772,7 @@ async function openCartOverlay() {
     console.error('❌ Cart overlay elements not found!');
     return;
   }
-    // Add mobile footer spacer if needed
+  
   ensureMobileFooterSpacer();
   
   backdrop.style.display = 'block';
@@ -861,21 +866,20 @@ async function removeCartOverlayItem(event, itemId) {
   renderCartOverlay();
 }
 
-// general function to ensure mobile-footer-spacer in overlays / modals
 function ensureMobileFooterSpacer() {
   const overlay = document.getElementById('cart-overlay');
   if (!overlay) return;
   
-  // Check if spacer already exists
   if (overlay.querySelector('.mobile-footer-spacer')) return;
   
-  // Create and append the spacer at the end of the overlay
   const spacer = document.createElement('div');
   spacer.className = 'mobile-footer-spacer';
   overlay.appendChild(spacer);
   
   console.log('✅ Mobile footer spacer added to cart overlay');
 }
+
+
 // ============================================
 // RESERVATION MODAL FUNCTIONS
 // ============================================
@@ -893,19 +897,16 @@ function openReservationModal() {
     return;
   }
   
-  // Update item count
   const cart = CartManager.getCart();
   if (itemCount) {
     itemCount.textContent = `${cart.length} item${cart.length !== 1 ? 's' : ''} ready to reserve`;
   }
   
-  // Hide any previous errors
   if (errorEl) {
     errorEl.style.display = 'none';
     errorEl.textContent = '';
   }
   
-  // Show modal
   backdrop.style.display = 'block';
   modal.style.display = 'block';
   
@@ -932,18 +933,15 @@ async function confirmReservation() {
   
   if (!btn) return;
   
-  // Disable button and show loading
   btn.disabled = true;
   btn.textContent = 'Creating Reservation...';
   btn.style.opacity = '0.7';
   
-  // Hide previous errors
   if (errorEl) {
     errorEl.style.display = 'none';
   }
   
   try {
-    // Get auth token
     if (!window.auth0Client) {
       throw new Error('Authentication not available');
     }
@@ -952,71 +950,61 @@ async function confirmReservation() {
     
     console.log('📤 Calling reservation API...');
     
-  // Get item IDs from cart
-  const cart = CartManager.getCart();
-  const clothingItemIds = cart.map(item => item.id);
+    const cart = CartManager.getCart();
+    const clothingItemIds = cart.map(item => item.id);
 
-  console.log('📤 Creating reservation with items:', clothingItemIds);
+    console.log('📤 Creating reservation with items:', clothingItemIds);
 
-  // Create reservation via API
-  const response = await fetch(`${window.API_BASE_URL}/private_clothing_items/reservations`, {
-    method: 'POST',
-    headers: {
-      'Authorization': `Bearer ${token}`,
-      'Content-Type': 'application/json',
-      'Accept': 'application/json'
-    },
-    body: JSON.stringify({
-      clothing_item_ids: clothingItemIds
-    })
-  });
+    const response = await fetch(`${window.API_BASE_URL}/private_clothing_items/reservations`, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json',
+        'Accept': 'application/json'
+      },
+      body: JSON.stringify({
+        clothing_item_ids: clothingItemIds
+      })
+    });
     
     if (!response.ok) {
-    const errorData = await response.json().catch(() => ({}));
-    console.error('❌ API Error Response:', errorData);
-    
-    // Handle different error formats
-    let errorMessage = `Reservation failed (${response.status})`;
-    
-    if (typeof errorData.detail === 'string') {
-      errorMessage = errorData.detail;
-    } else if (typeof errorData.detail === 'object' && errorData.detail !== null) {
-      // Handle nested error objects (e.g., { detail: { message: "..." } })
-      errorMessage = errorData.detail.message || errorData.detail.msg || JSON.stringify(errorData.detail);
-    } else if (typeof errorData.message === 'string') {
-      errorMessage = errorData.message;
-    } else if (Array.isArray(errorData.detail)) {
-      // Handle validation errors array (FastAPI format)
-      errorMessage = errorData.detail.map(e => e.msg || e.message || String(e)).join(', ');
+      const errorData = await response.json().catch(() => ({}));
+      console.error('❌ API Error Response:', errorData);
+      
+      let errorMessage = `Reservation failed (${response.status})`;
+      
+      if (typeof errorData.detail === 'string') {
+        errorMessage = errorData.detail;
+      } else if (typeof errorData.detail === 'object' && errorData.detail !== null) {
+        errorMessage = errorData.detail.message || errorData.detail.msg || JSON.stringify(errorData.detail);
+      } else if (typeof errorData.message === 'string') {
+        errorMessage = errorData.message;
+      } else if (Array.isArray(errorData.detail)) {
+        errorMessage = errorData.detail.map(e => e.msg || e.message || String(e)).join(', ');
+      }
+      
+      throw new Error(errorMessage);
     }
-    
-    throw new Error(errorMessage);
-  }
     
     const reservation = await response.json();
     console.log('✅ Reservation created:', reservation);
     
-// Clear the cart (both local and we don't need to clear API since items are now reserved)
-CartManager.clearCart();
-renderCartOverlay(); // Re-render to show empty state
+    CartManager.clearCart();
+    renderCartOverlay();
 
-// Close modals
-closeReservationModal();
-closeCartOverlay();
+    closeReservationModal();
+    closeCartOverlay();
     
-    // Show success - you could redirect to a confirmation page instead
     showReservationSuccess(reservation);
     
   } catch (err) {
     console.error('❌ Reservation error:', err);
     
-    // Show error in modal
     if (errorEl) {
       errorEl.textContent = err.message || 'Failed to create reservation. Please try again.';
       errorEl.style.display = 'block';
     }
   } finally {
-    // Re-enable button
     btn.disabled = false;
     btn.textContent = 'Confirm Reservation';
     btn.style.opacity = '1';
@@ -1067,23 +1055,21 @@ async function handleReserveClick() {
   const isAuthenticated = await window.auth0Client.isAuthenticated();
   
   if (!isAuthenticated) {
-    // User needs to log in first
     closeCartOverlay();
     openAuthModal();
     return;
   }
   
-  // User is authenticated - show reservation modal
   openReservationModal();
 }
 
-// Make functions globally accessible
 window.openCartOverlay = openCartOverlay;
 window.closeCartOverlay = closeCartOverlay;
 window.removeCartOverlayItem = removeCartOverlayItem;
 window.openReservationModal = openReservationModal;
 window.closeReservationModal = closeReservationModal;
 window.confirmReservation = confirmReservation;
+
 
 // ============================================
 // UPGRADE MODAL FUNCTIONS
@@ -1133,21 +1119,18 @@ document.addEventListener('DOMContentLoaded', function() {
 // Escape key handling
 document.addEventListener('keydown', function(e) {
   if (e.key === 'Escape') {
-    // Close upgrade modal first if open
     const upgradeModal = document.getElementById('upgrade-modal');
     if (upgradeModal && upgradeModal.style.display === 'block') {
       closeUpgradeModal();
       return;
     }
     
-    // Close reservation modal if open
     const reservationModal = document.getElementById('reservation-modal');
     if (reservationModal && reservationModal.style.display === 'block') {
       closeReservationModal();
       return;
     }
     
-    // Then check cart overlay
     const overlay = document.getElementById('cart-overlay');
     if (overlay && overlay.style.transform === 'translateX(0px)') {
       closeCartOverlay();
@@ -1178,7 +1161,7 @@ window.testReservationModal = function() {
   openReservationModal();
 };
 
-// Move cart overlay to body (keep your existing code)
+// Move cart overlay to body
 function moveCartToBody() {
   const backdrop = document.getElementById('cart-backdrop');
   const overlay = document.getElementById('cart-overlay');
@@ -1190,7 +1173,6 @@ function moveCartToBody() {
     document.body.appendChild(overlay);
   }
   
-  // Also move reservation modal
   const resBackdrop = document.getElementById('reservation-modal-backdrop');
   const resModal = document.getElementById('reservation-modal');
   
@@ -1200,17 +1182,17 @@ function moveCartToBody() {
   if (resModal && resModal.parentElement !== document.body) {
     document.body.appendChild(resModal);
   }
-  // Also move reservation detail modal
-const detailBackdrop = document.getElementById('reservation-detail-backdrop');
-const detailModal = document.getElementById('reservation-detail-modal');
+  
+  const detailBackdrop = document.getElementById('reservation-detail-backdrop');
+  const detailModal = document.getElementById('reservation-detail-modal');
 
-if (detailBackdrop && detailBackdrop.parentElement !== document.body) {
-  document.body.appendChild(detailBackdrop);
-}
-if (detailModal && detailModal.parentElement !== document.body) {
-  document.body.appendChild(detailModal);
-}
-  // Also move upgrade modal
+  if (detailBackdrop && detailBackdrop.parentElement !== document.body) {
+    document.body.appendChild(detailBackdrop);
+  }
+  if (detailModal && detailModal.parentElement !== document.body) {
+    document.body.appendChild(detailModal);
+  }
+  
   const upgradeBackdrop = document.getElementById('upgrade-modal-backdrop');
   const upgradeModal = document.getElementById('upgrade-modal');
   
@@ -1221,20 +1203,20 @@ if (detailModal && detailModal.parentElement !== document.body) {
     document.body.appendChild(upgradeModal);
   }
   
+  const successBackdrop = document.getElementById('success-modal-backdrop');
+  const successModal = document.getElementById('success-modal');
+
+  if (successBackdrop && successBackdrop.parentElement !== document.body) {
+    document.body.appendChild(successBackdrop);
+  }
+  if (successModal && successModal.parentElement !== document.body) {
+    document.body.appendChild(successModal);
+  }
+  
   if (backdrop && overlay) {
     console.log('✅ Cart overlay moved to body');
     return true;
   }
-// Also move success modal
-const successBackdrop = document.getElementById('success-modal-backdrop');
-const successModal = document.getElementById('success-modal');
-
-if (successBackdrop && successBackdrop.parentElement !== document.body) {
-  document.body.appendChild(successBackdrop);
-}
-if (successModal && successModal.parentElement !== document.body) {
-  document.body.appendChild(successModal);
-}
   return false;
 }
 
@@ -1254,7 +1236,7 @@ window.addEventListener('load', function() {
   setTimeout(moveCartToBody, 100);
 });
 
-// Backup click handler (keep your existing code)
+// Backup click handler
 window.addEventListener('load', function() {
   setTimeout(function() {
     const cartIcon = document.querySelector('[data-cart-trigger]');
@@ -1291,7 +1273,6 @@ window.addEventListener('load', function() {
   function setupCart() {
     console.log('🛒 [Site-wide] Setting up cart...');
     
-    // Move cart to body
     const backdrop = document.getElementById('cart-backdrop');
     const overlay = document.getElementById('cart-overlay');
     
@@ -1315,7 +1296,6 @@ window.addEventListener('load', function() {
       e.stopPropagation();
       e.stopImmediatePropagation();
       
-      // Ensure cart is in body
       const bd = document.getElementById('cart-backdrop');
       const ov = document.getElementById('cart-overlay');
       if (bd && bd.parentElement !== document.body) document.body.appendChild(bd);
@@ -1329,11 +1309,9 @@ window.addEventListener('load', function() {
     }
   }
   
-  // Use capture phase for both click and touch
   document.addEventListener('click', handleCartClick, true);
   document.addEventListener('touchend', handleCartClick, true);
   
-  // Run setup at multiple times
   setTimeout(setupCart, 100);
   setTimeout(setupCart, 500);
   setTimeout(setupCart, 1500);
@@ -1343,8 +1321,9 @@ window.addEventListener('load', function() {
 })();
 
 
-
-// Membership signup handler
+// ============================================
+// MEMBERSHIP SIGNUP HANDLER
+// ============================================
 document.addEventListener('DOMContentLoaded', function() {
   console.log('🎫 Membership script loading...');
   
@@ -1417,33 +1396,13 @@ document.addEventListener('DOMContentLoaded', function() {
       }
     });
   });
+  
   // Handle post-login redirect
   async function checkPostLoginAction() {
     if (!window.auth0Client) {
       setTimeout(checkPostLoginAction, 500);
       return;
     }
-
-    // Add safe area styles for iOS
-function addSafeAreaStyles() {
-  if (document.getElementById('safe-area-styles')) return;
-  
-  const style = document.createElement('style');
-  style.id = 'safe-area-styles';
-  style.textContent = `
-    #cart-overlay {
-      padding-bottom: env(safe-area-inset-bottom, 0px);
-    }
-    #cart-overlay-footer {
-      padding-bottom: env(safe-area-inset-bottom, 0px);
-    }
-  `;
-  document.head.appendChild(style);
-  console.log('✅ Safe area styles added');
-}
-
-// Call it early
-addSafeAreaStyles();
     
     const action = sessionStorage.getItem('postLoginAction');
     if (action) {
@@ -1461,6 +1420,27 @@ addSafeAreaStyles();
   checkPostLoginAction();
   console.log('🎫 Membership script loaded');
 });
+
+// Add safe area styles for iOS
+function addSafeAreaStyles() {
+  if (document.getElementById('safe-area-styles')) return;
+  
+  const style = document.createElement('style');
+  style.id = 'safe-area-styles';
+  style.textContent = `
+    #cart-overlay {
+      padding-bottom: env(safe-area-inset-bottom, 0px);
+    }
+    #cart-overlay-footer {
+      padding-bottom: env(safe-area-inset-bottom, 0px);
+    }
+  `;
+  document.head.appendChild(style);
+  console.log('✅ Safe area styles added');
+}
+
+addSafeAreaStyles();
+
 
 // ============================================
 // NAVBAR SCROLL HIDE/SHOW
@@ -1482,7 +1462,6 @@ addSafeAreaStyles();
     const currentScrollY = window.scrollY;
     
     if (currentScrollY > SCROLL_THRESHOLD) {
-      // Scrolled down - hide and collapse
       navLinks.style.opacity = '0';
       navLinks.style.maxHeight = '0';
       navLinks.style.overflow = 'hidden';
@@ -1492,7 +1471,6 @@ addSafeAreaStyles();
       navLinks.style.paddingBottom = '0';
       navLinks.style.pointerEvents = 'none';
     } else {
-      // At top - show and expand
       navLinks.style.opacity = '1';
       navLinks.style.maxHeight = navLinksHeight + 'px';
       navLinks.style.overflow = 'visible';
@@ -1516,10 +1494,8 @@ addSafeAreaStyles();
   function initNavScroll() {
     const navLinks = document.querySelector('.div-nav-links-wrapper');
     if (navLinks) {
-      // Store original height before any manipulation
       navLinksHeight = navLinks.offsetHeight;
       
-      // Add CSS transition for smooth animation
       navLinks.style.transition = 'opacity 0.3s ease, max-height 0.3s ease, margin 0.3s ease, padding 0.3s ease';
       navLinks.style.maxHeight = navLinksHeight + 'px';
       
