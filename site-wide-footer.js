@@ -1322,16 +1322,14 @@ window.addEventListener('load', function() {
 
 
 // ============================================
-// MEMBERSHIP SIGNUP HANDLER - FIXED
+// MEMBERSHIP SIGNUP HANDLER
 // Uses capture phase to catch clicks before anything else
 // ============================================
 (function() {
   console.log('🎫 Membership handler initializing (capture phase)...');
   
-  // Use capture phase (third param = true) to catch clicks FIRST
   document.addEventListener('click', async function(e) {
-    // Check if clicked element or any parent has data-membership-id
-    const button = e.target.closest('[data-membership-id]');
+    const button = e.target.closest('[data-membership]');
     
     if (!button) return;
     
@@ -1340,11 +1338,10 @@ window.addEventListener('load', function() {
     e.stopPropagation();
     e.stopImmediatePropagation();
     
-    const membershipId = button.getAttribute('data-membership-id');
-    console.log('🎫 Membership ID:', membershipId);
+    const membershipName = button.getAttribute('data-membership');
+    console.log('🎫 Membership name:', membershipName);
     
     const API_BASE = window.API_BASE_URL;
-    console.log('🎫 API Base:', API_BASE);
     
     if (!window.auth0Client) {
       console.error('🎫 Auth0 not initialized');
@@ -1359,13 +1356,12 @@ window.addEventListener('load', function() {
       console.log('🎫 Not authenticated, saving action and opening auth modal');
       sessionStorage.setItem('postLoginAction', JSON.stringify({
         type: 'membership_signup',
-        membershipId: membershipId
+        membershipName: membershipName
       }));
       openAuthModal();
       return;
     }
     
-    // Show loading state
     const originalHTML = button.innerHTML;
     button.innerHTML = 'Loading...';
     button.style.pointerEvents = 'none';
@@ -1376,7 +1372,7 @@ window.addEventListener('load', function() {
       console.log('🎫 Got token, creating checkout session...');
       
       const requestBody = {
-        membership_id: parseInt(membershipId),
+        membership_name: membershipName,
         success_url: `${window.location.origin}/welcome-to-dematerialized`,
         cancel_url: `${window.location.origin}/error-membership-signup`
       };
@@ -1410,7 +1406,7 @@ window.addEventListener('load', function() {
       button.style.pointerEvents = 'auto';
       button.style.opacity = '1';
     }
-  }, true); // <-- CAPTURE PHASE
+  }, true);
   
   // Post-login handler
   async function checkPostLoginAction() {
@@ -1427,17 +1423,16 @@ window.addEventListener('load', function() {
       if (action) {
         const parsed = JSON.parse(action);
         if (parsed.type === 'membership_signup') {
-          console.log('🎫 Post-login: triggering membership signup for ID:', parsed.membershipId);
+          console.log('🎫 Post-login: triggering membership signup for:', parsed.membershipName);
           sessionStorage.removeItem('postLoginAction');
           
-          // Wait for embed to load, then click
           setTimeout(() => {
-            const button = document.querySelector(`[data-membership-id="${parsed.membershipId}"]`);
+            const button = document.querySelector(`[data-membership="${parsed.membershipName}"]`);
             if (button) {
               console.log('🎫 Found button, clicking...');
               button.click();
             } else {
-              console.error('🎫 Button not found for ID:', parsed.membershipId);
+              console.error('🎫 Button not found for:', parsed.membershipName);
             }
           }, 1500);
         }
