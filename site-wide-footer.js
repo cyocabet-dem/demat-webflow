@@ -1471,22 +1471,44 @@ addSafeAreaStyles();
 
 // ============================================
 // MULTI-STEP ONBOARDING MODAL
+// Data structure matches profile.js approach:
+// - Direct API fields: phone_number, date_of_birth, address_house_number, address_zipcode, address_city
+// - Attributes array: first_name, last_name, address_street, address_unit, height_cm, preferred_fit, shirt_size, pants_size, shoe_size, body_type, referral_sources
 // ============================================
 (function() {
   console.log('🎓 Multi-step onboarding initializing...');
   
+  // Geoapify API key (same as profile page)
+  const GEOAPIFY_KEY = 'ce61be62b3c344838d731909f625cfd1';
+  
   // State
   let currentStep = 1;
   const totalSteps = 7;
+  let addressDebounce = null;
+  
   const formData = {
-    first_name: '',
-    last_name: '',
-    phone: '',
-    address: '',
-    birthday: '',
-    sizes: [],
-    body_type: '',
-    referral_sources: []
+    // Personal info
+    firstName: '',
+    lastName: '',
+    phoneNumber: '',
+    // Address
+    addressStreet: '',
+    addressHouseNumber: '',
+    addressUnit: '',
+    addressZipcode: '',
+    addressCity: '',
+    // Birthday
+    dateOfBirth: '',
+    // Size profile
+    heightCm: '',
+    preferredFit: '',
+    shirtSize: '',
+    pantsSize: '',
+    shoeSize: '',
+    // Body type (attribute)
+    bodyType: '',
+    // Referral sources (attribute - stored as comma-separated)
+    referralSources: []
   };
   
   // Step to progress section mapping
@@ -1507,7 +1529,7 @@ addSafeAreaStyles();
     const modal = document.getElementById('onboardingModal');
     if (modal) {
       modal.classList.add('is-visible');
-      document.body.style.overflow = 'hidden';
+      document.body.classList.add('onboarding-modal-open');
       currentStep = 1;
       showStep(1);
       updateProgress();
@@ -1519,7 +1541,7 @@ addSafeAreaStyles();
     const modal = document.getElementById('onboardingModal');
     if (modal) {
       modal.classList.remove('is-visible');
-      document.body.style.overflow = '';
+      document.body.classList.remove('onboarding-modal-open');
     }
   };
   
@@ -1585,39 +1607,118 @@ addSafeAreaStyles();
     });
   }
   
+  // ===== ADDRESS AUTOCOMPLETE =====
+  
+  window.searchOnboardingAddress = async function() {
+    const input = document.getElementById('onboarding-address-search');
+    const suggestionsContainer = document.getElementById('onboarding-address-suggestions');
+    
+    if (!input || !suggestionsContainer) return;
+    
+    const query = input.value.trim();
+    
+    if (query.length < 3) {
+      suggestionsContainer.classList.remove('active');
+      suggestionsContainer.innerHTML = '';
+      return;
+    }
+    
+    clearTimeout(addressDebounce);
+    
+    addressDebounce = setTimeout(async () => {
+      try {
+        const url = `https://api.geoapify.com/v1/geocode/autocomplete?text=${encodeURIComponent(query)}&apiKey=${GEOAPIFY_KEY}&filter=countrycode:nl&limit=5`;
+        
+        const response = await fetch(url);
+        const data = await response.json();
+        
+        if (data.features && data.features.length > 0) {
+          suggestionsContainer.innerHTML = data.features.map((feature, index) => `
+            <div class="address-suggestion" onclick="selectOnboardingAddress(${index})" data-index="${index}">
+              ${feature.properties.formatted}
+            </div>
+          `).join('');
+          suggestionsContainer.classList.add('active');
+          
+          // Store features for selection
+          window._onboardingAddressResults = data.features;
+        } else {
+          suggestionsContainer.classList.remove('active');
+          suggestionsContainer.innerHTML = '';
+        }
+      } catch (error) {
+        console.error('🎓 Address search error:', error);
+      }
+    }, 300);
+  };
+  
+  window.selectOnboardingAddress = function(index) {
+    const feature = window._onboardingAddressResults?.[index];
+    if (!feature) return;
+    
+    const props = feature.properties;
+    
+    // Update input fields
+    const searchInput = document.getElementById('onboarding-address-search');
+    const streetInput = document.getElementById('onboarding-street');
+    const houseNumberInput = document.getElementById('onboarding-house-number');
+    const zipcodeInput = document.getElementById('onboarding-zipcode');
+    const cityInput = document.getElementById('onboarding-city');
+    
+    if (searchInput) searchInput.value = props.formatted;
+    if (streetInput) streetInput.value = props.street || '';
+    if (houseNumberInput) houseNumberInput.value = props.housenumber || '';
+    if (zipcodeInput) zipcodeInput.value = props.postcode || '';
+    if (cityInput) cityInput.value = props.city || '';
+    
+    // Hide suggestions
+    const suggestionsContainer = document.getElementById('onboarding-address-suggestions');
+    if (suggestionsContainer) {
+      suggestionsContainer.classList.remove('active');
+      suggestionsContainer.innerHTML = '';
+    }
+  };
+  
   // ===== DATA COLLECTION =====
   
   function collectStepData(step) {
     switch(step) {
-      case 2: // Personal info
-        formData.first_name = document.getElementById('onboarding-firstname')?.value || '';
-        formData.last_name = document.getElementById('onboarding-lastname')?.value || '';
-        formData.phone = document.getElementById('onboarding-phone')?.value || '';
-        formData.address = document.getElementById('onboarding-address')?.value || '';
-        console.log('🎓 Collected personal info:', formData.first_name, formData.last_name);
+      case 2: // Personal info + Address
+        formData.firstName = document.getElementById('onboarding-firstname')?.value || '';
+        formData.lastName = document.getElementById('onboarding-lastname')?.value || '';
+        formData.phoneNumber = document.getElementById('onboarding-phone')?.value || '';
+        formData.addressStreet = document.getElementById('onboarding-street')?.value || '';
+        formData.addressHouseNumber = document.getElementById('onboarding-house-number')?.value || '';
+        formData.addressUnit = document.getElementById('onboarding-unit')?.value || '';
+        formData.addressZipcode = document.getElementById('onboarding-zipcode')?.value || '';
+        formData.addressCity = document.getElementById('onboarding-city')?.value || '';
+        console.log('🎓 Collected personal info:', formData.firstName, formData.lastName);
         break;
         
       case 3: // Birthday
-        formData.birthday = document.getElementById('onboarding-birthday')?.value || '';
-        console.log('🎓 Collected birthday:', formData.birthday);
+        formData.dateOfBirth = document.getElementById('onboarding-birthday')?.value || '';
+        console.log('🎓 Collected birthday:', formData.dateOfBirth);
         break;
         
-      case 4: // Sizes
-        formData.sizes = Array.from(document.querySelectorAll('.size-option.selected'))
-          .map(el => el.getAttribute('data-size'));
-        console.log('🎓 Collected sizes:', formData.sizes);
+      case 4: // Size profile
+        formData.heightCm = document.getElementById('onboarding-height')?.value || '';
+        formData.preferredFit = document.getElementById('onboarding-preferred-fit')?.value || '';
+        formData.shirtSize = document.getElementById('onboarding-shirt-size')?.value || '';
+        formData.pantsSize = document.getElementById('onboarding-pants-size')?.value || '';
+        formData.shoeSize = document.getElementById('onboarding-shoe-size')?.value || '';
+        console.log('🎓 Collected sizes:', formData.heightCm, formData.shirtSize);
         break;
         
       case 5: // Body type
         const selectedBodyType = document.querySelector('.body-type-option.selected');
-        formData.body_type = selectedBodyType?.getAttribute('data-body-type') || '';
-        console.log('🎓 Collected body type:', formData.body_type);
+        formData.bodyType = selectedBodyType?.getAttribute('data-body-type') || '';
+        console.log('🎓 Collected body type:', formData.bodyType);
         break;
         
-      case 6: // Referral
-        formData.referral_sources = Array.from(document.querySelectorAll('.checkbox-option input:checked'))
+      case 6: // Referral sources
+        formData.referralSources = Array.from(document.querySelectorAll('.checkbox-option input:checked'))
           .map(el => el.value);
-        console.log('🎓 Collected referral sources:', formData.referral_sources);
+        console.log('🎓 Collected referral sources:', formData.referralSources);
         break;
     }
   }
@@ -1643,22 +1744,64 @@ addSafeAreaStyles();
       
       const token = await window.auth0Client.getTokenSilently();
       
-      // Build the API payload
+      // Build attributes array (matching profile.js approach)
+      const customAttributes = [];
+      
+      if (formData.firstName) {
+        customAttributes.push({ key: 'first_name', value: formData.firstName });
+      }
+      if (formData.lastName) {
+        customAttributes.push({ key: 'last_name', value: formData.lastName });
+      }
+      if (formData.addressStreet) {
+        customAttributes.push({ key: 'address_street', value: formData.addressStreet });
+      }
+      if (formData.addressUnit) {
+        customAttributes.push({ key: 'address_unit', value: formData.addressUnit });
+      }
+      if (formData.heightCm) {
+        customAttributes.push({ key: 'height_cm', value: formData.heightCm });
+      }
+      if (formData.preferredFit) {
+        customAttributes.push({ key: 'preferred_fit', value: formData.preferredFit });
+      }
+      if (formData.shirtSize) {
+        customAttributes.push({ key: 'shirt_size', value: formData.shirtSize });
+      }
+      if (formData.pantsSize) {
+        customAttributes.push({ key: 'pants_size', value: formData.pantsSize });
+      }
+      if (formData.shoeSize) {
+        customAttributes.push({ key: 'shoe_size', value: formData.shoeSize });
+      }
+      if (formData.bodyType) {
+        customAttributes.push({ key: 'body_type', value: formData.bodyType });
+      }
+      if (formData.referralSources.length > 0) {
+        customAttributes.push({ key: 'referral_sources', value: formData.referralSources.join(',') });
+      }
+      
+      // Build the API payload (matching profile.js approach)
       const payload = {
-        provided_information: true
+        provided_information: true,
+        attributes: customAttributes
       };
       
-      if (formData.first_name) payload.first_name = formData.first_name;
-      if (formData.last_name) payload.last_name = formData.last_name;
-      if (formData.phone) payload.phone_number = formData.phone;
-      if (formData.birthday) payload.date_of_birth = formData.birthday;
-      if (formData.sizes.length > 0) payload.sizes = formData.sizes;
-      if (formData.body_type) payload.body_type = formData.body_type;
-      if (formData.referral_sources.length > 0) payload.referral_sources = formData.referral_sources;
-      
-      // Address might need special handling depending on API
-      if (formData.address) {
-        payload.address = formData.address;
+      // Direct API fields
+      if (formData.phoneNumber) {
+        payload.phone_number = formData.phoneNumber;
+      }
+      if (formData.dateOfBirth) {
+        payload.date_of_birth = formData.dateOfBirth;
+      }
+      if (formData.addressHouseNumber) {
+        payload.address_house_number = formData.addressHouseNumber;
+      }
+      if (formData.addressZipcode) {
+        payload.address_zipcode = formData.addressZipcode;
+      }
+      if (formData.addressCity) {
+        payload.address_city = formData.addressCity;
       }
       
       console.log('🎓 Sending payload:', payload);
@@ -1712,13 +1855,6 @@ addSafeAreaStyles();
   // ===== EVENT LISTENERS =====
   
   function setupEventListeners() {
-    // Size option toggles (multi-select)
-    document.addEventListener('click', function(e) {
-      if (e.target.classList.contains('size-option')) {
-        e.target.classList.toggle('selected');
-      }
-    });
-    
     // Body type selection (single select)
     document.addEventListener('click', function(e) {
       const bodyTypeBtn = e.target.closest('.body-type-option');
@@ -1727,6 +1863,26 @@ addSafeAreaStyles();
           el.classList.remove('selected');
         });
         bodyTypeBtn.classList.add('selected');
+      }
+    });
+    
+    // Address search input
+    document.addEventListener('input', function(e) {
+      if (e.target.id === 'onboarding-address-search') {
+        searchOnboardingAddress();
+      }
+    });
+    
+    // Close address suggestions when clicking outside
+    document.addEventListener('click', function(e) {
+      const suggestionsContainer = document.getElementById('onboarding-address-suggestions');
+      const searchInput = document.getElementById('onboarding-address-search');
+      
+      if (suggestionsContainer && suggestionsContainer.classList.contains('active')) {
+        if (!e.target.closest('.onboarding-input-group') || 
+            (e.target !== searchInput && !e.target.classList.contains('address-suggestion'))) {
+          suggestionsContainer.classList.remove('active');
+        }
       }
     });
     
@@ -1739,25 +1895,6 @@ addSafeAreaStyles();
         }
       }
     });
-    
-    // Click outside to close (on overlay)
-    document.addEventListener('click', function(e) {
-      if (e.target.id === 'onboardingModal' || e.target.classList.contains('onboarding-modal-overlay')) {
-        // Only close if clicking on the overlay itself, not the content
-        if (e.target === document.getElementById('onboardingModal')) {
-          skipOnboarding();
-        }
-      }
-    });
-    
-    // Address autocomplete (basic implementation - can be enhanced with Google Places API)
-    const addressInput = document.getElementById('onboarding-address');
-    if (addressInput) {
-      // Check if existing address autocomplete exists from site
-      if (window.initAddressAutocomplete) {
-        window.initAddressAutocomplete(addressInput, 'onboarding-address-suggestions');
-      }
-    }
   }
   
   // Initialize when DOM is ready
