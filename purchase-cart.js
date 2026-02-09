@@ -391,7 +391,7 @@ window.PurchaseCart = {
         </div>
         
         <div class="checkout-modal-footer">
-          <p class="checkout-info">${finalTotal > 0 ? 'remaining balance will be charged via stripe.' : 'your credits cover this purchase!'}</p>
+          <p class="checkout-info">${finalTotal > 0 ? "by clicking 'complete purchase' you will be redirected to our payment provider." : 'your credits cover this purchase!'}</p>
           <button onclick="PurchaseCart.processCheckout()" class="checkout-submit-btn" id="checkout-submit-btn">
             complete purchase
           </button>
@@ -457,12 +457,21 @@ window.PurchaseCart = {
       });
 
       if (!orderResponse.ok) {
-        const errorData = await orderResponse.json().catch(() => ({}));
-        throw new Error(errorData.detail || 'Failed to create order');
+        const errorText = await orderResponse.text();
+        console.error('🛒 Order creation error response:', errorText);
+        let errorDetail = 'Failed to create order';
+        try {
+          const errorData = JSON.parse(errorText);
+          errorDetail = errorData.detail || errorDetail;
+        } catch (e) {
+          // Response wasn't JSON
+        }
+        throw new Error(errorDetail);
       }
 
       const order = await orderResponse.json();
       console.log('🛒 Order created:', order);
+      console.log('🛒 Order ID for checkout:', order.id);
 
       // Check if fully paid by credits
       if (order.total_amount_in_cents === 0 || order.payment_status === 'paid') {
@@ -479,35 +488,81 @@ window.PurchaseCart = {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
           'Accept': 'application/json'
-        }
+        },
+        body: JSON.stringify({})
       });
 
       if (!checkoutResponse.ok) {
-        const errorData = await checkoutResponse.json().catch(() => ({}));
-        throw new Error(errorData.detail || 'Failed to create checkout session');
+        const errorText = await checkoutResponse.text();
+        console.error('🛒 Checkout error response (raw):', errorText);
+        let errorDetail = 'Failed to create checkout session';
+        try {
+          const errorData = JSON.parse(errorText);
+          console.error('🛒 Parsed error data:', errorData);
+          console.error('🛒 Error detail type:', typeof errorData.detail);
+          console.error('🛒 Error detail value:', errorData.detail);
+          
+          // Handle various error formats
+          if (typeof errorData.detail === 'string') {
+            errorDetail = errorData.detail;
+          } else if (Array.isArray(errorData.detail) && errorData.detail.length > 0) {
+            // FastAPI validation errors come as array
+            errorDetail = errorData.detail.map(e => e.msg || e.message || JSON.stringify(e)).join(', ');
+          } else if (errorData.detail?.message) {
+            errorDetail = errorData.detail.message;
+          } else if (errorData.detail?.msg) {
+            errorDetail = errorData.detail.msg;
+          } else if (typeof errorData.detail === 'object' && errorData.detail !== null) {
+            errorDetail = JSON.stringify(errorData.detail);
+          } else if (errorData.message) {
+            errorDetail = errorData.message;
+          } else if (errorData.error) {
+            errorDetail = typeof errorData.error === 'string' ? errorData.error : JSON.stringify(errorData.error);
+          }
+          console.error('🛒 Final error message:', errorDetail);
+        } catch (e) {
+          console.error('🛒 Could not parse error response as JSON');
+          errorDetail = errorText || 'Failed to create checkout session';
+        }
+        throw new Error(String(errorDetail));
       }
 
       const checkoutData = await checkoutResponse.json();
       console.log('🛒 Checkout session created:', checkoutData);
+      console.log('🛒 Checkout URL:', checkoutData.checkout_url);
 
       // Clear cart before redirecting
       this.clear();
 
-      // Redirect to Stripe
-      if (checkoutData.checkout_url) {
-        window.location.href = checkoutData.checkout_url;
+      // Redirect to Stripe - check multiple possible field names
+      const redirectUrl = checkoutData.checkout_url || checkoutData.url || checkoutData.session_url;
+      if (redirectUrl) {
+        window.location.href = redirectUrl;
       } else {
+        console.error('🛒 No checkout URL in response. Full response:', checkoutData);
         throw new Error('No checkout URL received');
       }
 
     } catch (error) {
       console.error('Checkout error:', error);
-      alert(error.message || 'Something went wrong. Please try again.');
+      
+      // Extract error message properly
+      let errorMessage = 'Something went wrong. Please try again.';
+      if (typeof error === 'string') {
+        errorMessage = error;
+      } else if (error?.message) {
+        errorMessage = error.message;
+      } else if (error?.detail) {
+        errorMessage = error.detail;
+      }
+      
+      alert(errorMessage);
       
       if (submitBtn) {
         submitBtn.disabled = false;
-        submitBtn.innerHTML = 'Complete Purchase';
+        submitBtn.innerHTML = 'complete purchase';
       }
     } finally {
       this._isCheckingOut = false;
