@@ -120,45 +120,97 @@ window.PurchaseCart = {
     }, 2500);
   },
 
-  // Toggle cart dropdown
+  // Toggle cart panel (slide in from left)
   toggleCartDropdown() {
-    const dropdown = document.getElementById('purchase-cart-dropdown');
-    if (!dropdown) return;
+    const panel = document.getElementById('purchase-cart-panel');
+    const backdrop = document.getElementById('purchase-cart-backdrop');
+    
+    if (!panel || !backdrop) {
+      this.createCartPanel();
+      return;
+    }
 
-    const isOpen = dropdown.style.display === 'block';
+    const isOpen = panel.classList.contains('cart-panel-open');
     if (isOpen) {
-      dropdown.style.display = 'none';
+      this.closeCartPanel();
     } else {
-      this.renderDropdown();
-      dropdown.style.display = 'block';
+      this.openCartPanel();
     }
   },
 
-  // Render cart dropdown
-  renderDropdown() {
-    const dropdown = document.getElementById('purchase-cart-dropdown');
-    if (!dropdown) return;
+  createCartPanel() {
+    // Create backdrop
+    let backdrop = document.getElementById('purchase-cart-backdrop');
+    if (!backdrop) {
+      backdrop = document.createElement('div');
+      backdrop.id = 'purchase-cart-backdrop';
+      backdrop.className = 'cart-panel-backdrop';
+      backdrop.onclick = () => this.closeCartPanel();
+      document.body.appendChild(backdrop);
+    }
+
+    // Create panel
+    let panel = document.getElementById('purchase-cart-panel');
+    if (!panel) {
+      panel = document.createElement('div');
+      panel.id = 'purchase-cart-panel';
+      panel.className = 'cart-panel';
+      document.body.appendChild(panel);
+    }
+
+    this.renderCartPanel();
+    this.openCartPanel();
+  },
+
+  openCartPanel() {
+    const panel = document.getElementById('purchase-cart-panel');
+    const backdrop = document.getElementById('purchase-cart-backdrop');
+    
+    this.renderCartPanel();
+    
+    if (backdrop) backdrop.classList.add('cart-panel-backdrop-open');
+    if (panel) panel.classList.add('cart-panel-open');
+    document.body.style.overflow = 'hidden';
+  },
+
+  closeCartPanel() {
+    const panel = document.getElementById('purchase-cart-panel');
+    const backdrop = document.getElementById('purchase-cart-backdrop');
+    
+    if (panel) panel.classList.remove('cart-panel-open');
+    if (backdrop) backdrop.classList.remove('cart-panel-backdrop-open');
+    document.body.style.overflow = '';
+  },
+
+  // Render cart panel content
+  renderCartPanel() {
+    const panel = document.getElementById('purchase-cart-panel');
+    if (!panel) return;
 
     if (this._items.length === 0) {
-      dropdown.innerHTML = `
-        <div class="cart-dropdown-empty">
-          <p>Your cart is empty</p>
+      panel.innerHTML = `
+        <div class="cart-panel-header">
+          <span class="cart-panel-title">your cart</span>
+          <button onclick="PurchaseCart.closeCartPanel()" class="cart-panel-close">&times;</button>
+        </div>
+        <div class="cart-panel-empty">
+          <p>your cart is empty</p>
         </div>
       `;
       return;
     }
 
     const itemsHtml = this._items.map(item => `
-      <div class="cart-dropdown-item">
-        <div class="cart-dropdown-item-image">
+      <div class="cart-panel-item">
+        <div class="cart-panel-item-image">
           ${item.image_url ? `<img src="${item.image_url}" alt="${item.name}">` : ''}
         </div>
-        <div class="cart-dropdown-item-info">
-          <div class="cart-dropdown-item-name">${item.name}</div>
-          <div class="cart-dropdown-item-price">${this.formatPrice(item.purchase_price_cents)}</div>
+        <div class="cart-panel-item-info">
+          <div class="cart-panel-item-name">${item.name?.toLowerCase() || 'item'}</div>
+          <div class="cart-panel-item-price">${this.formatPrice(item.purchase_price_cents)}</div>
         </div>
-        <button onclick="PurchaseCart.removeItem(${item.clothing_item_id}); PurchaseCart.renderDropdown();" class="cart-dropdown-item-remove">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <button onclick="PurchaseCart.removeItem(${item.clothing_item_id}); PurchaseCart.renderCartPanel(); if(window.RentalsManager) RentalsManager.renderRentalsPage();" class="cart-panel-item-remove">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
             <line x1="18" y1="6" x2="6" y2="18"></line>
             <line x1="6" y1="6" x2="18" y2="18"></line>
           </svg>
@@ -166,30 +218,35 @@ window.PurchaseCart = {
       </div>
     `).join('');
 
-    dropdown.innerHTML = `
-      <div class="cart-dropdown-header">
-        <span>Your Cart (${this._items.length})</span>
+    panel.innerHTML = `
+      <div class="cart-panel-header">
+        <span class="cart-panel-title">your cart (${this._items.length})</span>
+        <button onclick="PurchaseCart.closeCartPanel()" class="cart-panel-close">&times;</button>
       </div>
-      <div class="cart-dropdown-items">
+      <div class="cart-panel-items">
         ${itemsHtml}
       </div>
-      <div class="cart-dropdown-footer">
-        <div class="cart-dropdown-total">
-          <span>Total</span>
+      <div class="cart-panel-footer">
+        <div class="cart-panel-total">
+          <span>total</span>
           <span>${this.formatPrice(this.getTotal())}</span>
         </div>
-        <button onclick="PurchaseCart.openCheckoutModal()" class="cart-dropdown-checkout-btn">
-          Checkout
+        <button onclick="PurchaseCart.openCheckoutModal()" class="cart-panel-checkout-btn">
+          checkout
         </button>
       </div>
     `;
   },
 
+  // Render cart dropdown (legacy - redirect to panel)
+  renderDropdown() {
+    this.renderCartPanel();
+  },
+
   // Open checkout modal
   openCheckoutModal() {
-    // Close dropdown
-    const dropdown = document.getElementById('purchase-cart-dropdown');
-    if (dropdown) dropdown.style.display = 'none';
+    // Close cart panel
+    this.closeCartPanel();
 
     // Create modal if it doesn't exist
     let modal = document.getElementById('checkout-modal');
@@ -440,7 +497,7 @@ window.PurchaseCart = {
         --cart-gray-light: #ced5da;
         --cart-gray-bg: #f6f8f9;
         --cart-pink-light: #fff4fe;
-        --cart-green: #16a34a;
+        --cart-navy: #04314d;
       }
 
       /* Toast */
@@ -472,6 +529,7 @@ window.PurchaseCart = {
       #purchase-cart-nav {
         position: relative;
         display: none;
+        align-items: center;
       }
       .purchase-cart-toggle {
         position: relative;
@@ -480,6 +538,9 @@ window.PurchaseCart = {
         padding: 8px;
         cursor: pointer;
         color: var(--cart-gray-dark);
+        display: flex;
+        align-items: center;
+        justify-content: center;
       }
       .purchase-cart-toggle:hover {
         color: var(--cart-purple);
@@ -501,108 +562,174 @@ window.PurchaseCart = {
         padding: 0 4px;
       }
 
-      /* Dropdown */
-      #purchase-cart-dropdown {
-        position: absolute;
-        top: 100%;
+      /* Cart Panel Backdrop */
+      .cart-panel-backdrop {
+        position: fixed;
+        top: 0;
+        left: 0;
         right: 0;
-        width: 320px;
-        background: white;
-        border-radius: 12px;
-        box-shadow: 0 4px 24px rgba(0,0,0,0.12);
-        z-index: 1000;
-        margin-top: 8px;
-        overflow: hidden;
+        bottom: 0;
+        background: rgba(0,0,0,0.5);
+        z-index: 9998;
+        opacity: 0;
+        visibility: hidden;
+        transition: opacity 0.3s ease, visibility 0.3s ease;
       }
-      .cart-dropdown-header {
-        padding: 16px;
+      .cart-panel-backdrop-open {
+        opacity: 1;
+        visibility: visible;
+      }
+
+      /* Cart Panel - Slide from Right */
+      .cart-panel {
+        position: fixed;
+        top: 0;
+        right: 0;
+        bottom: 0;
+        width: 380px;
+        max-width: 100%;
+        background: white;
+        z-index: 9999;
+        transform: translateX(100%);
+        transition: transform 0.3s ease;
+        display: flex;
+        flex-direction: column;
+        box-shadow: -4px 0 24px rgba(0,0,0,0.12);
+      }
+      .cart-panel-open {
+        transform: translateX(0);
+      }
+
+      .cart-panel-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 20px 24px;
         border-bottom: 1px solid var(--cart-gray-light);
+      }
+      .cart-panel-title {
+        font-size: 20px;
         font-weight: 600;
         color: var(--cart-gray-dark);
       }
-      .cart-dropdown-items {
-        max-height: 280px;
-        overflow-y: auto;
+      .cart-panel-close {
+        background: none;
+        border: none;
+        font-size: 32px;
+        cursor: pointer;
+        color: var(--cart-gray-medium);
+        line-height: 1;
+        padding: 0;
       }
-      .cart-dropdown-item {
+      .cart-panel-close:hover {
+        color: var(--cart-gray-dark);
+      }
+
+      .cart-panel-items {
+        flex: 1;
+        overflow-y: auto;
+        padding: 16px 24px;
+      }
+      .cart-panel-item {
         display: flex;
         align-items: center;
-        gap: 12px;
-        padding: 12px 16px;
+        gap: 16px;
+        padding: 16px 0;
         border-bottom: 1px solid var(--cart-gray-bg);
       }
-      .cart-dropdown-item-image {
-        width: 48px;
-        height: 48px;
-        border-radius: 6px;
+      .cart-panel-item:last-child {
+        border-bottom: none;
+      }
+      .cart-panel-item-image {
+        width: 70px;
+        height: 90px;
+        border-radius: 8px;
         overflow: hidden;
         background: var(--cart-gray-bg);
         flex-shrink: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 8px;
       }
-      .cart-dropdown-item-image img {
-        width: 100%;
-        height: 100%;
-        object-fit: cover;
+      .cart-panel-item-image img {
+        max-width: 100%;
+        max-height: 100%;
+        object-fit: contain;
       }
-      .cart-dropdown-item-info {
+      .cart-panel-item-info {
         flex: 1;
         min-width: 0;
       }
-      .cart-dropdown-item-name {
-        font-size: 13px;
+      .cart-panel-item-name {
+        font-size: 16px;
         font-weight: 500;
         color: var(--cart-gray-dark);
-        white-space: nowrap;
-        overflow: hidden;
-        text-overflow: ellipsis;
+        margin-bottom: 4px;
       }
-      .cart-dropdown-item-price {
-        font-size: 13px;
+      .cart-panel-item-price {
+        font-size: 16px;
         color: var(--cart-pink);
         font-weight: 600;
       }
-      .cart-dropdown-item-remove {
+      .cart-panel-item-remove {
         background: none;
         border: none;
-        padding: 4px;
+        padding: 8px;
         cursor: pointer;
         color: var(--cart-gray-medium);
         opacity: 0.6;
+        flex-shrink: 0;
       }
-      .cart-dropdown-item-remove:hover {
+      .cart-panel-item-remove:hover {
         opacity: 1;
         color: var(--cart-gray-dark);
       }
-      .cart-dropdown-footer {
-        padding: 16px;
+
+      .cart-panel-footer {
+        padding: 20px 24px;
         background: var(--cart-gray-bg);
+        border-top: 1px solid var(--cart-gray-light);
       }
-      .cart-dropdown-total {
+      .cart-panel-total {
         display: flex;
         justify-content: space-between;
+        font-size: 18px;
         font-weight: 600;
-        margin-bottom: 12px;
+        margin-bottom: 16px;
         color: var(--cart-gray-dark);
       }
-      .cart-dropdown-checkout-btn {
+      .cart-panel-checkout-btn {
         width: 100%;
-        padding: 12px;
+        padding: 16px;
         background: var(--cart-purple);
         color: white;
         border: none;
         border-radius: 8px;
-        font-size: 14px;
+        font-size: 16px;
         font-weight: 600;
         cursor: pointer;
         transition: background 0.2s ease;
       }
-      .cart-dropdown-checkout-btn:hover {
+      .cart-panel-checkout-btn:hover {
         background: var(--cart-purple-dark);
       }
-      .cart-dropdown-empty {
-        padding: 32px 16px;
-        text-align: center;
+
+      .cart-panel-empty {
+        flex: 1;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 48px 24px;
         color: var(--cart-gray-medium);
+        font-size: 16px;
+      }
+
+      /* Mobile - Full screen cart */
+      @media (max-width: 600px) {
+        .cart-panel {
+          width: 100%;
+        }
       }
 
       /* Checkout Modal */
@@ -676,9 +803,8 @@ window.PurchaseCart = {
         flex: 1;
       }
       .checkout-section-title {
-        font-size: 12px;
+        font-size: 14px;
         font-weight: 600;
-        text-transform: uppercase;
         letter-spacing: 0.5px;
         color: var(--cart-gray-medium);
         margin-bottom: 12px;
@@ -701,11 +827,15 @@ window.PurchaseCart = {
         overflow: hidden;
         background: var(--cart-gray-bg);
         flex-shrink: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 6px;
       }
       .checkout-item-image img {
-        width: 100%;
-        height: 100%;
-        object-fit: cover;
+        max-width: 100%;
+        max-height: 100%;
+        object-fit: contain;
       }
       .checkout-item-details {
         flex: 1;
@@ -713,7 +843,6 @@ window.PurchaseCart = {
       }
       .checkout-item-brand {
         font-size: 11px;
-        text-transform: uppercase;
         letter-spacing: 0.5px;
         color: var(--cart-gray-medium);
       }
@@ -819,7 +948,7 @@ window.PurchaseCart = {
         text-align: center;
       }
       .checkout-success-icon {
-        color: var(--cart-green);
+        color: #16a34a;
         margin-bottom: 16px;
       }
       .checkout-success h2 {
