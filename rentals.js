@@ -106,7 +106,7 @@ window.RentalsManager = {
       day: 'numeric',
       month: 'short',
       year: 'numeric'
-    });
+    }).toLowerCase();
   },
 
   formatPrice(cents) {
@@ -196,7 +196,7 @@ window.RentalsManager = {
   renderActiveRentalCard(rental) {
     const ci = rental.clothing_item;
     const imgUrl = this.getItemImage(rental);
-    const name = ci?.name || 'Unknown Item';
+    const name = ci?.name?.toLowerCase() || 'unknown item';
     const sku = ci?.sku || '';
     
     // Pricing
@@ -214,11 +214,11 @@ window.RentalsManager = {
         </a>
         <div class="rental-card-content">
           <div class="rental-card-name">${name}</div>
-          <div class="rental-card-date">Rented: ${this.formatDate(rental.rental_start_date)}</div>
+          <div class="rental-card-date">rented on ${this.formatDate(rental.rental_start_date)}</div>
           
           ${hasPrice ? `
             <div class="rental-card-purchase-section">
-              <div class="rental-card-purchase-label">Want to keep it?</div>
+              <div class="rental-card-purchase-label">want to keep it?</div>
               <div class="rental-card-purchase-prices">
                 <span class="price-original">${this.formatPrice(retailPrice)}</span>
                 <span class="price-discount">${this.formatPrice(purchasePrice)}</span>
@@ -228,14 +228,13 @@ window.RentalsManager = {
           ` : ''}
           
           <div class="rental-card-actions">
-            <a href="/product?sku=${encodeURIComponent(sku)}" class="rental-card-link">View item</a>
             ${hasPrice ? `
               ${inCart ? `
                 <button onclick="RentalsManager.removeFromCart(${ci.id})" class="rental-card-btn rental-card-btn-in-cart">
                   <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                     <polyline points="20 6 9 17 4 12"></polyline>
                   </svg>
-                  In cart
+                  in cart
                 </button>
               ` : `
                 <button onclick="RentalsManager.addToCart(${rental.id})" class="rental-card-btn">
@@ -244,10 +243,11 @@ window.RentalsManager = {
                     <circle cx="20" cy="21" r="1"/>
                     <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/>
                   </svg>
-                  Add to cart
+                  add to cart
                 </button>
               `}
             ` : ''}
+            <a href="/product?sku=${encodeURIComponent(sku)}" class="rental-card-link">view item</a>
           </div>
         </div>
       </div>
@@ -257,8 +257,7 @@ window.RentalsManager = {
   renderHistoryItem(rental) {
     const ci = rental.clothing_item;
     const imgUrl = this.getItemImage(rental);
-    const name = ci?.name || 'Unknown Item';
-    const brand = ci?.brand?.brand_name || '';
+    const name = ci?.name?.toLowerCase() || 'unknown item';
     const sku = ci?.sku || '';
     const returnDate = this.formatDate(rental.rental_return_date);
 
@@ -268,9 +267,8 @@ window.RentalsManager = {
           ${imgUrl ? `<img src="${imgUrl}" alt="${name}">` : ''}
         </div>
         <div class="history-item-content">
-          ${brand ? `<div class="history-item-brand">${brand}</div>` : ''}
           <div class="history-item-name">${name}</div>
-          <div class="history-item-date">Returned: ${returnDate}</div>
+          <div class="history-item-date">returned on ${returnDate}</div>
         </div>
       </a>
     `;
