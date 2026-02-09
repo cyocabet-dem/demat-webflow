@@ -213,8 +213,16 @@ window.PurchasesManager = {
 
       // Fetch orders
       console.log('🛍️ Fetching orders...');
-      const orders = await this.fetchOrders();
-      console.log('🛍️ Orders fetched:', orders);
+      const allOrders = await this.fetchOrders();
+      console.log('🛍️ Orders fetched:', allOrders);
+
+      // Filter to only show paid/completed orders
+      const orders = (allOrders || []).filter(order => {
+        const paymentStatus = (order.payment_status || '').toLowerCase();
+        const status = (order.status || '').toLowerCase();
+        return paymentStatus === 'paid' || status === 'completed';
+      });
+      console.log('🛍️ Paid orders:', orders.length);
 
       // Hide loading
       if (loadingEl) loadingEl.style.display = 'none';
