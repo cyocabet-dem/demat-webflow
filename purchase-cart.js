@@ -530,16 +530,17 @@ window.PurchaseCart = {
               <polyline points="16 10 10.5 15.5 8 13"></polyline>
             </svg>
           </div>
-          <h2>purchase complete!</h2>
-          <p>your items are now yours to keep.</p>
+          <h2>purchase successful!</h2>
+          <p>you can view your purchase history in your account.</p>
           ${creditsApplied > 0 ? `
             <div class="checkout-success-credits">
               <span>${this.formatPrice(creditsApplied)} in store credits applied</span>
             </div>
           ` : ''}
-          <button onclick="PurchaseCart.closeCheckoutModal(); window.location.reload();" class="checkout-success-btn">
-            continue
-          </button>
+          <div class="checkout-success-actions">
+            <a href="/purchases" class="checkout-success-btn">view my purchases</a>
+            <button onclick="PurchaseCart.closeCheckoutModal(); window.location.reload();" class="checkout-success-btn-secondary">continue browsing</button>
+          </div>
         </div>
       </div>
     `;
@@ -1022,7 +1023,14 @@ window.PurchaseCart = {
         font-size: 16px;
         color: var(--cart-purple);
       }
+      .checkout-success-actions {
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+        align-items: center;
+      }
       .checkout-success-btn {
+        display: inline-block;
         padding: 14px 36px;
         background: var(--cart-purple);
         color: white;
@@ -1031,6 +1039,25 @@ window.PurchaseCart = {
         font-size: 18px;
         font-weight: 600;
         cursor: pointer;
+        text-decoration: none;
+        text-align: center;
+      }
+      .checkout-success-btn:hover {
+        background: var(--cart-purple-dark);
+        color: white;
+      }
+      .checkout-success-btn-secondary {
+        background: transparent;
+        border: none;
+        color: var(--cart-gray-medium);
+        font-size: 16px;
+        cursor: pointer;
+        text-decoration: underline;
+        text-underline-offset: 2px;
+        padding: 8px;
+      }
+      .checkout-success-btn-secondary:hover {
+        color: var(--cart-purple);
       }
     `;
     document.head.appendChild(styles);
