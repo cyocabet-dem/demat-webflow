@@ -244,7 +244,7 @@ window.PurchaseCart = {
   },
 
   // Open checkout modal
-  openCheckoutModal() {
+  async openCheckoutModal() {
     // Close cart panel
     this.closeCartPanel();
 
@@ -265,12 +265,13 @@ window.PurchaseCart = {
       document.body.appendChild(modal);
     }
 
-    this.renderCheckoutModal();
-
-    // Show modal
+    // Show modal first with loading state
     backdrop.classList.add('checkout-modal-backdrop-open');
     modal.classList.add('checkout-modal-open');
     document.body.style.overflow = 'hidden';
+
+    // Render content (fetches credit balance)
+    await this.renderCheckoutModal();
   },
 
   // Close checkout modal
@@ -283,13 +284,43 @@ window.PurchaseCart = {
     document.body.style.overflow = '';
   },
 
-  // Render checkout modal content
-  renderCheckoutModal() {
+  // Fetch user's store credit balance
+  async fetchCreditBalance() {
+    try {
+      if (!window.auth0Client) return 0;
+      
+      const isAuthenticated = await window.auth0Client.isAuthenticated();
+      if (!isAuthenticated) return 0;
+      
+      const token = await window.auth0Client.getTokenSilently();
+      const response = await fetch(`${this.API_BASE}/private_members/me`, {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Accept': 'application/json'
+        }
+      });
+      
+      if (response.ok) {
+        const member = await response.json();
+        return member.store_credits_cents || 0;
+      }
+    } catch (err) {
+      console.error('Error fetching credit balance:', err);
+    }
+    return 0;
+  },
+
+  async renderCheckoutModal() {
     const modal = document.getElementById('checkout-modal');
     if (!modal) return;
 
     const items = this.getItems();
-    const total = this.getTotal();
+    const subtotal = this.getTotal();
+    
+    // Fetch credit balance
+    const creditBalance = await this.fetchCreditBalance();
+    const creditsToApply = Math.min(creditBalance, subtotal);
+    const finalTotal = Math.max(0, subtotal - creditsToApply);
 
     const itemsHtml = items.map(item => `
       <div class="checkout-item">
@@ -297,9 +328,7 @@ window.PurchaseCart = {
           ${item.image_url ? `<img src="${item.image_url}" alt="${item.name}">` : ''}
         </div>
         <div class="checkout-item-details">
-          <div class="checkout-item-brand">${item.brand || ''}</div>
-          <div class="checkout-item-name">${item.name}</div>
-          <div class="checkout-item-meta">${item.size ? `Size ${item.size}` : ''}</div>
+          <div class="checkout-item-name">${item.name?.toLowerCase() || 'item'}</div>
         </div>
         <div class="checkout-item-prices">
           <span class="checkout-item-original">${this.formatPrice(item.retail_price_cents)}</span>
@@ -311,13 +340,13 @@ window.PurchaseCart = {
     modal.innerHTML = `
       <div class="checkout-modal-container">
         <div class="checkout-modal-header">
-          <h2>Checkout</h2>
+          <h2>checkout</h2>
           <button onclick="PurchaseCart.closeCheckoutModal()" class="checkout-modal-close">&times;</button>
         </div>
         
         <div class="checkout-modal-body">
           <div class="checkout-section">
-            <div class="checkout-section-title">Items (${items.length})</div>
+            <div class="checkout-section-title">items (${items.length})</div>
             <div class="checkout-items">
               ${itemsHtml}
             </div>
@@ -325,23 +354,30 @@ window.PurchaseCart = {
           
           <div class="checkout-summary">
             <div class="checkout-summary-row">
-              <span>Subtotal (50% off)</span>
-              <span>${this.formatPrice(total)}</span>
+              <span>subtotal (50% off)</span>
+              <span>${this.formatPrice(subtotal)}</span>
             </div>
-            <div class="checkout-summary-row checkout-summary-note">
-              <span>Store credits applied at checkout</span>
+            <div class="checkout-summary-row">
+              <span>your store credits</span>
+              <span>${this.formatPrice(creditBalance)}</span>
             </div>
+            ${creditsToApply > 0 ? `
+              <div class="checkout-summary-row checkout-credits-applied">
+                <span>credits applied</span>
+                <span>-${this.formatPrice(creditsToApply)}</span>
+              </div>
+            ` : ''}
             <div class="checkout-summary-row checkout-summary-total">
-              <span>Total</span>
-              <span>${this.formatPrice(total)}</span>
+              <span>total</span>
+              <span>${this.formatPrice(finalTotal)}</span>
             </div>
           </div>
         </div>
         
         <div class="checkout-modal-footer">
-          <p class="checkout-info">Store credits will be applied automatically. Any remaining balance will be charged via Stripe.</p>
+          <p class="checkout-info">${finalTotal > 0 ? 'remaining balance will be charged via stripe.' : 'your credits cover this purchase!'}</p>
           <button onclick="PurchaseCart.processCheckout()" class="checkout-submit-btn" id="checkout-submit-btn">
-            Complete Purchase
+            complete purchase
           </button>
         </div>
       </div>
@@ -466,15 +502,15 @@ window.PurchaseCart = {
               <polyline points="16 10 10.5 15.5 8 13"></polyline>
             </svg>
           </div>
-          <h2>Purchase Complete!</h2>
-          <p>Your items are now yours to keep.</p>
+          <h2>purchase complete!</h2>
+          <p>your items are now yours to keep.</p>
           ${creditsApplied > 0 ? `
             <div class="checkout-success-credits">
               <span>${this.formatPrice(creditsApplied)} in store credits applied</span>
             </div>
           ` : ''}
           <button onclick="PurchaseCart.closeCheckoutModal(); window.location.reload();" class="checkout-success-btn">
-            Continue
+            continue
           </button>
         </div>
       </div>
@@ -608,7 +644,7 @@ window.PurchaseCart = {
         border-bottom: 1px solid var(--cart-gray-light);
       }
       .cart-panel-title {
-        font-size: 20px;
+        font-size: 24px;
         font-weight: 600;
         color: var(--cart-gray-dark);
       }
@@ -662,13 +698,13 @@ window.PurchaseCart = {
         min-width: 0;
       }
       .cart-panel-item-name {
-        font-size: 16px;
+        font-size: 18px;
         font-weight: 500;
         color: var(--cart-gray-dark);
         margin-bottom: 4px;
       }
       .cart-panel-item-price {
-        font-size: 16px;
+        font-size: 18px;
         color: var(--cart-pink);
         font-weight: 600;
       }
@@ -694,7 +730,7 @@ window.PurchaseCart = {
       .cart-panel-total {
         display: flex;
         justify-content: space-between;
-        font-size: 18px;
+        font-size: 20px;
         font-weight: 600;
         margin-bottom: 16px;
         color: var(--cart-gray-dark);
@@ -706,7 +742,7 @@ window.PurchaseCart = {
         color: white;
         border: none;
         border-radius: 8px;
-        font-size: 16px;
+        font-size: 18px;
         font-weight: 600;
         cursor: pointer;
         transition: background 0.2s ease;
@@ -722,7 +758,7 @@ window.PurchaseCart = {
         justify-content: center;
         padding: 48px 24px;
         color: var(--cart-gray-medium);
-        font-size: 16px;
+        font-size: 18px;
       }
 
       /* Mobile - Full screen cart */
@@ -731,6 +767,7 @@ window.PurchaseCart = {
           width: 100%;
         }
       }
+
 
       /* Checkout Modal */
       .checkout-modal-backdrop {
@@ -784,14 +821,14 @@ window.PurchaseCart = {
       }
       .checkout-modal-header h2 {
         margin: 0;
-        font-size: 20px;
+        font-size: 24px;
         font-weight: 600;
         color: var(--cart-gray-dark);
       }
       .checkout-modal-close {
         background: none;
         border: none;
-        font-size: 28px;
+        font-size: 32px;
         cursor: pointer;
         color: var(--cart-gray-medium);
         line-height: 1;
@@ -803,26 +840,25 @@ window.PurchaseCart = {
         flex: 1;
       }
       .checkout-section-title {
-        font-size: 14px;
+        font-size: 18px;
         font-weight: 600;
-        letter-spacing: 0.5px;
         color: var(--cart-gray-medium);
-        margin-bottom: 12px;
+        margin-bottom: 16px;
       }
       .checkout-items {
         display: flex;
         flex-direction: column;
-        gap: 12px;
+        gap: 16px;
         margin-bottom: 24px;
       }
       .checkout-item {
         display: flex;
-        gap: 12px;
+        gap: 16px;
         align-items: center;
       }
       .checkout-item-image {
-        width: 60px;
-        height: 60px;
+        width: 70px;
+        height: 80px;
         border-radius: 8px;
         overflow: hidden;
         background: var(--cart-gray-bg);
@@ -830,7 +866,7 @@ window.PurchaseCart = {
         display: flex;
         align-items: center;
         justify-content: center;
-        padding: 6px;
+        padding: 8px;
       }
       .checkout-item-image img {
         max-width: 100%;
@@ -841,60 +877,49 @@ window.PurchaseCart = {
         flex: 1;
         min-width: 0;
       }
-      .checkout-item-brand {
-        font-size: 11px;
-        letter-spacing: 0.5px;
-        color: var(--cart-gray-medium);
-      }
       .checkout-item-name {
-        font-size: 14px;
+        font-size: 18px;
         font-weight: 500;
         color: var(--cart-gray-dark);
-      }
-      .checkout-item-meta {
-        font-size: 12px;
-        color: var(--cart-gray-medium);
       }
       .checkout-item-prices {
         text-align: right;
       }
       .checkout-item-original {
         display: block;
-        font-size: 12px;
+        font-size: 16px;
         color: var(--cart-gray-medium);
         text-decoration: line-through;
       }
       .checkout-item-final {
-        font-size: 14px;
+        font-size: 18px;
         font-weight: 600;
         color: var(--cart-pink);
       }
       .checkout-summary {
         background: var(--cart-gray-bg);
         border-radius: 12px;
-        padding: 16px;
+        padding: 20px;
       }
       .checkout-summary-row {
         display: flex;
         justify-content: space-between;
-        margin-bottom: 8px;
-        font-size: 14px;
+        margin-bottom: 12px;
+        font-size: 18px;
         color: var(--cart-gray-dark);
       }
       .checkout-summary-row:last-child {
         margin-bottom: 0;
       }
-      .checkout-summary-note {
-        font-size: 12px;
-        color: var(--cart-gray-medium);
-        font-style: italic;
+      .checkout-credits-applied {
+        color: var(--cart-pink);
       }
       .checkout-summary-total {
         font-weight: 600;
-        font-size: 16px;
-        padding-top: 8px;
+        font-size: 20px;
+        padding-top: 12px;
         border-top: 1px solid var(--cart-gray-light);
-        margin-top: 8px;
+        margin-top: 12px;
       }
       .checkout-modal-footer {
         padding: 20px 24px;
@@ -902,19 +927,19 @@ window.PurchaseCart = {
         background: var(--cart-gray-bg);
       }
       .checkout-info {
-        font-size: 12px;
+        font-size: 14px;
         color: var(--cart-gray-medium);
         margin: 0 0 16px 0;
         text-align: center;
       }
       .checkout-submit-btn {
         width: 100%;
-        padding: 14px;
+        padding: 16px;
         background: var(--cart-purple);
         color: white;
         border: none;
         border-radius: 8px;
-        font-size: 15px;
+        font-size: 18px;
         font-weight: 600;
         cursor: pointer;
         transition: background 0.2s ease;
@@ -953,28 +978,29 @@ window.PurchaseCart = {
       }
       .checkout-success h2 {
         margin: 0 0 8px 0;
-        font-size: 24px;
+        font-size: 28px;
         color: var(--cart-gray-dark);
       }
       .checkout-success p {
         margin: 0 0 24px 0;
+        font-size: 18px;
         color: var(--cart-gray-medium);
       }
       .checkout-success-credits {
         background: var(--cart-pink-light);
-        padding: 12px 16px;
+        padding: 14px 18px;
         border-radius: 8px;
         margin-bottom: 24px;
-        font-size: 14px;
+        font-size: 16px;
         color: var(--cart-purple);
       }
       .checkout-success-btn {
-        padding: 12px 32px;
+        padding: 14px 36px;
         background: var(--cart-purple);
         color: white;
         border: none;
         border-radius: 8px;
-        font-size: 14px;
+        font-size: 18px;
         font-weight: 600;
         cursor: pointer;
       }
