@@ -287,28 +287,41 @@ window.PurchaseCart = {
   // Fetch user's store credit balance
   async fetchCreditBalance() {
     try {
-      if (!window.auth0Client) return 0;
+      if (!window.auth0Client) {
+        console.log('👛 No auth0Client');
+        return 0;
+      }
       
       const isAuthenticated = await window.auth0Client.isAuthenticated();
-      if (!isAuthenticated) return 0;
+      if (!isAuthenticated) {
+        console.log('👛 Not authenticated');
+        return 0;
+      }
       
       const token = await window.auth0Client.getTokenSilently();
+      const apiBase = this.getApiBase();
+      const url = `${apiBase}/private_clothing_items/donation_session/`;
+      console.log('👛 Fetching credits from:', url);
       
       // Credit balance comes from the donation sessions endpoint
-      const response = await fetch(`${this.API_BASE}/private_clothing_items/donation_session/`, {
+      const response = await fetch(url, {
         headers: {
           'Authorization': `Bearer ${token}`,
           'Accept': 'application/json'
         }
       });
       
+      console.log('👛 Response status:', response.status);
+      
       if (response.ok) {
         const data = await response.json();
-        console.log('👛 Credit balance:', data.credit_balance_cents);
+        console.log('👛 Credit balance cents:', data.credit_balance_cents);
         return data.credit_balance_cents || 0;
+      } else {
+        console.error('👛 Failed to fetch credits:', response.status);
       }
     } catch (err) {
-      console.error('Error fetching credit balance:', err);
+      console.error('👛 Error fetching credit balance:', err);
     }
     return 0;
   },
@@ -387,6 +400,17 @@ window.PurchaseCart = {
     `;
   },
 
+  // Get API base URL with fallback
+  getApiBase() {
+    if (window.API_BASE_URL) return window.API_BASE_URL;
+    if (this.API_BASE) return this.API_BASE;
+    
+    // Fallback based on hostname
+    const hostname = window.location.hostname;
+    const isProduction = hostname === 'dematerialized.nl' || hostname === 'www.dematerialized.nl';
+    return isProduction ? 'https://api.dematerialized.nl' : 'https://test-api.dematerialized.nl';
+  },
+
   // Process checkout
   async processCheckout() {
     if (this._isCheckingOut) return;
@@ -395,7 +419,7 @@ window.PurchaseCart = {
     const submitBtn = document.getElementById('checkout-submit-btn');
     if (submitBtn) {
       submitBtn.disabled = true;
-      submitBtn.innerHTML = '<span class="checkout-spinner"></span> Processing...';
+      submitBtn.innerHTML = '<span class="checkout-spinner"></span> processing...';
     }
 
     try {
@@ -410,6 +434,7 @@ window.PurchaseCart = {
 
       const token = await window.auth0Client.getTokenSilently();
       const items = this.getItems();
+      const apiBase = this.getApiBase();
 
       if (items.length === 0) {
         throw new Error('Your cart is empty');
@@ -417,7 +442,7 @@ window.PurchaseCart = {
 
       // Step 1: Create the order
       console.log('🛒 Creating order...');
-      const orderResponse = await fetch(`${this.API_BASE}/private_clothing_items/orders`, {
+      const orderResponse = await fetch(`${apiBase}/private_clothing_items/orders`, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -450,7 +475,7 @@ window.PurchaseCart = {
 
       // Step 2: Need to pay remaining balance via Stripe
       console.log('🛒 Creating Stripe checkout session...');
-      const checkoutResponse = await fetch(`${this.API_BASE}/private_clothing_items/orders/${order.id}/checkout`, {
+      const checkoutResponse = await fetch(`${apiBase}/private_clothing_items/orders/${order.id}/checkout`, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${token}`,
