@@ -293,7 +293,9 @@ window.PurchaseCart = {
       if (!isAuthenticated) return 0;
       
       const token = await window.auth0Client.getTokenSilently();
-      const response = await fetch(`${this.API_BASE}/private_members/me`, {
+      
+      // Credit balance comes from the donation sessions endpoint
+      const response = await fetch(`${this.API_BASE}/private_clothing_items/donation_session/`, {
         headers: {
           'Authorization': `Bearer ${token}`,
           'Accept': 'application/json'
@@ -301,8 +303,9 @@ window.PurchaseCart = {
       });
       
       if (response.ok) {
-        const member = await response.json();
-        return member.store_credits_cents || 0;
+        const data = await response.json();
+        console.log('👛 Credit balance:', data.credit_balance_cents);
+        return data.credit_balance_cents || 0;
       }
     } catch (err) {
       console.error('Error fetching credit balance:', err);
