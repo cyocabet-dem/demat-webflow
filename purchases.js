@@ -48,6 +48,14 @@ window.PurchasesManager = {
 
       const orders = await response.json();
       console.log('🛍️ Orders loaded:', orders.length);
+      console.log('🛍️ Raw orders response:', JSON.stringify(orders, null, 2));
+      
+      // Log first order structure if exists
+      if (orders.length > 0) {
+        console.log('🛍️ First order keys:', Object.keys(orders[0]));
+        console.log('🛍️ First order:', orders[0]);
+      }
+      
       this._ordersCache = orders;
       return orders;
 
@@ -102,24 +110,30 @@ window.PurchasesManager = {
 
   // Render a single order card
   renderOrderCard(order) {
+    console.log('🛍️ Rendering order:', order);
+    
     const orderId = order.hash_id || order.id || 'unknown';
     const shortId = typeof orderId === 'string' ? orderId.substring(0, 8) : orderId;
     const status = order.payment_status || order.status || 'pending';
     const statusClass = this.getStatusClass(status);
-    const createdDate = this.formatDate(order.created_at);
+    const createdDate = this.formatDate(order.order_date);
     
-    const items = order.clothing_items || order.items || [];
+    const items = order.items || [];
+    console.log('🛍️ Order items:', items);
+    if (items.length > 0) {
+      console.log('🛍️ First item keys:', Object.keys(items[0]));
+      console.log('🛍️ First item:', items[0]);
+    }
+    
     const itemCount = items.length;
     const itemLabel = itemCount === 1 ? '1 item' : `${itemCount} items`;
     
-    const subtotal = order.subtotal_cents || 0;
-    const creditsApplied = order.credits_applied_cents || 0;
     const total = order.total_amount_in_cents || 0;
 
     // Render item thumbnails (up to 4)
     const itemsHtml = items.slice(0, 4).map(item => {
       const imgUrl = this.getItemImage(item);
-      const name = item.name?.toLowerCase() || 'item';
+      const name = item.name?.toLowerCase() || item.clothing_item?.name?.toLowerCase() || 'item';
       return `
         <div class="purchase-item">
           <div class="purchase-item-image">
@@ -221,7 +235,7 @@ window.PurchasesManager = {
     }
 
     // Sort orders by date descending (newest first)
-    orders.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+    orders.sort((a, b) => new Date(b.order_date) - new Date(a.order_date));
 
     // Render orders
     if (listEl) {
