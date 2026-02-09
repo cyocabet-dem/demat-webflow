@@ -259,19 +259,123 @@ window.RentalsManager = {
     const imgUrl = this.getItemImage(rental);
     const name = ci?.name?.toLowerCase() || 'unknown item';
     const sku = ci?.sku || '';
-    const returnDate = this.formatDate(rental.rental_return_date);
 
     return `
-      <a href="/product?sku=${encodeURIComponent(sku)}" class="history-item">
-        <div class="history-item-image">
+      <a href="/product?sku=${encodeURIComponent(sku)}" class="history-modal-item">
+        <div class="history-modal-item-image">
           ${imgUrl ? `<img src="${imgUrl}" alt="${name}">` : ''}
         </div>
-        <div class="history-item-content">
-          <div class="history-item-name">${name}</div>
-          <div class="history-item-date">returned on ${returnDate}</div>
+        <div class="history-modal-item-info">
+          <div class="history-modal-item-name">${name}</div>
         </div>
       </a>
     `;
+  },
+
+  // ── Date Grouping for History ───
+  formatDateKey(dateString) {
+    if (!dateString) return 'unknown';
+    const date = new Date(dateString);
+    return date.toISOString().split('T')[0]; // YYYY-MM-DD
+  },
+
+  groupHistoryByDate(rentals) {
+    const groups = {};
+    rentals.forEach(r => {
+      const dateKey = this.formatDateKey(r.rental_return_date);
+      if (!groups[dateKey]) {
+        groups[dateKey] = [];
+      }
+      groups[dateKey].push(r);
+    });
+
+    // Sort groups by date descending
+    const sortedKeys = Object.keys(groups).sort((a, b) => b.localeCompare(a));
+    return sortedKeys.map(key => ({
+      dateKey: key,
+      displayDate: this.formatDate(groups[key][0].rental_return_date),
+      rentals: groups[key]
+    }));
+  },
+
+  renderHistoryGroup(group) {
+    const count = group.rentals.length;
+    const itemLabel = count === 1 ? '1 item' : `${count} items`;
+
+    // Show up to 4 thumbnail images, stacked/overlapping
+    const thumbs = group.rentals.slice(0, 4).map((r, index) => {
+      const imgUrl = this.getItemImage(r);
+      const name = r.clothing_item?.name || 'item';
+      return `
+        <div class="history-group-thumb" style="z-index: ${4 - index};">
+          ${imgUrl ? `<img src="${imgUrl}" alt="${name}">` : ''}
+        </div>
+      `;
+    }).join('');
+
+    return `
+      <div class="history-group" onclick="RentalsManager.openGroupModal('${group.dateKey}')">
+        <div class="history-group-header">
+          <div class="history-group-images">
+            ${thumbs}
+          </div>
+          <div class="history-group-info">
+            <div class="history-group-date">returned on ${group.displayDate}</div>
+            <div class="history-group-count">${itemLabel}</div>
+          </div>
+          <div class="history-group-arrow">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+              <path d="m9 18 6-6-6-6"></path>
+            </svg>
+          </div>
+        </div>
+      </div>
+    `;
+  },
+
+  // ── Modal: Grouped History ─────────────────
+  openGroupModal(dateKey) {
+    console.log('👕 Opening group modal for date:', dateKey);
+
+    const rentals = (this._historyCache || []).filter(r =>
+      (r.status === 'Returned' || r.rental_return_date) && this.formatDateKey(r.rental_return_date) === dateKey
+    );
+
+    if (rentals.length === 0) {
+      console.error('No rentals found for date:', dateKey);
+      return;
+    }
+
+    const modal = document.getElementById('rental-detail-modal');
+    const backdrop = document.getElementById('rental-detail-backdrop');
+    const modalContent = document.getElementById('rental-modal-content');
+    const modalTitle = document.querySelector('.rental-modal-title');
+
+    if (!modal || !backdrop) {
+      console.error('Modal elements not found.');
+      return;
+    }
+
+    // Update modal title
+    if (modalTitle) {
+      modalTitle.textContent = rentals.length === 1 
+        ? 'rental details' 
+        : `${rentals.length} items returned`;
+    }
+
+    // Render items in modal
+    if (modalContent) {
+      modalContent.innerHTML = `
+        <div class="history-modal-items">
+          ${rentals.map(r => this.renderHistoryItem(r)).join('')}
+        </div>
+      `;
+    }
+
+    // Show modal
+    modal.classList.add('rental-modal-open');
+    backdrop.classList.add('rental-modal-backdrop-open');
+    document.body.style.overflow = 'hidden';
   },
 
   async renderRentalsPage() {
@@ -306,14 +410,18 @@ window.RentalsManager = {
       return;
     }
 
-    // Split into active and history
+    // Split into active and returned
     const activeRentals = rentals.filter(r => r.active && !r.rental_return_date);
-    const historyRentals = rentals.filter(r => !r.active || r.rental_return_date);
+    const returnedRentals = rentals.filter(r => !r.active || r.rental_return_date);
+    
+    // Sort returned rentals by date descending
+    returnedRentals.sort((a, b) => new Date(b.rental_return_date) - new Date(a.rental_return_date));
 
-    // Cache active rentals for cart functionality
+    // Cache for modal access
     this._activeRentalsCache = activeRentals;
+    this._historyCache = returnedRentals;
 
-    // Always show active section if we have any rentals (active or history)
+    // Always show active section if we have any rentals
     if (activeSection) activeSection.style.display = 'block';
 
     // Render active rentals or show "no active" message
@@ -325,17 +433,20 @@ window.RentalsManager = {
       if (noActiveEl) noActiveEl.style.display = 'flex';
     }
 
-    // Render history
-    if (historyRentals.length > 0 && historyList && historySection) {
-      historyList.innerHTML = historyRentals.map(r => this.renderHistoryItem(r)).join('');
+    // Render grouped history
+    if (returnedRentals.length > 0 && historyList && historySection) {
+      const historyGroups = this.groupHistoryByDate(returnedRentals);
+      historyList.innerHTML = historyGroups.map(g => this.renderHistoryGroup(g)).join('');
       historySection.style.display = 'block';
     }
 
-    // Show empty state only if NO rentals at all (neither active nor history)
-    if (activeRentals.length === 0 && historyRentals.length === 0) {
+    // Show empty state only if NO rentals at all
+    if (activeRentals.length === 0 && returnedRentals.length === 0) {
       if (emptyEl) emptyEl.style.display = 'flex';
       if (activeSection) activeSection.style.display = 'none';
     }
+
+    console.log('👕 Rentals page rendered');
   }
 };
 
@@ -376,9 +487,9 @@ document.addEventListener('DOMContentLoaded', function() {
           if (container) {
             container.innerHTML = `
               <div class="rentals-signin">
-                <h2 class="rentals-signin-title">Sign in to view your rentals</h2>
-                <p class="rentals-signin-text">You need to be logged in to see your rentals.</p>
-                <button onclick="openAuthModal()" class="rentals-signin-btn">Sign In</button>
+                <h2 class="rentals-signin-title">sign in to view your rentals</h2>
+                <p class="rentals-signin-text">you need to be logged in to see your rentals.</p>
+                <button onclick="openAuthModal()" class="rentals-signin-btn">sign in</button>
               </div>
             `;
           }
