@@ -196,10 +196,7 @@ window.RentalsManager = {
   renderActiveRentalCard(rental) {
     const ci = rental.clothing_item;
     const imgUrl = this.getItemImage(rental);
-    const brand = ci?.brand?.brand_name || '';
     const name = ci?.name || 'Unknown Item';
-    const size = ci?.size?.size || ci?.size?.standard_size?.standard_size || '';
-    const colors = ci?.colors?.map(c => c.name).join(', ') || '';
     const sku = ci?.sku || '';
     
     // Pricing
@@ -213,13 +210,10 @@ window.RentalsManager = {
     return `
       <div class="rental-card">
         <a href="/product?sku=${encodeURIComponent(sku)}" class="rental-card-image">
-          ${imgUrl ? `<img src="${imgUrl}" alt="${name}">` : ''}
+          ${imgUrl ? `<img src="${imgUrl}" alt="${name}" loading="lazy">` : ''}
         </a>
         <div class="rental-card-content">
-          ${brand ? `<div class="rental-card-brand">${brand}</div>` : ''}
           <div class="rental-card-name">${name}</div>
-          ${colors ? `<div class="rental-card-detail">${colors}</div>` : ''}
-          ${size ? `<div class="rental-card-detail">Size: ${size}</div>` : ''}
           <div class="rental-card-date">Rented: ${this.formatDate(rental.rental_start_date)}</div>
           
           ${hasPrice ? `
@@ -241,7 +235,7 @@ window.RentalsManager = {
                   <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                     <polyline points="20 6 9 17 4 12"></polyline>
                   </svg>
-                  In Cart
+                  In cart
                 </button>
               ` : `
                 <button onclick="RentalsManager.addToCart(${rental.id})" class="rental-card-btn">
@@ -250,7 +244,7 @@ window.RentalsManager = {
                     <circle cx="20" cy="21" r="1"/>
                     <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/>
                   </svg>
-                  Add to Cart
+                  Add to cart
                 </button>
               `}
             ` : ''}
@@ -291,12 +285,14 @@ window.RentalsManager = {
     const historySection = document.getElementById('rentals-history');
     const activeList = document.getElementById('active-rentals-list');
     const historyList = document.getElementById('history-rentals-list');
+    const noActiveEl = document.getElementById('rentals-no-active');
 
     // Show loading
     if (loadingEl) loadingEl.style.display = 'flex';
     if (emptyEl) emptyEl.style.display = 'none';
     if (activeSection) activeSection.style.display = 'none';
     if (historySection) historySection.style.display = 'none';
+    if (noActiveEl) noActiveEl.style.display = 'none';
 
     // Fetch pricing categories first
     await this.fetchPricingCategories();
@@ -319,10 +315,16 @@ window.RentalsManager = {
     // Cache active rentals for cart functionality
     this._activeRentalsCache = activeRentals;
 
-    // Render active rentals
-    if (activeRentals.length > 0 && activeList && activeSection) {
+    // Always show active section if we have any rentals (active or history)
+    if (activeSection) activeSection.style.display = 'block';
+
+    // Render active rentals or show "no active" message
+    if (activeRentals.length > 0 && activeList) {
       activeList.innerHTML = activeRentals.map(r => this.renderActiveRentalCard(r)).join('');
-      activeSection.style.display = 'block';
+      if (noActiveEl) noActiveEl.style.display = 'none';
+    } else {
+      if (activeList) activeList.innerHTML = '';
+      if (noActiveEl) noActiveEl.style.display = 'flex';
     }
 
     // Render history
@@ -331,9 +333,10 @@ window.RentalsManager = {
       historySection.style.display = 'block';
     }
 
-    // Show empty state if no active rentals
+    // Show empty state only if NO rentals at all (neither active nor history)
     if (activeRentals.length === 0 && historyRentals.length === 0) {
       if (emptyEl) emptyEl.style.display = 'flex';
+      if (activeSection) activeSection.style.display = 'none';
     }
   }
 };
