@@ -484,6 +484,12 @@ window.PurchaseCart = {
 
       // Step 2: Need to pay remaining balance via Stripe
       console.log('🛒 Creating Stripe checkout session...');
+      
+      // Build success and cancel URLs
+      const currentUrl = window.location.origin;
+      const successUrl = `${currentUrl}/purchases?payment=success`;
+      const cancelUrl = `${currentUrl}/purchases?payment=cancelled`;
+      
       const checkoutResponse = await fetch(`${apiBase}/private_clothing_items/orders/${order.id}/checkout`, {
         method: 'POST',
         headers: {
@@ -491,7 +497,10 @@ window.PurchaseCart = {
           'Content-Type': 'application/json',
           'Accept': 'application/json'
         },
-        body: JSON.stringify({})
+        body: JSON.stringify({
+          success_url: successUrl,
+          cancel_url: cancelUrl
+        })
       });
 
       if (!checkoutResponse.ok) {
