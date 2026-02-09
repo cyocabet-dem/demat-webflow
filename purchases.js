@@ -90,8 +90,17 @@ window.PurchasesManager = {
     
     // Check for images array
     if (item.images && item.images.length > 0) {
+      console.log('🖼️ Images array:', item.images);
+      console.log('🖼️ First image keys:', Object.keys(item.images[0]));
+      console.log('🖼️ First image:', item.images[0]);
+      
       const frontImage = item.images.find(img => img.angle === 'front') || item.images[0];
-      return frontImage?.image_url || frontImage?.url || null;
+      console.log('🖼️ Selected image:', frontImage);
+      
+      // Try different possible field names
+      const url = frontImage?.image_url || frontImage?.url || frontImage?.src || frontImage?.file_url || null;
+      console.log('🖼️ Image URL:', url);
+      return url;
     }
     
     // Check for direct image_url
