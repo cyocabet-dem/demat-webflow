@@ -1298,6 +1298,9 @@ window.addEventListener('load', function() {
   }
   
   function handleCartClick(e) {
+     // Skip purchase cart clicks - let them handle their own onclick
+    if (e.target.closest('[data-purchase-cart]')) return;
+    
     const cartTrigger = e.target.closest('[data-cart-trigger]');
     if (cartTrigger) {
       console.log('🛒 [Site-wide] Cart trigger activated!');
