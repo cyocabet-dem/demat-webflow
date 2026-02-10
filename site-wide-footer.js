@@ -733,6 +733,11 @@ function closeCartOverlay() {
   console.log('✅ Cart overlay closed');
 }
 
+// ============================================
+// UPDATED renderCartOverlay FUNCTION
+// Copy this entire function to replace the existing one in site-wide-footer.js
+// ============================================
+
 function renderCartOverlay() {
   console.log('🛒 renderCartOverlay() called');
   
@@ -752,7 +757,7 @@ function renderCartOverlay() {
   footerCount.textContent = cart.length;
   
   if (cart.length === 0) {
-    emptyState.style.display = 'block';
+    emptyState.style.display = 'flex';
     itemsContainer.innerHTML = '';
     footer.style.display = 'none';
     return;
@@ -761,17 +766,22 @@ function renderCartOverlay() {
   emptyState.style.display = 'none';
   footer.style.display = 'block';
   
+  // Render items - matches purchase cart styling exactly
+  // No brand, no size, X button instead of "Remove" text
   itemsContainer.innerHTML = cart.map(item => `
-    <div class="cart-overlay-item" onclick="goToCartItem('${item.sku}')" style="display: flex; gap: 16px; cursor: pointer; padding-bottom: 20px; border-bottom: 1px solid #f0f0f0;">
-      <div class="cart-overlay-item-image" style="width: 80px; height: 107px; background-color: #f0f0f0; flex-shrink: 0; overflow: hidden;">
-        ${item.image ? `<img src="${item.image}" alt="${item.name}" style="width: 100%; height: 100%; object-fit: contain; padding: 6px; box-sizing: border-box;">` : ''}
+    <div class="cart-overlay-item" onclick="goToCartItem('${item.sku}')">
+      <div class="cart-overlay-item-image">
+        ${item.image ? `<img src="${item.image}" alt="${item.name}">` : ''}
       </div>
-      <div class="cart-overlay-item-details" style="flex: 1; display: flex; flex-direction: column; gap: 4px; padding-top: 4px;">
-        ${item.brand ? `<div class="cart-overlay-item-brand" style="font-family: 'Urbanist', sans-serif; font-size: 10px; color: #666; text-transform: uppercase; letter-spacing: 0.5px;">${item.brand}</div>` : ''}
-        <div class="cart-overlay-item-name" style="font-family: 'Urbanist', sans-serif; font-size: 14px; font-weight: 500; color: #000; line-height: 1.3;">${item.name}</div>
-        ${item.size ? `<div class="cart-overlay-item-size" style="font-family: 'Urbanist', sans-serif; font-size: 12px; color: #666;">Size: ${item.size}</div>` : ''}
-        <button class="cart-overlay-item-remove" onclick="removeCartOverlayItem(event, ${item.id})" style="background: none; border: none; cursor: pointer; font-family: 'Urbanist', sans-serif; font-size: 11px; color: #999; padding: 0; margin-top: auto; text-align: left; width: fit-content;">Remove</button>
+      <div class="cart-overlay-item-info">
+        <div class="cart-overlay-item-name">${(item.name || 'item').toLowerCase()}</div>
       </div>
+      <button class="cart-overlay-item-remove" onclick="removeCartOverlayItem(event, ${item.id})">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <line x1="18" y1="6" x2="6" y2="18"></line>
+          <line x1="6" y1="6" x2="18" y2="18"></line>
+        </svg>
+      </button>
     </div>
   `).join('');
   
