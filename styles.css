@@ -2,16 +2,7 @@
    DEMATERIALIZED - SITE-WIDE STYLES
    ============================================ */
 
-/* CSS Variables - Brand Colors */
-:root {
-  --cart-purple: #4b073f;
-  --cart-purple-dark: #3a0531;
-  --cart-pink: #a92296;
-  --cart-gray-dark: #24282d;
-  --cart-gray-medium: #46535e;
-  --cart-gray-light: #ced5da;
-  --cart-gray-bg: #f6f8f9;
-}
+
 
 body {
   overflow-x: clip;
@@ -547,26 +538,23 @@ body.onboarding-modal-open {
 }
 
 /* ============================================
-   CART OVERLAY - UPDATED TO MATCH PURCHASE CART
+   CART OVERLAY
    ============================================ */
 
 /* Backdrop */
 .cart-overlay-backdrop {
+  display: none;
   position: fixed;
   top: 0;
   left: 0;
-  right: 0;
-  bottom: 0;
-  background: rgba(0,0,0,0.5);
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.5);
   z-index: 9998;
-  opacity: 0;
-  visibility: hidden;
-  transition: opacity 0.3s ease, visibility 0.3s ease;
 }
 
 .cart-overlay-backdrop.is-open {
-  opacity: 1;
-  visibility: visible;
+  display: block;
 }
 
 /* Overlay Panel */
@@ -575,16 +563,15 @@ body.onboarding-modal-open {
   top: 0;
   right: 0;
   bottom: 0;
-  width: 380px;
+  width: 400px;
   max-width: 100%;
-  background: white;
+  background: #fff;
+  box-shadow: -4px 0 24px rgba(0, 0, 0, 0.15);
   z-index: 9999;
-  transform: translateX(100%);
-  transition: transform 0.3s ease;
   display: flex;
   flex-direction: column;
-  box-shadow: -4px 0 24px rgba(0,0,0,0.12);
-  font-family: 'Urbanist', sans-serif;
+  transform: translateX(100%);
+  transition: transform 0.3s ease;
 }
 
 .cart-overlay.is-open {
@@ -597,160 +584,228 @@ body.onboarding-modal-open {
   justify-content: space-between;
   align-items: center;
   padding: 20px 24px;
-  border-bottom: 1px solid var(--cart-gray-light);
+  border-bottom: 1px solid #e0e0e0;
   flex-shrink: 0;
 }
 
 .cart-overlay-title {
-  font-size: 24px;
-  font-weight: 600;
-  color: var(--cart-gray-dark);
+  font-family: 'Urbanist', sans-serif;
+  font-size: 18px;
+  font-weight: 500;
+  color: #000;
 }
 
 .cart-overlay-close {
   background: none;
   border: none;
-  font-size: 32px;
   cursor: pointer;
-  color: var(--cart-gray-medium);
-  line-height: 1;
-  padding: 0;
+  padding: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .cart-overlay-close:hover {
-  color: var(--cart-gray-dark);
+  opacity: 0.6;
 }
 
 /* Subtitle */
 .cart-overlay-subtitle {
   padding: 12px 24px;
-  font-size: 16px;
-  color: var(--cart-gray-medium);
-  border-bottom: 1px solid var(--cart-gray-bg);
+  font-family: 'Urbanist', sans-serif;
+  font-size: 12px;
+  color: #666;
+  border-bottom: 1px solid #f0f0f0;
   flex-shrink: 0;
 }
 
-/* Items container */
-.cart-overlay-items {
+/* Content Area */
+.cart-overlay-content {
   flex: 1;
   overflow-y: auto;
-  padding: 16px 24px;
+  padding: 20px 24px;
+  min-height: 0;
 }
 
-.cart-overlay-item {
+/* Empty State */
+.cart-overlay-empty {
+  flex: 1;
   display: flex;
   align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 60px 20px;
+  font-family: 'Urbanist', sans-serif;
+  color: #666;
+}
+
+.cart-overlay-empty-title {
+  font-size: 18px;
+  font-weight: 500;
+  color: #000;
+  margin-bottom: 8px;
+}
+
+.cart-overlay-empty p {
+  margin: 0 0 20px 0;
+  font-size: 14px;
+}
+
+.cart-overlay-empty-link {
+  display: inline-block;
+  padding: 12px 24px;
+  background: #000;
+  color: #fff;
+  text-decoration: none;
+  font-family: 'Urbanist', sans-serif;
+  font-size: 13px;
+  font-weight: 300;
+  text-transform: capitalize;
+}
+
+.cart-overlay-empty-link:hover {
+  background: #333;
+}
+
+/* Items List */
+.cart-overlay-items {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  flex: 1;
+  overflow-y: auto;
+  min-height: 0;
+  padding: 20px 24px;
+}
+
+/* Individual Item */
+.cart-overlay-item {
+  display: flex;
   gap: 16px;
-  padding: 16px 0;
-  border-bottom: 1px solid var(--cart-gray-bg);
+  cursor: pointer;
+  padding-bottom: 20px;
+  border-bottom: 1px solid #f0f0f0;
 }
 
 .cart-overlay-item:last-child {
   border-bottom: none;
-}
-
-.cart-overlay-item-image {
-  width: 70px;
-  height: 90px;
-  border-radius: 8px;
-  overflow: hidden;
-  background: var(--cart-gray-bg);
-  flex-shrink: 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 8px;
-}
-
-.cart-overlay-item-image img {
-  max-width: 100%;
-  max-height: 100%;
-  object-fit: contain;
-}
-
-.cart-overlay-item-info {
-  flex: 1;
-  min-width: 0;
-}
-
-.cart-overlay-item-name {
-  font-size: 18px;
-  font-weight: 500;
-  color: var(--cart-gray-dark);
+  padding-bottom: 0;
 }
 
 .cart-overlay-item:hover .cart-overlay-item-name {
   text-decoration: underline;
 }
 
+/* Item Image */
+.cart-overlay-item-image {
+  width: 80px;
+  height: 107px;
+  background-color: #f0f0f0;
+  flex-shrink: 0;
+  overflow: hidden;
+}
+
+.cart-overlay-item-image img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  padding: 6px;
+  box-sizing: border-box;
+}
+
+/* Item Details */
+.cart-overlay-item-details {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding-top: 4px;
+}
+
+.cart-overlay-item-info {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+
+.cart-overlay-item-brand {
+  font-family: 'Urbanist', sans-serif;
+  font-size: 10px;
+  color: #666;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.cart-overlay-item-name {
+  font-family: 'Urbanist', sans-serif;
+  font-size: 14px;
+  font-weight: 500;
+  color: #000;
+  line-height: 1.3;
+}
+
+.cart-overlay-item-size {
+  font-family: 'Urbanist', sans-serif;
+  font-size: 12px;
+  color: #666;
+}
+
 .cart-overlay-item-remove {
   background: none;
   border: none;
-  padding: 8px;
   cursor: pointer;
-  color: var(--cart-gray-medium);
-  opacity: 0.6;
-  flex-shrink: 0;
+  font-family: 'Urbanist', sans-serif;
+  font-size: 11px;
+  color: #999;
+  padding: 0;
+  margin-top: auto;
+  text-align: left;
+  width: fit-content;
 }
 
 .cart-overlay-item-remove:hover {
-  opacity: 1;
-  color: var(--cart-gray-dark);
-}
-
-/* Empty state */
-.cart-overlay-empty {
-  flex: 1;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 48px 24px;
-  color: var(--cart-gray-medium);
-  font-size: 18px;
+  color: #000;
+  text-decoration: underline;
 }
 
 /* Footer */
 .cart-overlay-footer {
   padding: 20px 24px;
-  padding-bottom: calc(20px + env(safe-area-inset-bottom, 0px));
-  background: var(--cart-gray-bg);
-  border-top: 1px solid var(--cart-gray-light);
+  border-top: 1px solid #e0e0e0;
   flex-shrink: 0;
 }
 
 .cart-overlay-count {
-  font-size: 18px;
-  font-weight: 500;
-  margin-bottom: 16px;
-  color: var(--cart-gray-dark);
+  font-family: 'Urbanist', sans-serif;
+  font-size: 13px;
+  color: #666;
+  margin-bottom: 12px;
 }
 
 .cart-overlay-reserve-btn {
   width: 100%;
-  padding: 16px;
-  background: var(--cart-purple);
-  color: white;
+  padding: 14px 20px;
+  background: #000;
+  color: #fff;
   border: none;
-  border-radius: 8px;
-  font-size: 18px;
-  font-weight: 600;
+  font-family: 'Urbanist', sans-serif;
+  font-size: 14px;
+  font-weight: 300;
+  text-transform: capitalize;
+  letter-spacing: 0.3px;
   cursor: pointer;
-  transition: background 0.2s ease;
+  transition: background 0.2s;
 }
 
 .cart-overlay-reserve-btn:hover {
-  background: var(--cart-purple-dark);
+  background: #333;
 }
 
 .cart-overlay-reserve-btn:disabled {
   background: #ccc;
   cursor: not-allowed;
-}
-
-/* Hide bottom navbar when cart is open */
-body.cart-open #bottom-navbar,
-body.cart-open .navbar-2.w-nav {
-  display: none !important;
 }
 
 /* ============================================
@@ -783,13 +838,25 @@ body.cart-open .navbar-2.w-nav {
   }
 }
 
-@media screen and (max-width: 600px) {
+@media screen and (max-width: 479px) {
   .cart-overlay {
     width: 100%;
   }
   
+  .cart-overlay-header {
+    padding: 16px 20px;
+  }
+  
+  .cart-overlay-subtitle {
+    padding: 10px 20px;
+  }
+  
+  .cart-overlay-content {
+    padding: 16px 20px;
+  }
+  
   .cart-overlay-footer {
-    padding-bottom: calc(24px + env(safe-area-inset-bottom, 20px));
+    padding: 16px 20px;
   }
 }
 
