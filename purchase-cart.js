@@ -79,18 +79,17 @@ window.PurchaseCart = {
   },
 
   // Update cart badge in navbar
-  updateCartBadge() {
-    const badge = document.getElementById('purchase-cart-badge');
-    const navItem = document.getElementById('purchase-cart-nav');
+updateCartBadge() {
     const count = this._items.length;
     
-    if (badge) {
+    document.querySelectorAll('.purchase-cart-badge').forEach(badge => {
       badge.textContent = count;
       badge.style.display = count > 0 ? 'flex' : 'none';
-    }
-    if (navItem) {
+    });
+    
+    document.querySelectorAll('.purchase-cart-nav').forEach(navItem => {
       navItem.style.display = count > 0 ? 'flex' : 'none';
-    }
+    });
   },
 
   // Show toast notification
