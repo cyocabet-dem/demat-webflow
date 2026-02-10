@@ -776,9 +776,7 @@ function renderCartOverlay() {
         ${item.image ? `<img src="${item.image}" alt="${item.name}">` : ''}
       </div>
       <div class="cart-overlay-item-details">
-        ${item.brand ? `<div class="cart-overlay-item-brand">${item.brand}</div>` : ''}
         <div class="cart-overlay-item-name">${item.name}</div>
-        ${item.size ? `<div class="cart-overlay-item-size">size: ${item.size}</div>` : ''}
       </div>
       <button class="cart-overlay-item-remove" onclick="removeCartOverlayItem(event, ${item.id})">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round">
