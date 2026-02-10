@@ -9,11 +9,14 @@
 <!-- Cart Overlay Backdrop -->
 <div id="cart-backdrop" class="cart-overlay-backdrop" onclick="closeCartOverlay()"></div>
 
-<!-- Cart Overlay Panel - matches purchase cart structure -->
+<!-- Cart Overlay Panel -->
 <div id="cart-overlay" class="cart-overlay">
   <div class="cart-overlay-header">
-    <span class="cart-overlay-title">your cart (<span id="cart-overlay-count-text">0</span>)</span>
+    <span class="cart-overlay-title">your cart</span>
     <button class="cart-overlay-close" onclick="closeCartOverlay()">&times;</button>
+  </div>
+  <div class="cart-overlay-subtitle">
+    <span id="cart-overlay-count-text">0 of 5 items</span> — reserve items to try on in store
   </div>
   <div id="cart-overlay-empty" class="cart-overlay-empty">
     <p>your cart is empty</p>
