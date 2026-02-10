@@ -734,8 +734,9 @@ function closeCartOverlay() {
 }
 
 // ============================================
-// UPDATED renderCartOverlay FUNCTION
-// Copy this entire function to replace the existing one in site-wide-footer.js
+// UPDATED renderCartOverlay function
+// Replace the existing renderCartOverlay in site-wide-footer.js
+// Removes redundant inline styles - lets CSS classes handle styling
 // ============================================
 
 function renderCartOverlay() {
@@ -748,42 +749,40 @@ function renderCartOverlay() {
   const countText = document.getElementById('cart-overlay-count-text');
   const footerCount = document.getElementById('cart-footer-count');
   
-  if (!itemsContainer || !emptyState || !footer) {
+  const headerCount = document.getElementById('cart-overlay-header-count');
+  
+  if (!itemsContainer || !emptyState || !footer || !countText || !footerCount) {
     console.error('❌ Some cart overlay elements not found');
     return;
   }
   
-  // Update subtitle count "X of 5 items"
-  if (countText) countText.textContent = `${cart.length} of 5 items`;
-  // Update footer count "X items ready to reserve"
-  if (footerCount) footerCount.textContent = cart.length;
+  if (headerCount) headerCount.textContent = cart.length;
+  countText.textContent = `${cart.length} of 5 items`;
+  footerCount.textContent = cart.length;
   
   if (cart.length === 0) {
-    // Show empty, hide items and footer
-    emptyState.style.display = 'flex';
-    itemsContainer.style.display = 'none';
+    emptyState.style.display = 'block';
+    itemsContainer.innerHTML = '';
     footer.style.display = 'none';
     return;
   }
   
-  // Hide empty, show items and footer
   emptyState.style.display = 'none';
-  itemsContainer.style.display = 'block';
   footer.style.display = 'block';
   
-  // Render items - matches purchase cart styling exactly
   itemsContainer.innerHTML = cart.map(item => `
     <div class="cart-overlay-item" onclick="goToCartItem('${item.sku}')">
       <div class="cart-overlay-item-image">
         ${item.image ? `<img src="${item.image}" alt="${item.name}">` : ''}
       </div>
-      <div class="cart-overlay-item-info">
-        <div class="cart-overlay-item-name">${(item.name || 'item').toLowerCase()}</div>
+      <div class="cart-overlay-item-details">
+        ${item.brand ? `<div class="cart-overlay-item-brand">${item.brand}</div>` : ''}
+        <div class="cart-overlay-item-name">${item.name}</div>
+        ${item.size ? `<div class="cart-overlay-item-size">size: ${item.size}</div>` : ''}
       </div>
       <button class="cart-overlay-item-remove" onclick="removeCartOverlayItem(event, ${item.id})">
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <line x1="18" y1="6" x2="6" y2="18"></line>
-          <line x1="6" y1="6" x2="18" y2="18"></line>
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round">
+          <path d="M18 6L6 18M6 6l12 12"/>
         </svg>
       </button>
     </div>
