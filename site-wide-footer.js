@@ -734,6 +734,11 @@ function closeCartOverlay() {
 }
 
 
+// ============================================
+// UPDATED renderCartOverlay FUNCTION
+// Copy this entire function to replace the existing one in site-wide-footer.js
+// ============================================
+
 function renderCartOverlay() {
   console.log('🛒 renderCartOverlay() called');
   
@@ -749,17 +754,20 @@ function renderCartOverlay() {
     return;
   }
   
-  // Update count in title
-  if (countText) countText.textContent = cart.length;
+  // Update subtitle count "X of 5 items"
+  if (countText) countText.textContent = `${cart.length} of 5 items`;
+  // Update footer count "X items ready to reserve"
   if (footerCount) footerCount.textContent = cart.length;
   
   if (cart.length === 0) {
+    // Show empty, hide items and footer
     emptyState.style.display = 'flex';
     itemsContainer.style.display = 'none';
     footer.style.display = 'none';
     return;
   }
   
+  // Hide empty, show items and footer
   emptyState.style.display = 'none';
   itemsContainer.style.display = 'block';
   footer.style.display = 'block';
@@ -783,6 +791,59 @@ function renderCartOverlay() {
   `).join('');
   
   console.log('✅ Cart rendered with', cart.length, 'items');
+}
+
+// ============================================
+// ALSO UPDATE openCartOverlay - add body class
+// ============================================
+
+async function openCartOverlay() {
+  console.log('🛒 openCartOverlay() called');
+  
+  const overlay = document.getElementById('cart-overlay');
+  const backdrop = document.getElementById('cart-backdrop');
+  
+  if (!overlay || !backdrop) {
+    console.error('❌ Cart overlay elements not found!');
+    return;
+  }
+  
+  // Add class to body to hide bottom navbar
+  document.body.classList.add('cart-open');
+  
+  backdrop.classList.add('is-open');
+  overlay.classList.add('is-open');
+  document.body.style.overflow = 'hidden';
+  
+  renderCartOverlay();
+  
+  if (window.CartManager && await CartManager.isUserAuthenticated()) {
+    console.log('🛒 Syncing cart with API...');
+    await CartManager.syncWithAPI();
+    renderCartOverlay();
+  }
+  
+  console.log('✅ Cart overlay opened');
+}
+
+// ============================================
+// ALSO UPDATE closeCartOverlay - remove body class
+// ============================================
+
+function closeCartOverlay() {
+  console.log('🛒 closeCartOverlay() called');
+  
+  const overlay = document.getElementById('cart-overlay');
+  const backdrop = document.getElementById('cart-backdrop');
+  
+  // Remove class from body
+  document.body.classList.remove('cart-open');
+  
+  if (overlay) overlay.classList.remove('is-open');
+  if (backdrop) backdrop.classList.remove('is-open');
+  
+  document.body.style.overflow = '';
+  console.log('✅ Cart overlay closed');
 }
 
 function goToCartItem(sku) {
