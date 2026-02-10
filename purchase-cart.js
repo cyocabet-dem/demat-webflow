@@ -654,11 +654,12 @@ updateCartBadge() {
       }
 
       /* Cart Nav */
-      #purchase-cart-nav {
-        position: relative;
-        display: none;
-        align-items: center;
-      }
+    #purchase-cart-nav,
+.purchase-cart-nav {
+    position: relative;
+    display: none;
+    align-items: center;
+}
       .purchase-cart-toggle {
         position: relative;
         background: none;
@@ -673,22 +674,23 @@ updateCartBadge() {
       .purchase-cart-toggle:hover {
         color: var(--cart-purple);
       }
-      #purchase-cart-badge {
-        position: absolute;
-        top: 0;
-        right: 0;
-        background: var(--cart-pink);
-        color: white;
-        font-size: 11px;
-        font-weight: 600;
-        min-width: 18px;
-        height: 18px;
-        border-radius: 9px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        padding: 0 4px;
-      }
+     #purchase-cart-badge,
+.purchase-cart-badge {
+    position: absolute;
+    top: 0;
+    right: 0;
+    background: var(--cart-pink);
+    color: white;
+    font-size: 11px;
+    font-weight: 600;
+    min-width: 18px;
+    height: 18px;
+    border-radius: 9px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0 4px;
+}
 
       /* Cart Panel Backdrop */
       .cart-panel-backdrop {
