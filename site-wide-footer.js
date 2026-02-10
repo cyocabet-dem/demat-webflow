@@ -733,10 +733,6 @@ function closeCartOverlay() {
   console.log('✅ Cart overlay closed');
 }
 
-// ============================================
-// UPDATED renderCartOverlay FUNCTION
-// Copy this entire function to replace the existing one in site-wide-footer.js
-// ============================================
 
 function renderCartOverlay() {
   console.log('🛒 renderCartOverlay() called');
@@ -748,26 +744,27 @@ function renderCartOverlay() {
   const countText = document.getElementById('cart-overlay-count-text');
   const footerCount = document.getElementById('cart-footer-count');
   
-  if (!itemsContainer || !emptyState || !footer || !countText || !footerCount) {
+  if (!itemsContainer || !emptyState || !footer) {
     console.error('❌ Some cart overlay elements not found');
     return;
   }
   
-  countText.textContent = `${cart.length} of 5 items`;
-  footerCount.textContent = cart.length;
+  // Update count in title
+  if (countText) countText.textContent = cart.length;
+  if (footerCount) footerCount.textContent = cart.length;
   
   if (cart.length === 0) {
     emptyState.style.display = 'flex';
-    itemsContainer.innerHTML = '';
+    itemsContainer.style.display = 'none';
     footer.style.display = 'none';
     return;
   }
   
   emptyState.style.display = 'none';
+  itemsContainer.style.display = 'block';
   footer.style.display = 'block';
   
   // Render items - matches purchase cart styling exactly
-  // No brand, no size, X button instead of "Remove" text
   itemsContainer.innerHTML = cart.map(item => `
     <div class="cart-overlay-item" onclick="goToCartItem('${item.sku}')">
       <div class="cart-overlay-item-image">
