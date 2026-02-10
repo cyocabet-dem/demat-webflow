@@ -733,7 +733,6 @@ function closeCartOverlay() {
   console.log('✅ Cart overlay closed');
 }
 
-
 // ============================================
 // UPDATED renderCartOverlay FUNCTION
 // Copy this entire function to replace the existing one in site-wide-footer.js
@@ -829,6 +828,22 @@ async function openCartOverlay() {
 // ============================================
 // ALSO UPDATE closeCartOverlay - remove body class
 // ============================================
+
+function closeCartOverlay() {
+  console.log('🛒 closeCartOverlay() called');
+  
+  const overlay = document.getElementById('cart-overlay');
+  const backdrop = document.getElementById('cart-backdrop');
+  
+  // Remove class from body
+  document.body.classList.remove('cart-open');
+  
+  if (overlay) overlay.classList.remove('is-open');
+  if (backdrop) backdrop.classList.remove('is-open');
+  
+  document.body.style.overflow = '';
+  console.log('✅ Cart overlay closed');
+}
 
 function closeCartOverlay() {
   console.log('🛒 closeCartOverlay() called');
