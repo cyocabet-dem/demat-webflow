@@ -703,7 +703,6 @@ async function openCartOverlay() {
     return;
   }
   
-  ensureMobileFooterSpacer();
   
   backdrop.style.display = 'block';
   overlay.style.transform = 'translateX(0)';
@@ -748,7 +747,6 @@ function renderCartOverlay() {
   const footer = document.getElementById('cart-overlay-footer');
   const countText = document.getElementById('cart-overlay-count-text');
   const footerCount = document.getElementById('cart-footer-count');
-  
   const headerCount = document.getElementById('cart-overlay-header-count');
   
   if (!itemsContainer || !emptyState || !footer || !countText || !footerCount) {
@@ -770,6 +768,7 @@ function renderCartOverlay() {
   emptyState.style.display = 'none';
   footer.style.display = 'block';
   
+  // Clean render - no inline styles, matches purchase cart layout
   itemsContainer.innerHTML = cart.map(item => `
     <div class="cart-overlay-item" onclick="goToCartItem('${item.sku}')">
       <div class="cart-overlay-item-image">
@@ -1457,25 +1456,6 @@ window.addEventListener('load', function() {
   console.log('🎫 Membership handler ready (capture phase)');
 })();
 
-// Add safe area styles for iOS
-function addSafeAreaStyles() {
-  if (document.getElementById('safe-area-styles')) return;
-  
-  const style = document.createElement('style');
-  style.id = 'safe-area-styles';
-  style.textContent = `
-    #cart-overlay {
-      padding-bottom: env(safe-area-inset-bottom, 0px);
-    }
-    #cart-overlay-footer {
-      padding-bottom: env(safe-area-inset-bottom, 0px);
-    }
-  `;
-  document.head.appendChild(style);
-  console.log('✅ Safe area styles added');
-}
-
-addSafeAreaStyles();
 
 
 // ============================================
