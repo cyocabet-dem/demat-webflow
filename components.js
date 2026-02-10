@@ -9,27 +9,16 @@
 <!-- Cart Overlay Backdrop -->
 <div id="cart-backdrop" class="cart-overlay-backdrop" onclick="closeCartOverlay()"></div>
 
-<!-- Cart Overlay Panel -->
+<!-- Cart Overlay Panel - matches purchase cart structure -->
 <div id="cart-overlay" class="cart-overlay">
   <div class="cart-overlay-header">
-    <span class="cart-overlay-title">your cart</span>
-    <button class="cart-overlay-close" onclick="closeCartOverlay()">
-      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-        <line x1="18" y1="6" x2="6" y2="18"></line>
-        <line x1="6" y1="6" x2="18" y2="18"></line>
-      </svg>
-    </button>
+    <span class="cart-overlay-title">your cart (<span id="cart-overlay-count-text">0</span>)</span>
+    <button class="cart-overlay-close" onclick="closeCartOverlay()">&times;</button>
   </div>
-  <div class="cart-overlay-subtitle">
-    <span id="cart-overlay-count-text">0 of 10 items</span> — reserve items to try on in store
+  <div id="cart-overlay-empty" class="cart-overlay-empty">
+    <p>your cart is empty</p>
   </div>
-  <div class="cart-overlay-content">
-    <div id="cart-overlay-empty" class="cart-overlay-empty">
-      <p class="cart-overlay-empty-text">your cart is empty</p>
-      <a href="/clothing" class="cart-overlay-empty-link" onclick="closeCartOverlay()">browse collection</a>
-    </div>
-    <div id="cart-overlay-items" class="cart-overlay-items"></div>
-  </div>
+  <div id="cart-overlay-items" class="cart-overlay-items"></div>
   <div id="cart-overlay-footer" class="cart-overlay-footer" style="display: none;">
     <div class="cart-overlay-count"><span id="cart-footer-count">0</span> items ready to reserve</div>
     <button id="cart-reserve-btn" class="cart-overlay-reserve-btn" onclick="handleReserveClick()">reserve these items</button>
