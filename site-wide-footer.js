@@ -271,6 +271,30 @@ console.log("✅ Auth UI controller ready");
 
 
 // ============================================
+// DYNAMIC BANNER SPACING - keep container-top-padding flush with navbar
+// ============================================
+(function() {
+  function adjustBannerSpacing() {
+    const navbar = document.querySelector('.navbar-desktop');
+    const container = document.querySelector('.container-top-padding');
+    if (!navbar || !container) return;
+    
+    const navbarHeight = navbar.getBoundingClientRect().height;
+    container.style.paddingTop = navbarHeight + 'px';
+  }
+
+  // Run on load and resize
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', adjustBannerSpacing);
+  } else {
+    adjustBannerSpacing();
+  }
+  window.addEventListener('resize', adjustBannerSpacing);
+  // Also run after a short delay in case fonts/embeds shift layout
+  window.addEventListener('load', adjustBannerSpacing);
+})();
+
+// ============================================
 // CART UTILITIES (API + sessionStorage hybrid)
 // ============================================
 window.CartManager = {
