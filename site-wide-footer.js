@@ -274,33 +274,39 @@ console.log("✅ Auth UI controller ready");
 // DYNAMIC BANNER SPACING - keep container-top-padding flush with navbar
 // ============================================
 (function() {
+  function isVisible(el) {
+    if (!el) return false;
+    var style = window.getComputedStyle(el);
+    return style.display !== 'none' && style.visibility !== 'hidden' && el.getBoundingClientRect().height > 0;
+  }
+
   function adjustBannerSpacing() {
-    const navbarDesktop = document.querySelector('.navbar-desktop');
-    const navbarMobile = document.querySelector('.top-navbar-mobile');
-    const container = document.querySelector('.container-top-padding');
+    var navbarDesktop = document.querySelector('.navbar-desktop');
+    var navbarMobile = document.querySelector('.top-navbar-mobile');
+    var container = document.querySelector('.container-top-padding');
     if (!container) return;
 
-    // Use whichever navbar is currently visible
-    let navbar = null;
-    if (navbarDesktop && navbarDesktop.offsetParent !== null) {
-      navbar = navbarDesktop;
-    } else if (navbarMobile && navbarMobile.offsetParent !== null) {
+    var navbar = null;
+    if (isVisible(navbarMobile)) {
       navbar = navbarMobile;
-    }
-    // Fallback: try both and use whichever has height
-    if (!navbar) {
-      navbar = navbarDesktop || navbarMobile;
+    } else if (isVisible(navbarDesktop)) {
+      navbar = navbarDesktop;
     }
     if (!navbar) return;
 
-    const navbarHeight = navbar.getBoundingClientRect().height;
-    container.style.paddingTop = navbarHeight + 'px';
+    var navbarRect = navbar.getBoundingClientRect();
+    var navbarBottom = navbarRect.bottom;
+    container.style.paddingTop = navbarBottom + 'px';
   }
 
   if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', adjustBannerSpacing);
+    document.addEventListener('DOMContentLoaded', function() {
+      adjustBannerSpacing();
+      setTimeout(adjustBannerSpacing, 200);
+    });
   } else {
     adjustBannerSpacing();
+    setTimeout(adjustBannerSpacing, 200);
   }
   window.addEventListener('resize', adjustBannerSpacing);
   window.addEventListener('load', adjustBannerSpacing);
