@@ -275,22 +275,34 @@ console.log("✅ Auth UI controller ready");
 // ============================================
 (function() {
   function adjustBannerSpacing() {
-    const navbar = document.querySelector('.navbar-desktop');
+    const navbarDesktop = document.querySelector('.navbar-desktop');
+    const navbarMobile = document.querySelector('.top-navbar-mobile');
     const container = document.querySelector('.container-top-padding');
-    if (!navbar || !container) return;
-    
+    if (!container) return;
+
+    // Use whichever navbar is currently visible
+    let navbar = null;
+    if (navbarDesktop && navbarDesktop.offsetParent !== null) {
+      navbar = navbarDesktop;
+    } else if (navbarMobile && navbarMobile.offsetParent !== null) {
+      navbar = navbarMobile;
+    }
+    // Fallback: try both and use whichever has height
+    if (!navbar) {
+      navbar = navbarDesktop || navbarMobile;
+    }
+    if (!navbar) return;
+
     const navbarHeight = navbar.getBoundingClientRect().height;
     container.style.paddingTop = navbarHeight + 'px';
   }
 
-  // Run on load and resize
   if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', adjustBannerSpacing);
   } else {
     adjustBannerSpacing();
   }
   window.addEventListener('resize', adjustBannerSpacing);
-  // Also run after a short delay in case fonts/embeds shift layout
   window.addEventListener('load', adjustBannerSpacing);
 })();
 
