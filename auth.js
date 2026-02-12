@@ -64,14 +64,21 @@ document.addEventListener('DOMContentLoaded', function() {
     }
   }
 
-  // Check user status and show onboarding modal if needed
+  // ============================================
+  // CHECK USER STATUS (on page load, already authenticated)
+  // Flow:
+  //   1. No stripe_id → redirect to /memberships
+  //   2. Has stripe_id + incomplete profile + not dismissed → show onboarding modal
+  //   3. Otherwise → do nothing
+  // ============================================
   async function checkUserStatus() {
     try {
-      // Don't show onboarding modal if we're already on the onboarding page!
-        const excludedPaths = ['/onboarding', '/complete-your-profile', '/profile'];
-        if (excludedPaths.includes(window.location.pathname)) {
+      const skipPages = ['/onboarding', '/complete-your-profile', '/profile', '/memberships', '/welcome-to-dematerialized', '/error-membership-signup'];
+      if (skipPages.includes(window.location.pathname)) {
+        console.log('⏭️ On excluded page, skipping status check');
         return;
-        }
+      }
+
       const token = await window.auth0Client.getTokenSilently();
       const response = await fetch(`${API_URL}/users/me`, {
         headers: { Authorization: `Bearer ${token}` }
@@ -85,17 +92,27 @@ document.addEventListener('DOMContentLoaded', function() {
       const userData = await response.json();
       console.log('User data:', userData);
       
-      // Check if user needs to complete their profile
-        if (!userData.provided_information) {
-        // Only show once per session
-        if (!sessionStorage.getItem('onboarding_modal_dismissed')) {
-            console.log('⚠️ User has not completed their profile');
-            showOnboardingModal();
-        }
-        }
-      
       // Store user data globally for easy access
       window.currentUserData = userData;
+      
+      const hasActiveMembership = !!userData.stripe_id;
+      const hasCompletedProfile = userData.provided_information;
+      const modalDismissed = sessionStorage.getItem('onboarding_modal_dismissed') === 'true';
+      
+      console.log('📋 User status:', { hasActiveMembership, hasCompletedProfile, modalDismissed });
+      
+      // No membership → redirect to /memberships
+      if (!hasActiveMembership) {
+        console.log('⚠️ No membership - redirecting to /memberships');
+        window.location.href = '/memberships';
+        return;
+      }
+      
+      // Has membership + incomplete profile + not dismissed → show onboarding modal
+      if (hasActiveMembership && !hasCompletedProfile && !modalDismissed) {
+        console.log('⚠️ Has membership but incomplete profile - showing onboarding modal');
+        setTimeout(() => { showOnboardingModal(); }, 500);
+      }
       
       // Update display with first name
       displayFirstName();
@@ -105,7 +122,12 @@ document.addEventListener('DOMContentLoaded', function() {
     }
   }
 
-  // Check user status and redirect to onboarding if needed (after login)
+  // ============================================
+  // CHECK USER STATUS AFTER LOGIN (redirect callback)
+  // Flow:
+  //   1. No stripe_id → redirect to /memberships
+  //   2. Has stripe_id → stay on current page (modal handled by checkUserStatus)
+  // ============================================
   async function checkUserStatusAndRedirect() {
     try {
       console.log('🔍 Checking user status after login...');
@@ -122,18 +144,20 @@ document.addEventListener('DOMContentLoaded', function() {
       const userData = await response.json();
       console.log('User data after login:', userData);
       
-      // Check if user needs to complete their profile
-      if (!userData.provided_information) {
-        console.log('🚀 Redirecting to onboarding page...');
-        // Redirect to onboarding page
-        window.location.href = '/onboarding';
-      } else {
-        console.log('✅ User profile is complete');
-        // User stays on current page (which is the return path)
-      }
-      
       // Store user data globally
       window.currentUserData = userData;
+      
+      const hasActiveMembership = !!userData.stripe_id;
+      
+      // No membership → send to /memberships to pick a plan
+      if (!hasActiveMembership) {
+        console.log('🚀 No membership - redirecting to /memberships');
+        window.location.href = '/memberships';
+        return;
+      }
+      
+      // Has membership → stay on current page
+      console.log('✅ User has membership, staying on current page');
       
       // Update display with first name
       displayFirstName();
@@ -143,7 +167,7 @@ document.addEventListener('DOMContentLoaded', function() {
     }
   }
 
-  // Show onboarding modal (for when user is already logged in but hasn't completed profile)
+  // Show onboarding modal
   function showOnboardingModal() {
     if (typeof window.openOnboardingModal === 'function') {
       window.openOnboardingModal();
@@ -155,13 +179,13 @@ document.addEventListener('DOMContentLoaded', function() {
     const loggedInElements = document.querySelectorAll('[data-auth="logged-in"]');
     const loggedOutElements = document.querySelectorAll('[data-auth="logged-out"]');
     
-     loggedInElements.forEach(el => {
-    el.style.display = isAuthenticated ? 'block' : 'none';
-  });
-  
-  loggedOutElements.forEach(el => {
-    el.style.display = !isAuthenticated ? 'block' : 'none';
-  });
+    loggedInElements.forEach(el => {
+      el.style.display = isAuthenticated ? 'block' : 'none';
+    });
+    
+    loggedOutElements.forEach(el => {
+      el.style.display = !isAuthenticated ? 'block' : 'none';
+    });
   }
 
   // Display user info
@@ -208,6 +232,10 @@ document.addEventListener('DOMContentLoaded', function() {
   // Logout
   async function logout() {
     if (!window.auth0Client) return;
+    
+    // Clear onboarding dismissal on logout
+    sessionStorage.removeItem('onboarding_modal_dismissed');
+    
     await window.auth0Client.logout({
       logoutParams: {
         returnTo: window.location.origin + '/'
