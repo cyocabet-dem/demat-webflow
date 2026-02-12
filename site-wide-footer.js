@@ -274,42 +274,33 @@ console.log("✅ Auth UI controller ready");
 // DYNAMIC BANNER SPACING - keep container-top-padding flush with navbar
 // ============================================
 (function() {
-  function isVisible(el) {
-    if (!el) return false;
-    var style = window.getComputedStyle(el);
-    return style.display !== 'none' && style.visibility !== 'hidden' && el.getBoundingClientRect().height > 0;
+  function getVisibleNavbar() {
+    var desktop = document.querySelector('.navbar-desktop');
+    var mobile = document.querySelector('.top-navbar-mobile');
+    
+    if (mobile && window.getComputedStyle(mobile).display !== 'none') return mobile;
+    if (desktop && window.getComputedStyle(desktop).display !== 'none') return desktop;
+    return desktop || mobile;
   }
 
   function adjustBannerSpacing() {
-    var navbarDesktop = document.querySelector('.navbar-desktop');
-    var navbarMobile = document.querySelector('.top-navbar-mobile');
+    var navbar = getVisibleNavbar();
     var container = document.querySelector('.container-top-padding');
-    if (!container) return;
+    if (!navbar || !container) return;
 
-    var navbar = null;
-    if (isVisible(navbarMobile)) {
-      navbar = navbarMobile;
-    } else if (isVisible(navbarDesktop)) {
-      navbar = navbarDesktop;
+    var height = navbar.offsetHeight;
+    if (height > 0) {
+      container.style.paddingTop = height + 'px';
     }
-    if (!navbar) return;
-
-    var navbarRect = navbar.getBoundingClientRect();
-    var navbarBottom = navbarRect.bottom;
-    container.style.paddingTop = navbarBottom + 'px';
   }
 
-  if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', function() {
-      adjustBannerSpacing();
-      setTimeout(adjustBannerSpacing, 200);
-    });
-  } else {
-    adjustBannerSpacing();
-    setTimeout(adjustBannerSpacing, 200);
-  }
-  window.addEventListener('resize', adjustBannerSpacing);
+  // Run multiple times to catch late-loading content
+  document.addEventListener('DOMContentLoaded', adjustBannerSpacing);
   window.addEventListener('load', adjustBannerSpacing);
+  window.addEventListener('resize', adjustBannerSpacing);
+  setTimeout(adjustBannerSpacing, 100);
+  setTimeout(adjustBannerSpacing, 500);
+  setTimeout(adjustBannerSpacing, 1000);
 })();
 
 // ============================================
