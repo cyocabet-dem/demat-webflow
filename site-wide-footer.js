@@ -304,6 +304,28 @@ console.log("✅ Auth UI controller ready");
 })();
 
 // ============================================
+// HIDE "JOIN NOW" FOR ACTIVE MEMBERS
+// ============================================
+(function() {
+  let checks = 0;
+  const interval = setInterval(() => {
+    checks++;
+    const user = window.currentUserData;
+    if (user) {
+      if (user.stripe_id) {
+        const joinButton = document.getElementById('join-now-container');
+        const joinNavLink = document.querySelector('.navbar-links.hidden.pink');
+        if (joinButton) joinButton.style.display = 'none';
+        if (joinNavLink) joinNavLink.style.display = 'none';
+        console.log('✅ Join elements hidden for active member');
+      }
+      clearInterval(interval);
+    }
+    if (checks > 50) clearInterval(interval);
+  }, 100);
+})();
+
+// ============================================
 // CART UTILITIES (API + sessionStorage hybrid)
 // ============================================
 window.CartManager = {
