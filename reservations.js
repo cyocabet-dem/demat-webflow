@@ -369,6 +369,34 @@ document.addEventListener('click', function(e) {
       if (window.auth0Client) {
         var isAuth = await window.auth0Client.isAuthenticated();
         if (isAuth) {
+          // Check membership status first
+          try {
+            var token = await window.auth0Client.getTokenSilently();
+            var userResponse = await fetch(window.API_BASE_URL + '/users/me', {
+              headers: {
+                'Authorization': 'Bearer ' + token,
+                'Accept': 'application/json'
+              }
+            });
+
+            if (userResponse.ok) {
+              var userData = await userResponse.json();
+              
+              if (!userData.stripe_id) {
+                // No membership
+                var loadingEl = document.getElementById('reservations-loading');
+                var noMembershipEl = document.getElementById('reservations-no-membership');
+                
+                if (loadingEl) loadingEl.style.display = 'none';
+                if (noMembershipEl) noMembershipEl.style.display = 'flex';
+                return;
+              }
+            }
+          } catch (err) {
+            console.error('Error checking membership:', err);
+          }
+
+          // Has membership — render reservations as normal
           ReservationsManager.renderReservationsPage();
         } else {
           var container = document.getElementById('reservations-container');
