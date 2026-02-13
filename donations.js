@@ -331,9 +331,9 @@ window.DonationsManager = {
           <div class="donations-empty">
             <h3 class="donations-empty-title">no donations yet</h3>
             <p class="donations-empty-text">
-              bring your pre-loved clothing to dematerialized and earn store credits!
+              bring your pre-loved clothing to dematerialized to earn store credit
             </p>
-            <a href="/about#donations" class="donations-empty-btn">learn more</a>
+            <a href="/donations" class="donations-empty-btn">learn more</a>
           </div>
         `;
       } else {
