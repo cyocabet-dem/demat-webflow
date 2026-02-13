@@ -315,15 +315,17 @@ renderHistoryGroup(group) {
     }).join('');
 
     const moreIndicator = extraCount > 0 ? `
-      <div class="history-group-thumb history-group-thumb-more" style="z-index: 0; left: ${maxThumbs * 28}px;">
+      <div class="history-group-more-badge" style="left: ${(Math.min(count, maxThumbs) * 28) - 6}px;">
         +${extraCount}
       </div>
     ` : '';
 
+    const imageWidth = Math.min(count, maxThumbs) * 28 + 30;
+
     return `
       <div class="history-group" onclick="RentalsManager.openGroupModal('${group.dateKey}')">
         <div class="history-group-header">
-          <div class="history-group-images" style="width: ${Math.min(count, maxThumbs + (extraCount > 0 ? 1 : 0)) * 28 + 30}px;">
+          <div class="history-group-images" style="width: ${imageWidth}px;">
             ${thumbs}
             ${moreIndicator}
           </div>
