@@ -2581,12 +2581,12 @@ body.onboarding-modal-open {
 }
 
 .reservation-badge-ready {
-  background: ##f9aef3;
+  background: #f9aef3;
   color: #24282d;
 }
 
 .reservation-badge-completed {
-  background: ##b6e8ff;
+  background: #b6e8ff;
   color: #24282d;
 }
 
