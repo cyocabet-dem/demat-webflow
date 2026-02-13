@@ -166,30 +166,31 @@
 
 <!-- ============================================ -->
 <!-- MULTI-STEP ONBOARDING MODAL -->
+<!-- Inline styles on structural elements to guarantee Webflow override -->
 <!-- ============================================ -->
-<div class="onboarding-modal-overlay" id="onboardingModal">
-  <div class="onboarding-modal-container" onclick="event.stopPropagation()">
+<div id="onboardingModal" style="display:none;position:fixed;top:0;left:0;right:0;bottom:0;width:100%;height:100%;background:rgba(0,0,0,0.5);z-index:10000;justify-content:center;align-items:center;padding:20px;backdrop-filter:blur(4px);margin:0;border:none;box-sizing:border-box;">
+  <div id="onboardingModalInner" style="background:#fff;border-radius:16px;width:100%;max-width:580px;max-height:90vh;overflow-y:auto;padding:32px;position:relative;box-shadow:0 20px 60px rgba(0,0,0,0.15);font-family:'Urbanist',sans-serif;margin:0 auto;box-sizing:border-box;" onclick="event.stopPropagation()">
 
     <!-- Progress Bar -->
-    <div class="onboarding-progress">
-      <div class="onboarding-progress-step active" data-step="1">
-        <span class="onboarding-progress-label">welcome</span>
-        <div class="onboarding-progress-bar"></div>
+    <div class="dm-ob-progress" style="display:flex;gap:16px;margin-bottom:32px;padding:0;">
+      <div class="onboarding-progress-step active" data-step="1" style="flex:1;text-align:center;">
+        <span class="onboarding-progress-label" style="display:block;font-size:14px;font-weight:500;color:#999;margin-bottom:8px;text-transform:lowercase;font-family:'Urbanist',sans-serif;">welcome</span>
+        <div class="onboarding-progress-bar" style="height:3px;background:#e0e0e0;border-radius:2px;"></div>
       </div>
-      <div class="onboarding-progress-step" data-step="2">
-        <span class="onboarding-progress-label">your info</span>
-        <div class="onboarding-progress-bar"></div>
+      <div class="onboarding-progress-step" data-step="2" style="flex:1;text-align:center;">
+        <span class="onboarding-progress-label" style="display:block;font-size:14px;font-weight:500;color:#999;margin-bottom:8px;text-transform:lowercase;font-family:'Urbanist',sans-serif;">your info</span>
+        <div class="onboarding-progress-bar" style="height:3px;background:#e0e0e0;border-radius:2px;"></div>
       </div>
-      <div class="onboarding-progress-step" data-step="3">
-        <span class="onboarding-progress-label">your profile</span>
-        <div class="onboarding-progress-bar"></div>
+      <div class="onboarding-progress-step" data-step="3" style="flex:1;text-align:center;">
+        <span class="onboarding-progress-label" style="display:block;font-size:14px;font-weight:500;color:#999;margin-bottom:8px;text-transform:lowercase;font-family:'Urbanist',sans-serif;">your profile</span>
+        <div class="onboarding-progress-bar" style="height:3px;background:#e0e0e0;border-radius:2px;"></div>
       </div>
     </div>
 
     <!-- STEP 1: Welcome -->
     <div class="onboarding-step active" data-step="1">
-      <div class="onboarding-step-content onboarding-center">
-        <div class="onboarding-welcome-icon">
+      <div style="min-height:300px;display:flex;flex-direction:column;align-items:center;text-align:center;justify-content:center;">
+        <div style="margin-bottom:24px;">
           <svg width="80" height="80" viewBox="0 0 80 80" fill="none">
             <circle cx="40" cy="32" r="14" stroke="#6b2a5b" stroke-width="2.5" fill="#f0d4ec"/>
             <path d="M20 68c0-11 8.95-20 20-20s20 9 20 20" stroke="#6b2a5b" stroke-width="2.5" fill="#f0d4ec"/>
@@ -201,117 +202,117 @@
             <line x1="50" y1="14" x2="52" y2="8" stroke="#6b2a5b" stroke-width="2" stroke-linecap="round"/>
           </svg>
         </div>
-        <h2 class="onboarding-title">welcome to the community!</h2>
-        <p class="onboarding-subtitle">you're now subscribed. let's quickly set up your profile for a better experience; you can adjust it later.</p>
-        <button class="onboarding-btn-primary" onclick="nextOnboardingStep()">continue</button>
-        <button class="onboarding-btn-skip" onclick="skipOnboarding()">i'll do this later</button>
+        <h2 style="font-family:'Urbanist',sans-serif;font-size:24px;font-weight:700;color:#1a1a1a;margin:0 0 8px 0;text-transform:lowercase;">welcome to the community!</h2>
+        <p style="font-family:'Urbanist',sans-serif;font-size:15px;color:#666;margin:0 0 28px 0;line-height:1.5;">you're now subscribed. let's quickly set up your profile for a better experience; you can adjust it later.</p>
+        <button class="dm-ob-btn-primary" onclick="nextOnboardingStep()">continue</button>
+        <button class="dm-ob-btn-skip" onclick="skipOnboarding()">i'll do this later</button>
       </div>
     </div>
 
     <!-- STEP 2: Name -->
     <div class="onboarding-step" data-step="2">
-      <div class="onboarding-step-content">
-        <h2 class="onboarding-title">what's your name?</h2>
-        <p class="onboarding-subtitle">so we know what to call you</p>
-        <div class="onboarding-form">
-          <div class="onboarding-input-group">
-            <label class="onboarding-label" for="onboarding-firstname">first name</label>
-            <input type="text" id="onboarding-firstname" class="onboarding-input" placeholder="first name">
+      <div style="min-height:300px;display:flex;flex-direction:column;">
+        <h2 style="font-family:'Urbanist',sans-serif;font-size:24px;font-weight:700;color:#1a1a1a;margin:0 0 8px 0;text-transform:lowercase;">what's your name?</h2>
+        <p style="font-family:'Urbanist',sans-serif;font-size:15px;color:#666;margin:0 0 28px 0;line-height:1.5;">so we know what to call you</p>
+        <div style="display:flex;flex-direction:column;gap:16px;margin-bottom:8px;">
+          <div style="display:flex;flex-direction:column;gap:4px;">
+            <label class="dm-ob-label" for="onboarding-firstname">first name</label>
+            <input type="text" id="onboarding-firstname" class="dm-ob-input" placeholder="first name">
           </div>
-          <div class="onboarding-input-group">
-            <label class="onboarding-label" for="onboarding-lastname">last name</label>
-            <input type="text" id="onboarding-lastname" class="onboarding-input" placeholder="last name">
+          <div style="display:flex;flex-direction:column;gap:4px;">
+            <label class="dm-ob-label" for="onboarding-lastname">last name</label>
+            <input type="text" id="onboarding-lastname" class="dm-ob-input" placeholder="last name">
           </div>
         </div>
-        <div class="onboarding-nav">
-          <button class="onboarding-btn-back" onclick="prevOnboardingStep()">back</button>
-          <button class="onboarding-btn-primary" onclick="nextOnboardingStep()">continue</button>
+        <div style="display:flex;gap:12px;margin-top:24px;">
+          <button class="dm-ob-btn-back" onclick="prevOnboardingStep()">back</button>
+          <button class="dm-ob-btn-primary" style="flex:1;max-width:none;" onclick="nextOnboardingStep()">continue</button>
         </div>
-        <button class="onboarding-btn-skip" onclick="skipOnboarding()">i'll do this later</button>
+        <button class="dm-ob-btn-skip" onclick="skipOnboarding()">i'll do this later</button>
       </div>
     </div>
 
     <!-- STEP 3: Contact & Address -->
     <div class="onboarding-step" data-step="3">
-      <div class="onboarding-step-content">
-        <h2 class="onboarding-title">contact & address</h2>
-        <p class="onboarding-subtitle">for delivery notifications and shipping</p>
-        <div class="onboarding-form">
-          <div class="onboarding-input-group">
-            <label class="onboarding-label" for="onboarding-phone">phone number</label>
-            <input type="tel" id="onboarding-phone" class="onboarding-input" placeholder="+31 6 1234 5678">
+      <div style="min-height:300px;display:flex;flex-direction:column;">
+        <h2 style="font-family:'Urbanist',sans-serif;font-size:24px;font-weight:700;color:#1a1a1a;margin:0 0 8px 0;text-transform:lowercase;">contact & address</h2>
+        <p style="font-family:'Urbanist',sans-serif;font-size:15px;color:#666;margin:0 0 28px 0;line-height:1.5;">for delivery notifications and shipping</p>
+        <div style="display:flex;flex-direction:column;gap:16px;margin-bottom:8px;">
+          <div style="display:flex;flex-direction:column;gap:4px;">
+            <label class="dm-ob-label" for="onboarding-phone">phone number</label>
+            <input type="tel" id="onboarding-phone" class="dm-ob-input" placeholder="+31 6 1234 5678">
           </div>
-          <div class="onboarding-input-group" style="position: relative;">
-            <label class="onboarding-label" for="onboarding-address-search">search your address</label>
-            <input type="text" id="onboarding-address-search" class="onboarding-input" placeholder="start typing your address..." oninput="searchOnboardingAddress()">
+          <div style="display:flex;flex-direction:column;gap:4px;position:relative;">
+            <label class="dm-ob-label" for="onboarding-address-search">search your address</label>
+            <input type="text" id="onboarding-address-search" class="dm-ob-input" placeholder="start typing your address..." oninput="searchOnboardingAddress()">
             <div id="onboarding-address-suggestions" class="onboarding-address-suggestions"></div>
           </div>
-          <div class="onboarding-input-row">
-            <div class="onboarding-input-group" style="flex: 2;">
-              <label class="onboarding-label" for="onboarding-street">street</label>
-              <input type="text" id="onboarding-street" class="onboarding-input" placeholder="street name">
+          <div class="dm-ob-input-row">
+            <div style="display:flex;flex-direction:column;gap:4px;flex:2;">
+              <label class="dm-ob-label" for="onboarding-street">street</label>
+              <input type="text" id="onboarding-street" class="dm-ob-input" placeholder="street name">
             </div>
-            <div class="onboarding-input-group" style="flex: 1;">
-              <label class="onboarding-label" for="onboarding-house-number">number</label>
-              <input type="text" id="onboarding-house-number" class="onboarding-input" placeholder="123">
+            <div style="display:flex;flex-direction:column;gap:4px;flex:1;">
+              <label class="dm-ob-label" for="onboarding-house-number">number</label>
+              <input type="text" id="onboarding-house-number" class="dm-ob-input" placeholder="123">
             </div>
           </div>
-          <div class="onboarding-input-row">
-            <div class="onboarding-input-group" style="flex: 1;">
-              <label class="onboarding-label" for="onboarding-unit">unit / apt</label>
-              <input type="text" id="onboarding-unit" class="onboarding-input" placeholder="optional">
+          <div class="dm-ob-input-row">
+            <div style="display:flex;flex-direction:column;gap:4px;flex:1;">
+              <label class="dm-ob-label" for="onboarding-unit">unit / apt</label>
+              <input type="text" id="onboarding-unit" class="dm-ob-input" placeholder="optional">
             </div>
-            <div class="onboarding-input-group" style="flex: 1;">
-              <label class="onboarding-label" for="onboarding-zipcode">postcode</label>
-              <input type="text" id="onboarding-zipcode" class="onboarding-input" placeholder="1234 AB">
+            <div style="display:flex;flex-direction:column;gap:4px;flex:1;">
+              <label class="dm-ob-label" for="onboarding-zipcode">postcode</label>
+              <input type="text" id="onboarding-zipcode" class="dm-ob-input" placeholder="1234 AB">
             </div>
-            <div class="onboarding-input-group" style="flex: 1;">
-              <label class="onboarding-label" for="onboarding-city">city</label>
-              <input type="text" id="onboarding-city" class="onboarding-input" placeholder="city">
+            <div style="display:flex;flex-direction:column;gap:4px;flex:1;">
+              <label class="dm-ob-label" for="onboarding-city">city</label>
+              <input type="text" id="onboarding-city" class="dm-ob-input" placeholder="city">
             </div>
           </div>
         </div>
-        <div class="onboarding-nav">
-          <button class="onboarding-btn-back" onclick="prevOnboardingStep()">back</button>
-          <button class="onboarding-btn-primary" onclick="nextOnboardingStep()">continue</button>
+        <div style="display:flex;gap:12px;margin-top:24px;">
+          <button class="dm-ob-btn-back" onclick="prevOnboardingStep()">back</button>
+          <button class="dm-ob-btn-primary" style="flex:1;max-width:none;" onclick="nextOnboardingStep()">continue</button>
         </div>
-        <button class="onboarding-btn-skip" onclick="skipOnboarding()">i'll do this later</button>
+        <button class="dm-ob-btn-skip" onclick="skipOnboarding()">i'll do this later</button>
       </div>
     </div>
 
     <!-- STEP 4: Birthday -->
     <div class="onboarding-step" data-step="4">
-      <div class="onboarding-step-content">
-        <h2 class="onboarding-title">when's your birthday?</h2>
-        <p class="onboarding-subtitle">we might have a little surprise for you 🎂</p>
-        <div class="onboarding-form">
-          <div class="onboarding-input-group">
-            <label class="onboarding-label" for="onboarding-birthday">date of birth</label>
-            <input type="date" id="onboarding-birthday" class="onboarding-input">
+      <div style="min-height:300px;display:flex;flex-direction:column;">
+        <h2 style="font-family:'Urbanist',sans-serif;font-size:24px;font-weight:700;color:#1a1a1a;margin:0 0 8px 0;text-transform:lowercase;">when's your birthday?</h2>
+        <p style="font-family:'Urbanist',sans-serif;font-size:15px;color:#666;margin:0 0 28px 0;line-height:1.5;">we might have a little surprise for you 🎂</p>
+        <div style="display:flex;flex-direction:column;gap:16px;margin-bottom:8px;">
+          <div style="display:flex;flex-direction:column;gap:4px;">
+            <label class="dm-ob-label" for="onboarding-birthday">date of birth</label>
+            <input type="date" id="onboarding-birthday" class="dm-ob-input">
           </div>
         </div>
-        <div class="onboarding-nav">
-          <button class="onboarding-btn-back" onclick="prevOnboardingStep()">back</button>
-          <button class="onboarding-btn-primary" onclick="nextOnboardingStep()">continue</button>
+        <div style="display:flex;gap:12px;margin-top:24px;">
+          <button class="dm-ob-btn-back" onclick="prevOnboardingStep()">back</button>
+          <button class="dm-ob-btn-primary" style="flex:1;max-width:none;" onclick="nextOnboardingStep()">continue</button>
         </div>
-        <button class="onboarding-btn-skip" onclick="skipOnboarding()">i'll do this later</button>
+        <button class="dm-ob-btn-skip" onclick="skipOnboarding()">i'll do this later</button>
       </div>
     </div>
 
     <!-- STEP 5: Sizes -->
     <div class="onboarding-step" data-step="5">
-      <div class="onboarding-step-content">
-        <h2 class="onboarding-title">your sizes</h2>
-        <p class="onboarding-subtitle">helps us recommend the right pieces for you</p>
-        <div class="onboarding-form">
-          <div class="onboarding-input-row">
-            <div class="onboarding-input-group" style="flex: 1;">
-              <label class="onboarding-label" for="onboarding-height">height (cm)</label>
-              <input type="number" id="onboarding-height" class="onboarding-input" placeholder="170">
+      <div style="min-height:300px;display:flex;flex-direction:column;">
+        <h2 style="font-family:'Urbanist',sans-serif;font-size:24px;font-weight:700;color:#1a1a1a;margin:0 0 8px 0;text-transform:lowercase;">your sizes</h2>
+        <p style="font-family:'Urbanist',sans-serif;font-size:15px;color:#666;margin:0 0 28px 0;line-height:1.5;">helps us recommend the right pieces for you</p>
+        <div style="display:flex;flex-direction:column;gap:16px;margin-bottom:8px;">
+          <div class="dm-ob-input-row">
+            <div style="display:flex;flex-direction:column;gap:4px;flex:1;">
+              <label class="dm-ob-label" for="onboarding-height">height (cm)</label>
+              <input type="number" id="onboarding-height" class="dm-ob-input" placeholder="170">
             </div>
-            <div class="onboarding-input-group" style="flex: 1;">
-              <label class="onboarding-label" for="onboarding-preferred-fit">preferred fit</label>
-              <select id="onboarding-preferred-fit" class="onboarding-input">
+            <div style="display:flex;flex-direction:column;gap:4px;flex:1;">
+              <label class="dm-ob-label" for="onboarding-preferred-fit">preferred fit</label>
+              <select id="onboarding-preferred-fit" class="dm-ob-input">
                 <option value="">select</option>
                 <option value="tight">tight</option>
                 <option value="regular">regular</option>
@@ -320,10 +321,10 @@
               </select>
             </div>
           </div>
-          <div class="onboarding-input-row">
-            <div class="onboarding-input-group" style="flex: 1;">
-              <label class="onboarding-label" for="onboarding-shirt-size">top size</label>
-              <select id="onboarding-shirt-size" class="onboarding-input">
+          <div class="dm-ob-input-row">
+            <div style="display:flex;flex-direction:column;gap:4px;flex:1;">
+              <label class="dm-ob-label" for="onboarding-shirt-size">top size</label>
+              <select id="onboarding-shirt-size" class="dm-ob-input">
                 <option value="">select</option>
                 <option value="XS">XS</option>
                 <option value="S">S</option>
@@ -332,9 +333,9 @@
                 <option value="XL">XL</option>
               </select>
             </div>
-            <div class="onboarding-input-group" style="flex: 1;">
-              <label class="onboarding-label" for="onboarding-pants-size">bottom size</label>
-              <select id="onboarding-pants-size" class="onboarding-input">
+            <div style="display:flex;flex-direction:column;gap:4px;flex:1;">
+              <label class="dm-ob-label" for="onboarding-pants-size">bottom size</label>
+              <select id="onboarding-pants-size" class="dm-ob-input">
                 <option value="">select</option>
                 <option value="XS">XS</option>
                 <option value="S">S</option>
@@ -343,9 +344,9 @@
                 <option value="XL">XL</option>
               </select>
             </div>
-            <div class="onboarding-input-group" style="flex: 1;">
-              <label class="onboarding-label" for="onboarding-shoe-size">shoe size (EU)</label>
-              <select id="onboarding-shoe-size" class="onboarding-input">
+            <div style="display:flex;flex-direction:column;gap:4px;flex:1;">
+              <label class="dm-ob-label" for="onboarding-shoe-size">shoe size (EU)</label>
+              <select id="onboarding-shoe-size" class="dm-ob-input">
                 <option value="">select</option>
                 <option value="36">36</option>
                 <option value="37">37</option>
@@ -358,84 +359,84 @@
             </div>
           </div>
         </div>
-        <div class="onboarding-nav">
-          <button class="onboarding-btn-back" onclick="prevOnboardingStep()">back</button>
-          <button class="onboarding-btn-primary" onclick="nextOnboardingStep()">continue</button>
+        <div style="display:flex;gap:12px;margin-top:24px;">
+          <button class="dm-ob-btn-back" onclick="prevOnboardingStep()">back</button>
+          <button class="dm-ob-btn-primary" style="flex:1;max-width:none;" onclick="nextOnboardingStep()">continue</button>
         </div>
-        <button class="onboarding-btn-skip" onclick="skipOnboarding()">i'll do this later</button>
+        <button class="dm-ob-btn-skip" onclick="skipOnboarding()">i'll do this later</button>
       </div>
     </div>
 
     <!-- STEP 6: Body Type -->
     <div class="onboarding-step" data-step="6">
-      <div class="onboarding-step-content">
-        <h2 class="onboarding-title">body shape</h2>
-        <p class="onboarding-subtitle">helps us find the most flattering pieces for you</p>
-        <div class="onboarding-body-types">
-          <button class="body-type-option" data-body-type="hourglass">
+      <div style="min-height:300px;display:flex;flex-direction:column;">
+        <h2 style="font-family:'Urbanist',sans-serif;font-size:24px;font-weight:700;color:#1a1a1a;margin:0 0 8px 0;text-transform:lowercase;">body shape</h2>
+        <p style="font-family:'Urbanist',sans-serif;font-size:15px;color:#666;margin:0 0 28px 0;line-height:1.5;">helps us find the most flattering pieces for you</p>
+        <div style="display:flex;flex-wrap:wrap;gap:12px;justify-content:center;margin-bottom:8px;">
+          <button class="body-type-option dm-ob-body-btn" data-body-type="hourglass">
             <svg width="40" height="60" viewBox="0 0 40 60"><path d="M10 5 Q20 20 10 30 Q20 40 10 55 H30 Q20 40 30 30 Q20 20 30 5 Z" fill="#f0d4ec" stroke="#6b2a5b" stroke-width="1.5"/></svg>
             <span>hourglass</span>
           </button>
-          <button class="body-type-option" data-body-type="pear">
+          <button class="body-type-option dm-ob-body-btn" data-body-type="pear">
             <svg width="40" height="60" viewBox="0 0 40 60"><path d="M13 5 Q20 15 13 28 Q20 42 8 55 H32 Q20 42 27 28 Q20 15 27 5 Z" fill="#f0d4ec" stroke="#6b2a5b" stroke-width="1.5"/></svg>
             <span>pear</span>
           </button>
-          <button class="body-type-option" data-body-type="apple">
+          <button class="body-type-option dm-ob-body-btn" data-body-type="apple">
             <svg width="40" height="60" viewBox="0 0 40 60"><path d="M12 5 Q20 10 8 30 Q15 45 12 55 H28 Q25 45 32 30 Q20 10 28 5 Z" fill="#f0d4ec" stroke="#6b2a5b" stroke-width="1.5"/></svg>
             <span>apple</span>
           </button>
-          <button class="body-type-option" data-body-type="rectangle">
+          <button class="body-type-option dm-ob-body-btn" data-body-type="rectangle">
             <svg width="40" height="60" viewBox="0 0 40 60"><path d="M12 5 L10 55 H30 L28 5 Z" fill="#f0d4ec" stroke="#6b2a5b" stroke-width="1.5"/></svg>
             <span>rectangle</span>
           </button>
-          <button class="body-type-option" data-body-type="inverted-triangle">
+          <button class="body-type-option dm-ob-body-btn" data-body-type="inverted-triangle">
             <svg width="40" height="60" viewBox="0 0 40 60"><path d="M8 5 Q20 15 27 28 Q20 42 28 55 H12 Q20 42 13 28 Q20 15 32 5 Z" fill="#f0d4ec" stroke="#6b2a5b" stroke-width="1.5"/></svg>
             <span>inverted triangle</span>
           </button>
         </div>
-        <div class="onboarding-nav">
-          <button class="onboarding-btn-back" onclick="prevOnboardingStep()">back</button>
-          <button class="onboarding-btn-primary" onclick="nextOnboardingStep()">continue</button>
+        <div style="display:flex;gap:12px;margin-top:24px;">
+          <button class="dm-ob-btn-back" onclick="prevOnboardingStep()">back</button>
+          <button class="dm-ob-btn-primary" style="flex:1;max-width:none;" onclick="nextOnboardingStep()">continue</button>
         </div>
-        <button class="onboarding-btn-skip" onclick="skipOnboarding()">i'll do this later</button>
+        <button class="dm-ob-btn-skip" onclick="skipOnboarding()">i'll do this later</button>
       </div>
     </div>
 
     <!-- STEP 7: Referral -->
     <div class="onboarding-step" data-step="7">
-      <div class="onboarding-step-content">
-        <h2 class="onboarding-title">how did you find us?</h2>
-        <p class="onboarding-subtitle">select all that apply</p>
-        <div class="onboarding-form">
-          <label class="checkbox-option"><input type="checkbox" value="instagram"> instagram</label>
-          <label class="checkbox-option"><input type="checkbox" value="tiktok"> tiktok</label>
-          <label class="checkbox-option"><input type="checkbox" value="facebook"> facebook</label>
-          <label class="checkbox-option"><input type="checkbox" value="google"> google search</label>
-          <label class="checkbox-option"><input type="checkbox" value="friend"> a friend told me</label>
-          <label class="checkbox-option"><input type="checkbox" value="walked-by"> walked by the store</label>
-          <label class="checkbox-option"><input type="checkbox" value="event"> event or market</label>
-          <label class="checkbox-option"><input type="checkbox" value="other"> other</label>
+      <div style="min-height:300px;display:flex;flex-direction:column;">
+        <h2 style="font-family:'Urbanist',sans-serif;font-size:24px;font-weight:700;color:#1a1a1a;margin:0 0 8px 0;text-transform:lowercase;">how did you find us?</h2>
+        <p style="font-family:'Urbanist',sans-serif;font-size:15px;color:#666;margin:0 0 28px 0;line-height:1.5;">select all that apply</p>
+        <div style="display:flex;flex-direction:column;gap:8px;margin-bottom:8px;">
+          <label class="checkbox-option dm-ob-checkbox"><input type="checkbox" value="instagram"> instagram</label>
+          <label class="checkbox-option dm-ob-checkbox"><input type="checkbox" value="tiktok"> tiktok</label>
+          <label class="checkbox-option dm-ob-checkbox"><input type="checkbox" value="facebook"> facebook</label>
+          <label class="checkbox-option dm-ob-checkbox"><input type="checkbox" value="google"> google search</label>
+          <label class="checkbox-option dm-ob-checkbox"><input type="checkbox" value="friend"> a friend told me</label>
+          <label class="checkbox-option dm-ob-checkbox"><input type="checkbox" value="walked-by"> walked by the store</label>
+          <label class="checkbox-option dm-ob-checkbox"><input type="checkbox" value="event"> event or market</label>
+          <label class="checkbox-option dm-ob-checkbox"><input type="checkbox" value="other"> other</label>
         </div>
-        <div class="onboarding-nav">
-          <button class="onboarding-btn-back" onclick="prevOnboardingStep()">back</button>
-          <button class="onboarding-btn-primary" onclick="submitOnboarding()">finish</button>
+        <div style="display:flex;gap:12px;margin-top:24px;">
+          <button class="dm-ob-btn-back" onclick="prevOnboardingStep()">back</button>
+          <button class="dm-ob-btn-primary" style="flex:1;max-width:none;" onclick="submitOnboarding()">finish</button>
         </div>
-        <button class="onboarding-btn-skip" onclick="skipOnboarding()">i'll do this later</button>
+        <button class="dm-ob-btn-skip" onclick="skipOnboarding()">i'll do this later</button>
       </div>
     </div>
 
     <!-- STEP 8: Complete -->
     <div class="onboarding-step" data-step="8">
-      <div class="onboarding-step-content onboarding-center">
-        <div class="onboarding-welcome-icon">
+      <div style="min-height:300px;display:flex;flex-direction:column;align-items:center;text-align:center;justify-content:center;">
+        <div style="margin-bottom:24px;">
           <svg width="80" height="80" viewBox="0 0 80 80" fill="none">
             <circle cx="40" cy="40" r="30" fill="#f0d4ec" stroke="#6b2a5b" stroke-width="2.5"/>
             <polyline points="28 40 36 48 54 30" stroke="#6b2a5b" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
           </svg>
         </div>
-        <h2 class="onboarding-title">you're all set!</h2>
-        <p class="onboarding-subtitle">your profile is ready. time to explore the collection.</p>
-        <button class="onboarding-btn-primary" onclick="completeOnboarding()">start browsing</button>
+        <h2 style="font-family:'Urbanist',sans-serif;font-size:24px;font-weight:700;color:#1a1a1a;margin:0 0 8px 0;text-transform:lowercase;">you're all set!</h2>
+        <p style="font-family:'Urbanist',sans-serif;font-size:15px;color:#666;margin:0 0 28px 0;line-height:1.5;">your profile is ready. time to explore the collection.</p>
+        <button class="dm-ob-btn-primary" onclick="completeOnboarding()">start browsing</button>
       </div>
     </div>
 
@@ -443,79 +444,29 @@
 </div>
 `;
 
-  // ===== ONBOARDING MODAL STYLES =====
-  // All properties use !important to override Webflow's CSS
+  // ===== ONBOARDING STYLES =====
+  // Using dm-ob- prefixed classes that Webflow can't conflict with
+  // Plus onboarding-step which the JS in site-wide-footer.js depends on
   const onboardingStyles = document.createElement('style');
-  onboardingStyles.id = 'onboarding-injected-styles';
+  onboardingStyles.id = 'dm-onboarding-styles';
   onboardingStyles.textContent = `
-    /* ===== OVERLAY ===== */
-    #onboardingModal.onboarding-modal-overlay {
-      display: none !important;
-      position: fixed !important;
-      top: 0 !important;
-      left: 0 !important;
-      right: 0 !important;
-      bottom: 0 !important;
-      width: 100% !important;
-      height: 100% !important;
-      background: rgba(0, 0, 0, 0.5) !important;
-      z-index: 10000 !important;
-      justify-content: center !important;
-      align-items: center !important;
-      padding: 20px !important;
-      backdrop-filter: blur(4px) !important;
-      margin: 0 !important;
-      border: none !important;
-      box-sizing: border-box !important;
-    }
-    #onboardingModal.onboarding-modal-overlay.is-visible {
+    /* Overlay show/hide - JS toggles is-visible */
+    #onboardingModal.is-visible {
       display: flex !important;
     }
     body.onboarding-modal-open {
       overflow: hidden !important;
     }
 
-    /* ===== CONTAINER ===== */
-    #onboardingModal .onboarding-modal-container {
-      background: #fff !important;
-      border-radius: 16px !important;
-      width: 100% !important;
-      max-width: 580px !important;
-      max-height: 90vh !important;
-      overflow-y: auto !important;
-      padding: 32px !important;
-      position: relative !important;
-      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15) !important;
-      font-family: 'Urbanist', sans-serif !important;
-      margin: 0 auto !important;
-      box-sizing: border-box !important;
+    /* Steps show/hide */
+    #onboardingModal .onboarding-step {
+      display: none !important;
+    }
+    #onboardingModal .onboarding-step.active {
+      display: block !important;
     }
 
-    /* ===== PROGRESS BAR ===== */
-    #onboardingModal .onboarding-progress {
-      display: flex !important;
-      gap: 16px !important;
-      margin-bottom: 32px !important;
-      padding: 0 !important;
-    }
-    #onboardingModal .onboarding-progress-step {
-      flex: 1 !important;
-      text-align: center !important;
-    }
-    #onboardingModal .onboarding-progress-label {
-      display: block !important;
-      font-size: 14px !important;
-      font-weight: 500 !important;
-      color: #999 !important;
-      margin-bottom: 8px !important;
-      text-transform: lowercase !important;
-      font-family: 'Urbanist', sans-serif !important;
-    }
-    #onboardingModal .onboarding-progress-bar {
-      height: 3px !important;
-      background: #e0e0e0 !important;
-      border-radius: 2px !important;
-    }
+    /* Progress bar state colors */
     #onboardingModal .onboarding-progress-step.active .onboarding-progress-label {
       color: #3d0c2e !important;
       font-weight: 700 !important;
@@ -530,48 +481,8 @@
       background: #6b2a5b !important;
     }
 
-    /* ===== STEPS ===== */
-    #onboardingModal .onboarding-step {
-      display: none !important;
-    }
-    #onboardingModal .onboarding-step.active {
-      display: block !important;
-    }
-    #onboardingModal .onboarding-step-content {
-      min-height: 300px !important;
-      display: flex !important;
-      flex-direction: column !important;
-    }
-    #onboardingModal .onboarding-step-content.onboarding-center {
-      align-items: center !important;
-      text-align: center !important;
-      justify-content: center !important;
-    }
-
-    /* ===== TYPOGRAPHY ===== */
-    #onboardingModal .onboarding-title {
-      font-family: 'Urbanist', sans-serif !important;
-      font-size: 24px !important;
-      font-weight: 700 !important;
-      color: #1a1a1a !important;
-      margin: 0 0 8px 0 !important;
-      text-transform: lowercase !important;
-    }
-    #onboardingModal .onboarding-subtitle {
-      font-family: 'Urbanist', sans-serif !important;
-      font-size: 15px !important;
-      color: #666 !important;
-      margin: 0 0 28px 0 !important;
-      line-height: 1.5 !important;
-    }
-
-    /* ===== WELCOME ICON ===== */
-    #onboardingModal .onboarding-welcome-icon {
-      margin-bottom: 24px !important;
-    }
-
-    /* ===== BUTTONS ===== */
-    #onboardingModal .onboarding-btn-primary {
+    /* Primary button */
+    .dm-ob-btn-primary {
       font-family: 'Urbanist', sans-serif !important;
       background: #3d0c2e !important;
       color: #fff !important;
@@ -584,17 +495,20 @@
       width: 100% !important;
       max-width: 300px !important;
       text-transform: lowercase !important;
-      transition: background 0.2s !important;
       text-align: center !important;
+      transition: background 0.2s !important;
+      box-sizing: border-box !important;
     }
-    #onboardingModal .onboarding-btn-primary:hover {
+    .dm-ob-btn-primary:hover {
       background: #2a081f !important;
     }
-    #onboardingModal .onboarding-btn-primary.loading {
+    .dm-ob-btn-primary.loading {
       opacity: 0.7 !important;
       pointer-events: none !important;
     }
-    #onboardingModal .onboarding-btn-back {
+
+    /* Back button */
+    .dm-ob-btn-back {
       font-family: 'Urbanist', sans-serif !important;
       background: none !important;
       border: 1.5px solid #ddd !important;
@@ -605,12 +519,14 @@
       cursor: pointer !important;
       color: #333 !important;
       text-transform: lowercase !important;
-      transition: border-color 0.2s !important;
+      box-sizing: border-box !important;
     }
-    #onboardingModal .onboarding-btn-back:hover {
+    .dm-ob-btn-back:hover {
       border-color: #999 !important;
     }
-    #onboardingModal .onboarding-btn-skip {
+
+    /* Skip button */
+    .dm-ob-btn-skip {
       font-family: 'Urbanist', sans-serif !important;
       background: none !important;
       border: none !important;
@@ -622,40 +538,24 @@
       text-transform: lowercase !important;
       text-decoration: underline !important;
       text-underline-offset: 3px !important;
+      display: block !important;
+      width: auto !important;
     }
-    #onboardingModal .onboarding-btn-skip:hover {
+    .dm-ob-btn-skip:hover {
       color: #666 !important;
     }
-    #onboardingModal .onboarding-nav {
-      display: flex !important;
-      gap: 12px !important;
-      margin-top: 24px !important;
-    }
-    #onboardingModal .onboarding-nav .onboarding-btn-primary {
-      flex: 1 !important;
-      max-width: none !important;
-    }
 
-    /* ===== FORM INPUTS ===== */
-    #onboardingModal .onboarding-form {
-      display: flex !important;
-      flex-direction: column !important;
-      gap: 16px !important;
-      margin-bottom: 8px !important;
-    }
-    #onboardingModal .onboarding-input-group {
-      display: flex !important;
-      flex-direction: column !important;
-      gap: 4px !important;
-    }
-    #onboardingModal .onboarding-label {
+    /* Labels */
+    .dm-ob-label {
       font-family: 'Urbanist', sans-serif !important;
       font-size: 13px !important;
       font-weight: 600 !important;
       color: #555 !important;
       text-transform: lowercase !important;
     }
-    #onboardingModal .onboarding-input {
+
+    /* Inputs */
+    .dm-ob-input {
       font-family: 'Urbanist', sans-serif !important;
       border: 1.5px solid #ddd !important;
       border-radius: 10px !important;
@@ -664,23 +564,24 @@
       color: #1a1a1a !important;
       background: #fafafa !important;
       outline: none !important;
-      transition: border-color 0.2s !important;
       width: 100% !important;
       box-sizing: border-box !important;
     }
-    #onboardingModal .onboarding-input:focus {
+    .dm-ob-input:focus {
       border-color: #6b2a5b !important;
       background: #fff !important;
     }
-    #onboardingModal .onboarding-input::placeholder {
+    .dm-ob-input::placeholder {
       color: #bbb !important;
     }
-    #onboardingModal .onboarding-input-row {
+
+    /* Input rows */
+    .dm-ob-input-row {
       display: flex !important;
       gap: 12px !important;
     }
 
-    /* ===== ADDRESS SUGGESTIONS ===== */
+    /* Address suggestions */
     #onboardingModal .onboarding-address-suggestions {
       display: none !important;
       position: absolute !important;
@@ -710,15 +611,8 @@
       background: #f5f0f4 !important;
     }
 
-    /* ===== BODY TYPE OPTIONS ===== */
-    #onboardingModal .onboarding-body-types {
-      display: flex !important;
-      flex-wrap: wrap !important;
-      gap: 12px !important;
-      justify-content: center !important;
-      margin-bottom: 8px !important;
-    }
-    #onboardingModal .body-type-option {
+    /* Body type buttons */
+    .dm-ob-body-btn {
       display: flex !important;
       flex-direction: column !important;
       align-items: center !important;
@@ -732,21 +626,21 @@
       font-size: 13px !important;
       color: #555 !important;
       text-transform: lowercase !important;
-      transition: all 0.2s !important;
       min-width: 80px !important;
+      box-sizing: border-box !important;
     }
-    #onboardingModal .body-type-option:hover {
+    .dm-ob-body-btn:hover {
       border-color: #6b2a5b !important;
     }
-    #onboardingModal .body-type-option.selected {
+    .dm-ob-body-btn.selected {
       border-color: #3d0c2e !important;
       background: #f5f0f4 !important;
       color: #3d0c2e !important;
       font-weight: 600 !important;
     }
 
-    /* ===== CHECKBOX OPTIONS ===== */
-    #onboardingModal .checkbox-option {
+    /* Checkbox options */
+    .dm-ob-checkbox {
       display: flex !important;
       align-items: center !important;
       gap: 10px !important;
@@ -758,40 +652,31 @@
       font-size: 15px !important;
       color: #333 !important;
       text-transform: lowercase !important;
-      transition: all 0.2s !important;
+      box-sizing: border-box !important;
     }
-    #onboardingModal .checkbox-option:hover {
+    .dm-ob-checkbox:hover {
       border-color: #6b2a5b !important;
       background: #faf7f9 !important;
     }
-    #onboardingModal .checkbox-option input[type="checkbox"] {
+    .dm-ob-checkbox input[type="checkbox"] {
       accent-color: #3d0c2e !important;
       width: 18px !important;
       height: 18px !important;
     }
 
-    /* ===== MOBILE ===== */
+    /* Mobile */
     @media (max-width: 600px) {
-      #onboardingModal .onboarding-modal-container {
+      #onboardingModalInner {
         padding: 24px 20px !important;
         max-height: 95vh !important;
         border-radius: 12px !important;
       }
-      #onboardingModal .onboarding-title {
-        font-size: 20px !important;
-      }
-      #onboardingModal .onboarding-input-row {
+      .dm-ob-input-row {
         flex-direction: column !important;
       }
-      #onboardingModal .onboarding-body-types {
-        gap: 8px !important;
-      }
-      #onboardingModal .body-type-option {
+      .dm-ob-body-btn {
         min-width: 70px !important;
         padding: 12px 10px !important;
-      }
-      #onboardingModal .onboarding-progress-label {
-        font-size: 12px !important;
       }
     }
   `;
