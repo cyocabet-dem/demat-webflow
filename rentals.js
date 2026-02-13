@@ -298,26 +298,34 @@ window.RentalsManager = {
     }));
   },
 
-  renderHistoryGroup(group) {
+renderHistoryGroup(group) {
     const count = group.rentals.length;
     const itemLabel = count === 1 ? '1 item' : `${count} items`;
+    const maxThumbs = 3;
+    const extraCount = count - maxThumbs;
 
-    // Show up to 4 thumbnail images, stacked/overlapping
-    const thumbs = group.rentals.slice(0, 4).map((r, index) => {
+    const thumbs = group.rentals.slice(0, maxThumbs).map((r, index) => {
       const imgUrl = this.getItemImage(r);
       const name = r.clothing_item?.name || 'item';
       return `
-        <div class="history-group-thumb" style="z-index: ${4 - index};">
+        <div class="history-group-thumb" style="z-index: ${maxThumbs - index}; left: ${index * 28}px;">
           ${imgUrl ? `<img src="${imgUrl}" alt="${name}">` : ''}
         </div>
       `;
     }).join('');
 
+    const moreIndicator = extraCount > 0 ? `
+      <div class="history-group-thumb history-group-thumb-more" style="z-index: 0; left: ${maxThumbs * 28}px;">
+        +${extraCount}
+      </div>
+    ` : '';
+
     return `
       <div class="history-group" onclick="RentalsManager.openGroupModal('${group.dateKey}')">
         <div class="history-group-header">
-          <div class="history-group-images">
+          <div class="history-group-images" style="width: ${Math.min(count, maxThumbs + (extraCount > 0 ? 1 : 0)) * 28 + 30}px;">
             ${thumbs}
+            ${moreIndicator}
           </div>
           <div class="history-group-info">
             <div class="history-group-date">returned on ${group.displayDate}</div>
