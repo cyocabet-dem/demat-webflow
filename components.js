@@ -200,8 +200,8 @@
             <path d="M30 30L25 20M90 30L95 20M45 15L50 5M75 15L70 5" stroke="#4b073f" stroke-width="1.5" stroke-linecap="round"/>
           </svg>
         </div>
-        <h2 class="onboarding-title">welcome to the community!</h2>
-        <p class="onboarding-subtitle">you're now subscribed. let's quickly set up your profile for a better experience; you can adjust it later.</p>
+        <h2 class="onboarding-title">welcome to the club!</h2>
+        <p class="onboarding-subtitle">you're now a member of our shared closet. let's quickly set up your profile for a better experience; you can adjust it later.</p>
         <button class="onboarding-btn-primary" onclick="nextOnboardingStep()">continue</button>
         <button class="onboarding-btn-secondary" onclick="skipOnboarding()">i'll do this later</button>
       </div>
@@ -211,7 +211,7 @@
     <div class="onboarding-step" data-step="2">
       <div class="onboarding-content">
         <h2 class="onboarding-title">what's your name?</h2>
-        <p class="onboarding-subtitle">let's get to know each other.</p>
+        <p class="onboarding-subtitle">so we know what to call you</p>
         
         <div class="onboarding-form">
           <div class="onboarding-input-group">
@@ -233,7 +233,7 @@
     <div class="onboarding-step" data-step="3">
       <div class="onboarding-content">
         <h2 class="onboarding-title">contact & address</h2>
-        <p class="onboarding-subtitle">where can we reach you?</p>
+        <p class="onboarding-subtitle">so we know where to reach you</p>
         
         <div class="onboarding-form">
           <div class="onboarding-input-group">
@@ -284,7 +284,7 @@
     <div class="onboarding-step" data-step="4">
       <div class="onboarding-content">
         <h2 class="onboarding-title">your birthday</h2>
-        <p class="onboarding-subtitle">share your birthday if you love surprises!</p>
+        <p class="onboarding-subtitle">so you can receive special treatment</p>
         
         <div class="onboarding-form">
           <div class="onboarding-input-group">
@@ -302,7 +302,7 @@
     <div class="onboarding-step" data-step="5">
       <div class="onboarding-content">
         <h2 class="onboarding-title">your sizes</h2>
-        <p class="onboarding-subtitle">this helps us recommend items that fit you perfectly.</p>
+        <p class="onboarding-subtitle">so we can make sure to have plenty of options that fit you</p>
         
         <div class="onboarding-form">
           <div class="onboarding-form-row">
@@ -347,7 +347,7 @@
     <div class="onboarding-step" data-step="6">
       <div class="onboarding-content">
         <h2 class="onboarding-title">your body type</h2>
-        <p class="onboarding-subtitle">this information helps optimize your experience and support the community; you can change it anytime.</p>
+        <p class="onboarding-subtitle">so we can help you find pieces that make you look good, and feel good</p>
         
         <div class="onboarding-body-types">
           <button class="body-type-option" data-body-type="triangle">
@@ -419,8 +419,8 @@
     <!-- Step 7: How did you hear about us -->
     <div class="onboarding-step" data-step="7">
       <div class="onboarding-content">
-        <h2 class="onboarding-title">how did you hear about dematerialized?</h2>
-        <p class="onboarding-subtitle">we're curious to know what brought you to us.</p>
+        <h2 class="onboarding-title">how did you hear about demat?</h2>
+        <p class="onboarding-subtitle">so we know which of our efforts are actually paying off</p>
         
         <div class="onboarding-checkboxes">
           <label class="checkbox-option">
