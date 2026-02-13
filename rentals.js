@@ -481,6 +481,36 @@ document.addEventListener('DOMContentLoaded', function() {
       if (window.auth0Client) {
         const isAuth = await window.auth0Client.isAuthenticated();
         if (isAuth) {
+          // Check membership status first
+          try {
+            const token = await window.auth0Client.getTokenSilently();
+            const userResponse = await fetch(`${window.API_BASE_URL}/users/me`, {
+              headers: {
+                'Authorization': `Bearer ${token}`,
+                'Accept': 'application/json'
+              }
+            });
+
+            if (userResponse.ok) {
+              const userData = await userResponse.json();
+              
+              if (!userData.stripe_id) {
+                // No membership — show the no-membership state
+                const loadingEl = document.getElementById('rentals-loading');
+                const noMembershipEl = document.getElementById('rentals-no-membership');
+                const contactEl = document.getElementById('rentals-contact');
+                
+                if (loadingEl) loadingEl.style.display = 'none';
+                if (noMembershipEl) noMembershipEl.style.display = 'flex';
+                if (contactEl) contactEl.style.display = 'none';
+                return;
+              }
+            }
+          } catch (err) {
+            console.error('Error checking membership:', err);
+          }
+
+          // Has membership — render rentals as normal
           RentalsManager.renderRentalsPage();
         } else {
           const container = document.getElementById('rentals-container');
