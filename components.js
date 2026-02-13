@@ -166,7 +166,6 @@
 
 <!-- ============================================ -->
 <!-- MULTI-STEP ONBOARDING MODAL -->
-<!-- 8 Steps: Welcome, Name, Contact/Address, Birthday, Sizes, Body Type, Referral, Complete -->
 <!-- ============================================ -->
 <div class="onboarding-modal-overlay" id="onboardingModal">
   <div class="onboarding-modal-container" onclick="event.stopPropagation()">
@@ -445,339 +444,354 @@
 `;
 
   // ===== ONBOARDING MODAL STYLES =====
+  // All properties use !important to override Webflow's CSS
   const onboardingStyles = document.createElement('style');
+  onboardingStyles.id = 'onboarding-injected-styles';
   onboardingStyles.textContent = `
     /* ===== OVERLAY ===== */
-    .onboarding-modal-overlay {
-      display: none;
-      position: fixed;
-      top: 0; left: 0; right: 0; bottom: 0;
-      background: rgba(0, 0, 0, 0.5);
-      z-index: 10000;
-      justify-content: center;
-      align-items: center;
-      padding: 20px;
-      backdrop-filter: blur(4px);
+    #onboardingModal.onboarding-modal-overlay {
+      display: none !important;
+      position: fixed !important;
+      top: 0 !important;
+      left: 0 !important;
+      right: 0 !important;
+      bottom: 0 !important;
+      width: 100% !important;
+      height: 100% !important;
+      background: rgba(0, 0, 0, 0.5) !important;
+      z-index: 10000 !important;
+      justify-content: center !important;
+      align-items: center !important;
+      padding: 20px !important;
+      backdrop-filter: blur(4px) !important;
+      margin: 0 !important;
+      border: none !important;
+      box-sizing: border-box !important;
     }
-    .onboarding-modal-overlay.is-visible {
-      display: flex;
+    #onboardingModal.onboarding-modal-overlay.is-visible {
+      display: flex !important;
     }
     body.onboarding-modal-open {
-      overflow: hidden;
+      overflow: hidden !important;
     }
 
     /* ===== CONTAINER ===== */
-    .onboarding-modal-container {
-      background: #fff;
-      border-radius: 16px;
-      width: 100%;
-      max-width: 580px;
-      max-height: 90vh;
-      overflow-y: auto;
-      padding: 32px;
-      position: relative;
-      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15);
-      font-family: 'Urbanist', sans-serif;
+    #onboardingModal .onboarding-modal-container {
+      background: #fff !important;
+      border-radius: 16px !important;
+      width: 100% !important;
+      max-width: 580px !important;
+      max-height: 90vh !important;
+      overflow-y: auto !important;
+      padding: 32px !important;
+      position: relative !important;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15) !important;
+      font-family: 'Urbanist', sans-serif !important;
+      margin: 0 auto !important;
+      box-sizing: border-box !important;
     }
 
     /* ===== PROGRESS BAR ===== */
-    .onboarding-progress {
-      display: flex;
-      gap: 16px;
-      margin-bottom: 32px;
+    #onboardingModal .onboarding-progress {
+      display: flex !important;
+      gap: 16px !important;
+      margin-bottom: 32px !important;
+      padding: 0 !important;
     }
-    .onboarding-progress-step {
-      flex: 1;
-      text-align: center;
+    #onboardingModal .onboarding-progress-step {
+      flex: 1 !important;
+      text-align: center !important;
     }
-    .onboarding-progress-label {
-      display: block;
-      font-size: 14px;
-      font-weight: 500;
-      color: #999;
-      margin-bottom: 8px;
-      text-transform: lowercase;
+    #onboardingModal .onboarding-progress-label {
+      display: block !important;
+      font-size: 14px !important;
+      font-weight: 500 !important;
+      color: #999 !important;
+      margin-bottom: 8px !important;
+      text-transform: lowercase !important;
+      font-family: 'Urbanist', sans-serif !important;
     }
-    .onboarding-progress-bar {
-      height: 3px;
-      background: #e0e0e0;
-      border-radius: 2px;
+    #onboardingModal .onboarding-progress-bar {
+      height: 3px !important;
+      background: #e0e0e0 !important;
+      border-radius: 2px !important;
     }
-    .onboarding-progress-step.active .onboarding-progress-label {
-      color: #3d0c2e;
-      font-weight: 700;
+    #onboardingModal .onboarding-progress-step.active .onboarding-progress-label {
+      color: #3d0c2e !important;
+      font-weight: 700 !important;
     }
-    .onboarding-progress-step.active .onboarding-progress-bar {
-      background: #3d0c2e;
+    #onboardingModal .onboarding-progress-step.active .onboarding-progress-bar {
+      background: #3d0c2e !important;
     }
-    .onboarding-progress-step.completed .onboarding-progress-label {
-      color: #6b2a5b;
+    #onboardingModal .onboarding-progress-step.completed .onboarding-progress-label {
+      color: #6b2a5b !important;
     }
-    .onboarding-progress-step.completed .onboarding-progress-bar {
-      background: #6b2a5b;
+    #onboardingModal .onboarding-progress-step.completed .onboarding-progress-bar {
+      background: #6b2a5b !important;
     }
 
     /* ===== STEPS ===== */
-    .onboarding-step {
-      display: none;
+    #onboardingModal .onboarding-step {
+      display: none !important;
     }
-    .onboarding-step.active {
-      display: block;
+    #onboardingModal .onboarding-step.active {
+      display: block !important;
     }
-    .onboarding-step-content {
-      min-height: 300px;
-      display: flex;
-      flex-direction: column;
+    #onboardingModal .onboarding-step-content {
+      min-height: 300px !important;
+      display: flex !important;
+      flex-direction: column !important;
     }
-    .onboarding-step-content.onboarding-center {
-      align-items: center;
-      text-align: center;
-      justify-content: center;
+    #onboardingModal .onboarding-step-content.onboarding-center {
+      align-items: center !important;
+      text-align: center !important;
+      justify-content: center !important;
     }
 
     /* ===== TYPOGRAPHY ===== */
-    .onboarding-title {
-      font-family: 'Urbanist', sans-serif;
-      font-size: 24px;
-      font-weight: 700;
-      color: #1a1a1a;
-      margin: 0 0 8px 0;
-      text-transform: lowercase;
+    #onboardingModal .onboarding-title {
+      font-family: 'Urbanist', sans-serif !important;
+      font-size: 24px !important;
+      font-weight: 700 !important;
+      color: #1a1a1a !important;
+      margin: 0 0 8px 0 !important;
+      text-transform: lowercase !important;
     }
-    .onboarding-subtitle {
-      font-family: 'Urbanist', sans-serif;
-      font-size: 15px;
-      color: #666;
-      margin: 0 0 28px 0;
-      line-height: 1.5;
+    #onboardingModal .onboarding-subtitle {
+      font-family: 'Urbanist', sans-serif !important;
+      font-size: 15px !important;
+      color: #666 !important;
+      margin: 0 0 28px 0 !important;
+      line-height: 1.5 !important;
     }
 
     /* ===== WELCOME ICON ===== */
-    .onboarding-welcome-icon {
-      margin-bottom: 24px;
+    #onboardingModal .onboarding-welcome-icon {
+      margin-bottom: 24px !important;
     }
 
     /* ===== BUTTONS ===== */
-    .onboarding-btn-primary {
-      font-family: 'Urbanist', sans-serif;
-      background: #3d0c2e;
-      color: #fff;
-      border: none;
-      border-radius: 50px;
-      padding: 14px 40px;
-      font-size: 16px;
-      font-weight: 600;
-      cursor: pointer;
-      width: 100%;
-      max-width: 300px;
-      text-transform: lowercase;
-      transition: background 0.2s;
+    #onboardingModal .onboarding-btn-primary {
+      font-family: 'Urbanist', sans-serif !important;
+      background: #3d0c2e !important;
+      color: #fff !important;
+      border: none !important;
+      border-radius: 50px !important;
+      padding: 14px 40px !important;
+      font-size: 16px !important;
+      font-weight: 600 !important;
+      cursor: pointer !important;
+      width: 100% !important;
+      max-width: 300px !important;
+      text-transform: lowercase !important;
+      transition: background 0.2s !important;
+      text-align: center !important;
     }
-    .onboarding-btn-primary:hover {
-      background: #2a081f;
+    #onboardingModal .onboarding-btn-primary:hover {
+      background: #2a081f !important;
     }
-    .onboarding-btn-primary.loading {
-      opacity: 0.7;
-      pointer-events: none;
+    #onboardingModal .onboarding-btn-primary.loading {
+      opacity: 0.7 !important;
+      pointer-events: none !important;
     }
-    .onboarding-btn-back {
-      font-family: 'Urbanist', sans-serif;
-      background: none;
-      border: 1.5px solid #ddd;
-      border-radius: 50px;
-      padding: 14px 28px;
-      font-size: 15px;
-      font-weight: 500;
-      cursor: pointer;
-      color: #333;
-      text-transform: lowercase;
-      transition: border-color 0.2s;
+    #onboardingModal .onboarding-btn-back {
+      font-family: 'Urbanist', sans-serif !important;
+      background: none !important;
+      border: 1.5px solid #ddd !important;
+      border-radius: 50px !important;
+      padding: 14px 28px !important;
+      font-size: 15px !important;
+      font-weight: 500 !important;
+      cursor: pointer !important;
+      color: #333 !important;
+      text-transform: lowercase !important;
+      transition: border-color 0.2s !important;
     }
-    .onboarding-btn-back:hover {
-      border-color: #999;
+    #onboardingModal .onboarding-btn-back:hover {
+      border-color: #999 !important;
     }
-    .onboarding-btn-skip {
-      font-family: 'Urbanist', sans-serif;
-      background: none;
-      border: none;
-      color: #999;
-      font-size: 14px;
-      cursor: pointer;
-      margin-top: 16px;
-      padding: 8px;
-      text-transform: lowercase;
-      text-decoration: underline;
-      text-underline-offset: 3px;
+    #onboardingModal .onboarding-btn-skip {
+      font-family: 'Urbanist', sans-serif !important;
+      background: none !important;
+      border: none !important;
+      color: #999 !important;
+      font-size: 14px !important;
+      cursor: pointer !important;
+      margin-top: 16px !important;
+      padding: 8px !important;
+      text-transform: lowercase !important;
+      text-decoration: underline !important;
+      text-underline-offset: 3px !important;
     }
-    .onboarding-btn-skip:hover {
-      color: #666;
+    #onboardingModal .onboarding-btn-skip:hover {
+      color: #666 !important;
     }
-    .onboarding-nav {
-      display: flex;
-      gap: 12px;
-      margin-top: 24px;
+    #onboardingModal .onboarding-nav {
+      display: flex !important;
+      gap: 12px !important;
+      margin-top: 24px !important;
     }
-    .onboarding-nav .onboarding-btn-primary {
-      flex: 1;
-      max-width: none;
+    #onboardingModal .onboarding-nav .onboarding-btn-primary {
+      flex: 1 !important;
+      max-width: none !important;
     }
 
     /* ===== FORM INPUTS ===== */
-    .onboarding-form {
-      display: flex;
-      flex-direction: column;
-      gap: 16px;
-      margin-bottom: 8px;
+    #onboardingModal .onboarding-form {
+      display: flex !important;
+      flex-direction: column !important;
+      gap: 16px !important;
+      margin-bottom: 8px !important;
     }
-    .onboarding-input-group {
-      display: flex;
-      flex-direction: column;
-      gap: 4px;
+    #onboardingModal .onboarding-input-group {
+      display: flex !important;
+      flex-direction: column !important;
+      gap: 4px !important;
     }
-    .onboarding-label {
-      font-family: 'Urbanist', sans-serif;
-      font-size: 13px;
-      font-weight: 600;
-      color: #555;
-      text-transform: lowercase;
+    #onboardingModal .onboarding-label {
+      font-family: 'Urbanist', sans-serif !important;
+      font-size: 13px !important;
+      font-weight: 600 !important;
+      color: #555 !important;
+      text-transform: lowercase !important;
     }
-    .onboarding-input {
-      font-family: 'Urbanist', sans-serif;
-      border: 1.5px solid #ddd;
-      border-radius: 10px;
-      padding: 12px 14px;
-      font-size: 15px;
-      color: #1a1a1a;
-      background: #fafafa;
-      outline: none;
-      transition: border-color 0.2s;
-      width: 100%;
-      box-sizing: border-box;
+    #onboardingModal .onboarding-input {
+      font-family: 'Urbanist', sans-serif !important;
+      border: 1.5px solid #ddd !important;
+      border-radius: 10px !important;
+      padding: 12px 14px !important;
+      font-size: 15px !important;
+      color: #1a1a1a !important;
+      background: #fafafa !important;
+      outline: none !important;
+      transition: border-color 0.2s !important;
+      width: 100% !important;
+      box-sizing: border-box !important;
     }
-    .onboarding-input:focus {
-      border-color: #6b2a5b;
-      background: #fff;
+    #onboardingModal .onboarding-input:focus {
+      border-color: #6b2a5b !important;
+      background: #fff !important;
     }
-    .onboarding-input::placeholder {
-      color: #bbb;
+    #onboardingModal .onboarding-input::placeholder {
+      color: #bbb !important;
     }
-    .onboarding-input-row {
-      display: flex;
-      gap: 12px;
+    #onboardingModal .onboarding-input-row {
+      display: flex !important;
+      gap: 12px !important;
     }
 
     /* ===== ADDRESS SUGGESTIONS ===== */
-    .onboarding-address-suggestions {
-      display: none;
-      position: absolute;
-      top: 100%;
-      left: 0;
-      right: 0;
-      background: #fff;
-      border: 1.5px solid #ddd;
-      border-radius: 10px;
-      margin-top: 4px;
-      z-index: 10;
-      max-height: 200px;
-      overflow-y: auto;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    #onboardingModal .onboarding-address-suggestions {
+      display: none !important;
+      position: absolute !important;
+      top: 100% !important;
+      left: 0 !important;
+      right: 0 !important;
+      background: #fff !important;
+      border: 1.5px solid #ddd !important;
+      border-radius: 10px !important;
+      margin-top: 4px !important;
+      z-index: 10 !important;
+      max-height: 200px !important;
+      overflow-y: auto !important;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.1) !important;
     }
-    .onboarding-address-suggestions.active {
-      display: block;
+    #onboardingModal .onboarding-address-suggestions.active {
+      display: block !important;
     }
-    .address-suggestion {
-      padding: 10px 14px;
-      font-size: 14px;
-      cursor: pointer;
-      font-family: 'Urbanist', sans-serif;
-      color: #333;
+    #onboardingModal .address-suggestion {
+      padding: 10px 14px !important;
+      font-size: 14px !important;
+      cursor: pointer !important;
+      font-family: 'Urbanist', sans-serif !important;
+      color: #333 !important;
     }
-    .address-suggestion:hover {
-      background: #f5f0f4;
+    #onboardingModal .address-suggestion:hover {
+      background: #f5f0f4 !important;
     }
 
     /* ===== BODY TYPE OPTIONS ===== */
-    .onboarding-body-types {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 12px;
-      justify-content: center;
-      margin-bottom: 8px;
+    #onboardingModal .onboarding-body-types {
+      display: flex !important;
+      flex-wrap: wrap !important;
+      gap: 12px !important;
+      justify-content: center !important;
+      margin-bottom: 8px !important;
     }
-    .body-type-option {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 8px;
-      padding: 16px 14px;
-      border: 1.5px solid #ddd;
-      border-radius: 12px;
-      background: #fafafa;
-      cursor: pointer;
-      font-family: 'Urbanist', sans-serif;
-      font-size: 13px;
-      color: #555;
-      text-transform: lowercase;
-      transition: all 0.2s;
-      min-width: 80px;
+    #onboardingModal .body-type-option {
+      display: flex !important;
+      flex-direction: column !important;
+      align-items: center !important;
+      gap: 8px !important;
+      padding: 16px 14px !important;
+      border: 1.5px solid #ddd !important;
+      border-radius: 12px !important;
+      background: #fafafa !important;
+      cursor: pointer !important;
+      font-family: 'Urbanist', sans-serif !important;
+      font-size: 13px !important;
+      color: #555 !important;
+      text-transform: lowercase !important;
+      transition: all 0.2s !important;
+      min-width: 80px !important;
     }
-    .body-type-option:hover {
-      border-color: #6b2a5b;
+    #onboardingModal .body-type-option:hover {
+      border-color: #6b2a5b !important;
     }
-    .body-type-option.selected {
-      border-color: #3d0c2e;
-      background: #f5f0f4;
-      color: #3d0c2e;
-      font-weight: 600;
+    #onboardingModal .body-type-option.selected {
+      border-color: #3d0c2e !important;
+      background: #f5f0f4 !important;
+      color: #3d0c2e !important;
+      font-weight: 600 !important;
     }
 
     /* ===== CHECKBOX OPTIONS ===== */
-    .checkbox-option {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      padding: 10px 14px;
-      border: 1.5px solid #eee;
-      border-radius: 10px;
-      cursor: pointer;
-      font-family: 'Urbanist', sans-serif;
-      font-size: 15px;
-      color: #333;
-      text-transform: lowercase;
-      transition: all 0.2s;
+    #onboardingModal .checkbox-option {
+      display: flex !important;
+      align-items: center !important;
+      gap: 10px !important;
+      padding: 10px 14px !important;
+      border: 1.5px solid #eee !important;
+      border-radius: 10px !important;
+      cursor: pointer !important;
+      font-family: 'Urbanist', sans-serif !important;
+      font-size: 15px !important;
+      color: #333 !important;
+      text-transform: lowercase !important;
+      transition: all 0.2s !important;
     }
-    .checkbox-option:hover {
-      border-color: #6b2a5b;
-      background: #faf7f9;
+    #onboardingModal .checkbox-option:hover {
+      border-color: #6b2a5b !important;
+      background: #faf7f9 !important;
     }
-    .checkbox-option input[type="checkbox"] {
-      accent-color: #3d0c2e;
-      width: 18px;
-      height: 18px;
+    #onboardingModal .checkbox-option input[type="checkbox"] {
+      accent-color: #3d0c2e !important;
+      width: 18px !important;
+      height: 18px !important;
     }
 
     /* ===== MOBILE ===== */
     @media (max-width: 600px) {
-      .onboarding-modal-container {
-        padding: 24px 20px;
-        max-height: 95vh;
-        border-radius: 12px;
+      #onboardingModal .onboarding-modal-container {
+        padding: 24px 20px !important;
+        max-height: 95vh !important;
+        border-radius: 12px !important;
       }
-      .onboarding-title {
-        font-size: 20px;
+      #onboardingModal .onboarding-title {
+        font-size: 20px !important;
       }
-      .onboarding-input-row {
-        flex-direction: column;
+      #onboardingModal .onboarding-input-row {
+        flex-direction: column !important;
       }
-      .onboarding-body-types {
-        gap: 8px;
+      #onboardingModal .onboarding-body-types {
+        gap: 8px !important;
       }
-      .body-type-option {
-        min-width: 70px;
-        padding: 12px 10px;
+      #onboardingModal .body-type-option {
+        min-width: 70px !important;
+        padding: 12px 10px !important;
       }
-      .onboarding-progress-label {
-        font-size: 12px;
+      #onboardingModal .onboarding-progress-label {
+        font-size: 12px !important;
       }
     }
   `;
