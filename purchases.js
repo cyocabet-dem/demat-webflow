@@ -255,7 +255,6 @@ window.PurchasesManager = {
 
 // Initialize on page load
 function initPurchasesPage() {
-  // Check if we're on the purchases page
   if (!document.getElementById('purchases-container')) {
     console.log('🛍️ Not on purchases page, skipping init');
     return;
@@ -264,7 +263,6 @@ function initPurchasesPage() {
   console.log('🛍️ Purchases page detected, initializing...');
 
   const initPurchases = async () => {
-    // Wait for Auth0 to be ready
     let attempts = 0;
     while (!window.auth0Client && attempts < 50) {
       await new Promise(resolve => setTimeout(resolve, 100));
@@ -277,6 +275,36 @@ function initPurchasesPage() {
         const isAuth = await window.auth0Client.isAuthenticated();
         console.log('🛍️ Is authenticated:', isAuth);
         if (isAuth) {
+          // Check membership status first
+          try {
+            const token = await window.auth0Client.getTokenSilently();
+            const apiBase = PurchasesManager.getApiBase();
+            const userResponse = await fetch(`${apiBase}/users/me`, {
+              headers: {
+                'Authorization': `Bearer ${token}`,
+                'Accept': 'application/json'
+              }
+            });
+
+            if (userResponse.ok) {
+              const userData = await userResponse.json();
+              
+              if (!userData.stripe_id) {
+                const loadingEl = document.getElementById('purchases-loading');
+                const noMembershipEl = document.getElementById('purchases-no-membership');
+                const contactEl = document.getElementById('purchases-contact');
+                
+                if (loadingEl) loadingEl.style.display = 'none';
+                if (noMembershipEl) noMembershipEl.style.display = 'flex';
+                if (contactEl) contactEl.style.display = 'none';
+                return;
+              }
+            }
+          } catch (err) {
+            console.error('Error checking membership:', err);
+          }
+
+          // Has membership — render purchases
           await PurchasesManager.renderPurchasesPage();
         } else {
           const loadingEl = document.getElementById('purchases-loading');
@@ -303,10 +331,8 @@ function initPurchasesPage() {
   initPurchases();
 }
 
-// Run init - handle both cases: DOM already loaded or not yet
 if (document.readyState === 'loading') {
   document.addEventListener('DOMContentLoaded', initPurchasesPage);
 } else {
-  // DOM already loaded, run immediately
   initPurchasesPage();
 }
