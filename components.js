@@ -783,6 +783,13 @@
   `;
   document.head.appendChild(onboardingStyles);
 
+  // Remove any existing Webflow onboarding modal (prevents duplicate/conflict)
+  const existingOnboarding = document.getElementById('onboardingModal');
+  if (existingOnboarding) {
+    console.log('🗑️ Removing existing Webflow onboarding modal to prevent conflict');
+    existingOnboarding.remove();
+  }
+
   // Inject into body
   document.body.insertAdjacentHTML('beforeend', componentsHTML);
   console.log('✅ Components injected');
