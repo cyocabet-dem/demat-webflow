@@ -463,6 +463,33 @@ document.addEventListener('click', function(e) {
       if (window.auth0Client) {
         const isAuth = await window.auth0Client.isAuthenticated();
         if (isAuth) {
+          // Check membership status first
+          try {
+            const token = await window.auth0Client.getTokenSilently();
+            const userResponse = await fetch(`${DonationsManager.API_BASE}/users/me`, {
+              headers: {
+                'Authorization': `Bearer ${token}`,
+                'Accept': 'application/json'
+              }
+            });
+
+            if (userResponse.ok) {
+              const userData = await userResponse.json();
+              
+              if (!userData.stripe_id) {
+                const loadingEl = document.getElementById('donations-loading');
+                const noMembershipEl = document.getElementById('donations-no-membership');
+                
+                if (loadingEl) loadingEl.style.display = 'none';
+                if (noMembershipEl) noMembershipEl.style.display = 'flex';
+                return;
+              }
+            }
+          } catch (err) {
+            console.error('Error checking membership:', err);
+          }
+
+          // Has membership — render donations
           DonationsManager.renderDonationsPage();
         } else {
           const container = document.getElementById('donations-container');
