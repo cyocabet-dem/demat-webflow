@@ -93,11 +93,12 @@ document.addEventListener('DOMContentLoaded', function() {
       // Store user data globally for easy access
       window.currentUserData = userData;
       
-      const hasCompletedProfile = userData.provided_information;
-      const modalDismissed = sessionStorage.getItem('onboarding_modal_dismissed') === 'true';
-      
-      // Show onboarding modal if profile not completed and not dismissed
-      if (!hasCompletedProfile && !modalDismissed) {
+   const hasActiveMembership = !!userData.stripe_id;
+const hasCompletedProfile = userData.provided_information;
+const modalDismissed = sessionStorage.getItem('onboarding_modal_dismissed') === 'true';
+
+// Only show onboarding modal if user HAS a membership but hasn't completed profile
+if (hasActiveMembership && !hasCompletedProfile && !modalDismissed) {
         console.log('⚠️ User has not completed their profile - showing onboarding modal');
         setTimeout(function() { showOnboardingModal(); }, 500);
       }
