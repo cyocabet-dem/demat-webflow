@@ -43,7 +43,7 @@ document.addEventListener('DOMContentLoaded', function() {
         // Clean up URL and redirect to return path
         window.history.replaceState({}, document.title, returnPath);
         
-        // After successful login, check user status
+        // After successful login, check user status and redirect if needed
         await checkUserStatusAndRedirect();
       }
       
@@ -56,7 +56,7 @@ document.addEventListener('DOMContentLoaded', function() {
         const user = await window.auth0Client.getUser();
         displayUserInfo(user);
         
-        // Check user status on page load if already authenticated
+        // Check user status on page load (for onboarding modal only - no redirects)
         await checkUserStatus();
       }
     } catch (error) {
@@ -65,17 +65,16 @@ document.addEventListener('DOMContentLoaded', function() {
   }
 
   // ============================================
-  // CHECK USER STATUS (on page load, already authenticated)
-  // Flow:
-  //   1. No stripe_id → redirect to /memberships
-  //   2. Has stripe_id + incomplete profile + not dismissed → show onboarding modal
-  //   3. Otherwise → do nothing
+  // CHECK USER STATUS (on every page load, already authenticated)
+  // This ONLY handles showing the onboarding modal.
+  // It does NOT redirect — that's handled by checkUserStatusAndRedirect().
   // ============================================
   async function checkUserStatus() {
     try {
-      const skipPages = ['/onboarding', '/complete-your-profile', '/profile', '/memberships', '/welcome-to-dematerialized', '/error-membership-signup'];
+      // Pages where we don't show the onboarding modal
+      const skipPages = ['/onboarding', '/complete-your-profile', '/profile', '/memberships', '/error-membership-signup'];
       if (skipPages.includes(window.location.pathname)) {
-        console.log('⏭️ On excluded page, skipping status check');
+        console.log('⏭️ On excluded page, skipping onboarding check');
         return;
       }
 
@@ -101,14 +100,10 @@ document.addEventListener('DOMContentLoaded', function() {
       
       console.log('📋 User status:', { hasActiveMembership, hasCompletedProfile, modalDismissed });
       
-      // No membership → redirect to /memberships
-      if (!hasActiveMembership) {
-        console.log('⚠️ No membership - redirecting to /memberships');
-        window.location.href = '/memberships';
-        return;
-      }
-      
-      // Has membership + incomplete profile + not dismissed → show onboarding modal
+      // Only show onboarding modal if:
+      // 1. Has membership (stripe_id exists)
+      // 2. Profile not completed
+      // 3. Modal not dismissed this session
       if (hasActiveMembership && !hasCompletedProfile && !modalDismissed) {
         console.log('⚠️ Has membership but incomplete profile - showing onboarding modal');
         setTimeout(() => { showOnboardingModal(); }, 500);
@@ -123,10 +118,9 @@ document.addEventListener('DOMContentLoaded', function() {
   }
 
   // ============================================
-  // CHECK USER STATUS AFTER LOGIN (redirect callback)
-  // Flow:
-  //   1. No stripe_id → redirect to /memberships
-  //   2. Has stripe_id → stay on current page (modal handled by checkUserStatus)
+  // CHECK USER STATUS AFTER LOGIN (redirect callback only)
+  // This runs ONCE after Auth0 login redirect.
+  // If no membership → redirect to /memberships (one time only)
   // ============================================
   async function checkUserStatusAndRedirect() {
     try {
@@ -149,7 +143,7 @@ document.addEventListener('DOMContentLoaded', function() {
       
       const hasActiveMembership = !!userData.stripe_id;
       
-      // No membership → send to /memberships to pick a plan
+      // No membership → send to /memberships to pick a plan (one-time redirect)
       if (!hasActiveMembership) {
         console.log('🚀 No membership - redirecting to /memberships');
         window.location.href = '/memberships';
