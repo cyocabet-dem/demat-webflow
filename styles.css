@@ -2577,22 +2577,22 @@ body.onboarding-modal-open {
 
 .reservation-badge-pending {
   background: #fff4fe;
-  color: #4b073f;
+  color: #24282d;
 }
 
 .reservation-badge-ready {
-  background: #eff9ff;
-  color: #008ad4;
+  background: ##f9aef3;
+  color: #24282d;
 }
 
 .reservation-badge-completed {
-  background: #f6f8f9;
-  color: #46535e;
+  background: ##b6e8ff;
+  color: #24282d;
 }
 
 .reservation-badge-cancelled {
   background: #f6f8f9;
-  color: #46535e;
+  color: #24282d;
 }
 
 .reservation-badge-expired {
