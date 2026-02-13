@@ -300,9 +300,25 @@ window.RentalsManager = {
 
 renderHistoryGroup(group) {
     const count = group.rentals.length;
-    const itemLabel = count === 1 ? '1 item' : `${count} items`;
     const maxThumbs = 3;
     const extraCount = count - maxThumbs;
+
+    const purchasedCount = group.rentals.filter(r => 
+      r.clothing_item?.status?.toLowerCase() === 'sold'
+    ).length;
+    const returnedCount = count - purchasedCount;
+
+    // Build the date label
+    let dateLabel;
+    if (purchasedCount === count) {
+      dateLabel = `purchased on ${group.displayDate}`;
+    } else if (returnedCount === count) {
+      dateLabel = `returned on ${group.displayDate}`;
+    } else {
+      dateLabel = `${returnedCount} returned & ${purchasedCount} purchased on ${group.displayDate}`;
+    }
+
+    const itemLabel = count === 1 ? '1 item' : `${count} items`;
 
     const thumbs = group.rentals.slice(0, maxThumbs).map((r, index) => {
       const imgUrl = this.getItemImage(r);
@@ -330,7 +346,7 @@ renderHistoryGroup(group) {
             ${moreIndicator}
           </div>
           <div class="history-group-info">
-            <div class="history-group-date">returned on ${group.displayDate}</div>
+            <div class="history-group-date">${dateLabel}</div>
             <div class="history-group-count">${itemLabel}</div>
           </div>
           <div class="history-group-arrow">
@@ -366,11 +382,22 @@ renderHistoryGroup(group) {
       return;
     }
 
-    // Update modal title
+// Update modal title
     if (modalTitle) {
-      modalTitle.textContent = rentals.length === 1 
-        ? 'rental details' 
-        : `${rentals.length} items returned`;
+      const purchasedCount = rentals.filter(r => 
+        r.clothing_item?.status?.toLowerCase() === 'sold'
+      ).length;
+      const returnedCount = rentals.length - purchasedCount;
+
+      if (purchasedCount === rentals.length) {
+        modalTitle.textContent = `${rentals.length} item${rentals.length !== 1 ? 's' : ''} purchased`;
+      } else if (returnedCount === rentals.length) {
+        modalTitle.textContent = rentals.length === 1 
+          ? 'rental details' 
+          : `${rentals.length} items returned`;
+      } else {
+        modalTitle.textContent = `${returnedCount} returned & ${purchasedCount} purchased`;
+      }
     }
 
     // Render items in modal
