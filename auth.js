@@ -43,7 +43,7 @@ document.addEventListener('DOMContentLoaded', function() {
         // Clean up URL and redirect to return path
         window.history.replaceState({}, document.title, returnPath);
         
-        // After successful login, check user status and redirect if needed
+        // After successful login, check user status and redirect if needed (ONE TIME)
         await checkUserStatusAndRedirect();
       }
       
@@ -56,7 +56,7 @@ document.addEventListener('DOMContentLoaded', function() {
         const user = await window.auth0Client.getUser();
         displayUserInfo(user);
         
-        // Check user status on page load (for onboarding modal only - no redirects)
+        // Check user status on page load (for onboarding modal only - NO redirects)
         await checkUserStatus();
       }
     } catch (error) {
@@ -65,13 +65,12 @@ document.addEventListener('DOMContentLoaded', function() {
   }
 
   // ============================================
-  // CHECK USER STATUS (on every page load, already authenticated)
-  // This ONLY handles showing the onboarding modal.
-  // It does NOT redirect — that's handled by checkUserStatusAndRedirect().
+  // CHECK USER STATUS (every page load, already authenticated)
+  // Only shows onboarding modal. No redirects.
   // ============================================
   async function checkUserStatus() {
     try {
-      // Pages where we don't show the onboarding modal
+      // Pages where we skip the onboarding modal
       const skipPages = ['/onboarding', '/complete-your-profile', '/profile', '/memberships', '/error-membership-signup'];
       if (skipPages.includes(window.location.pathname)) {
         console.log('⏭️ On excluded page, skipping onboarding check');
@@ -100,13 +99,13 @@ document.addEventListener('DOMContentLoaded', function() {
       
       console.log('📋 User status:', { hasActiveMembership, hasCompletedProfile, modalDismissed });
       
-      // Only show onboarding modal if:
+      // Show onboarding modal if:
       // 1. Has membership (stripe_id exists)
       // 2. Profile not completed
       // 3. Modal not dismissed this session
       if (hasActiveMembership && !hasCompletedProfile && !modalDismissed) {
         console.log('⚠️ Has membership but incomplete profile - showing onboarding modal');
-        setTimeout(() => { showOnboardingModal(); }, 500);
+        setTimeout(function() { showOnboardingModal(); }, 500);
       }
       
       // Update display with first name
@@ -118,9 +117,8 @@ document.addEventListener('DOMContentLoaded', function() {
   }
 
   // ============================================
-  // CHECK USER STATUS AFTER LOGIN (redirect callback only)
-  // This runs ONCE after Auth0 login redirect.
-  // If no membership → redirect to /memberships (one time only)
+  // CHECK USER STATUS AFTER LOGIN (runs ONCE after Auth0 callback)
+  // No membership → redirect to /memberships
   // ============================================
   async function checkUserStatusAndRedirect() {
     try {
@@ -143,14 +141,12 @@ document.addEventListener('DOMContentLoaded', function() {
       
       const hasActiveMembership = !!userData.stripe_id;
       
-      // No membership → send to /memberships to pick a plan (one-time redirect)
       if (!hasActiveMembership) {
         console.log('🚀 No membership - redirecting to /memberships');
         window.location.href = '/memberships';
         return;
       }
       
-      // Has membership → stay on current page
       console.log('✅ User has membership, staying on current page');
       
       // Update display with first name
@@ -173,13 +169,13 @@ document.addEventListener('DOMContentLoaded', function() {
     const loggedInElements = document.querySelectorAll('[data-auth="logged-in"]');
     const loggedOutElements = document.querySelectorAll('[data-auth="logged-out"]');
     
-    loggedInElements.forEach(el => {
-      el.style.display = isAuthenticated ? 'block' : 'none';
-    });
-    
-    loggedOutElements.forEach(el => {
-      el.style.display = !isAuthenticated ? 'block' : 'none';
-    });
+     loggedInElements.forEach(el => {
+    el.style.display = isAuthenticated ? 'block' : 'none';
+  });
+  
+  loggedOutElements.forEach(el => {
+    el.style.display = !isAuthenticated ? 'block' : 'none';
+  });
   }
 
   // Display user info
@@ -226,10 +222,7 @@ document.addEventListener('DOMContentLoaded', function() {
   // Logout
   async function logout() {
     if (!window.auth0Client) return;
-    
-    // Clear onboarding dismissal on logout
     sessionStorage.removeItem('onboarding_modal_dismissed');
-    
     await window.auth0Client.logout({
       logoutParams: {
         returnTo: window.location.origin + '/'
