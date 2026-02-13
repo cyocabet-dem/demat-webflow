@@ -3510,8 +3510,8 @@ select.profile-form-input {
 
 /* ── Empty State ─────────────────────────── */
 .membership-redesigned .membership-empty {
-  background: #fff4fe;
-  border: 1px solid #e8c4e3;
+  background: #eff9ff;
+  border: 1px solid #b8e4ff;
   border-radius: 20px;
   padding: 60px 32px;
   text-align: center;
@@ -3521,7 +3521,7 @@ select.profile-form-input {
   width: 64px;
   height: 64px;
   margin: 0 auto 20px;
-  color: #4b073f;
+  color: #04314d;
   opacity: 0.5;
 }
 
@@ -3547,7 +3547,7 @@ select.profile-form-input {
 .membership-redesigned .membership-cta-btn {
   display: inline-block;
   padding: 16px 40px;
-  background: #4b073f;
+  background: #04314d;
   color: #fff;
   text-align: center;
   font-family: 'Urbanist', sans-serif;
@@ -3561,7 +3561,7 @@ select.profile-form-input {
 }
 
 .membership-redesigned .membership-cta-btn:hover {
-  background: #a92296;
+  background: #032640;
   transform: translateY(-1px);
   color: #fff;
   text-decoration: none;
