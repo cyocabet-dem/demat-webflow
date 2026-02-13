@@ -106,7 +106,7 @@ window.DonationsManager = {
         <div class="donations-balance-amount">${this.formatCredits(balance)}</div>
         <div class="donations-balance-desc">
           earn credits by donating your pre-loved clothing.<br>
-          use credits towards eligible purchases in store (online coming soon).
+          use credits towards eligible purchases in store and online.
         </div>
       </div>
     `;
