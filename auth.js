@@ -93,19 +93,12 @@ document.addEventListener('DOMContentLoaded', function() {
       // Store user data globally for easy access
       window.currentUserData = userData;
       
-      const hasActiveMembership = !!userData.stripe_id;
       const hasCompletedProfile = userData.provided_information;
       const modalDismissed = sessionStorage.getItem('onboarding_modal_dismissed') === 'true';
       
-      console.log('📋 User status:', { hasActiveMembership, hasCompletedProfile, modalDismissed });
-      
-      // Show onboarding modal if:
-      // 1. Has membership (stripe_id exists) OR is on welcome page (just came from Stripe, webhook may not have processed yet)
-      // 2. Profile not completed
-      // 3. Modal not dismissed this session
-      const isWelcomePage = window.location.pathname === '/welcome-to-dematerialized';
-      if ((hasActiveMembership || isWelcomePage) && !hasCompletedProfile && !modalDismissed) {
-        console.log('⚠️ Has membership but incomplete profile - showing onboarding modal');
+      // Show onboarding modal if profile not completed and not dismissed
+      if (!hasCompletedProfile && !modalDismissed) {
+        console.log('⚠️ User has not completed their profile - showing onboarding modal');
         setTimeout(function() { showOnboardingModal(); }, 500);
       }
       
