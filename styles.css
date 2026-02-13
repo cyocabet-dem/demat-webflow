@@ -2697,6 +2697,65 @@ body.onboarding-modal-open {
   transform: translateY(-1px);
 }
 
+/* No Membership State - Reservations */
+.reservations-no-membership {
+  display: none;
+  flex-direction: column;
+  align-items: center;
+  background: #eff9ff;
+  border: 1px solid #b8e4ff;
+  border-radius: 20px;
+  padding: 60px 32px;
+  text-align: center;
+}
+
+.reservations-no-membership-icon {
+  width: 64px;
+  height: 64px;
+  margin: 0 auto 20px;
+  color: #04314d;
+  opacity: 0.5;
+}
+
+.reservations-no-membership-title {
+  font-size: 22px;
+  font-weight: 600;
+  color: #24282d;
+  margin: 0 0 8px 0;
+}
+
+.reservations-no-membership-text {
+  color: #46535e;
+  font-size: 16px;
+  line-height: 1.6;
+  margin: 0 0 28px 0;
+  max-width: 400px;
+}
+
+.reservations-no-membership-btn {
+  display: inline-block;
+  padding: 16px 40px;
+  background: #04314d;
+  color: #fff;
+  text-decoration: none;
+  font-family: 'Urbanist', sans-serif;
+  font-size: 16px;
+  font-weight: 600;
+  border-radius: 50px;
+  transition: background 0.2s ease, transform 0.2s ease;
+}
+
+.reservations-no-membership-btn:hover {
+  background: #032640;
+  transform: translateY(-1px);
+  color: #fff;
+}
+
+@media (max-width: 600px) {
+  .reservations-no-membership {
+    padding: 40px 24px;
+  }
+}
 /* ── Sign In State ───────────────────────── */
 .reservations-signin {
   text-align: center;
