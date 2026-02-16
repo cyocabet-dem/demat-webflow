@@ -164,6 +164,142 @@
   </div>
 </div>
 
+// ============================================
+// FILTER PANEL COMPONENT - add to componentsHTML
+// No brand filter. Size always visible.
+// ============================================
+
+/* PASTE THIS HTML INTO YOUR componentsHTML STRING IN components.js: */
+
+/*
+
+<!-- ============================================ -->
+<!-- FILTER PANEL - Slide-out from right           -->
+<!-- ============================================ -->
+<div id="filter-panel-backdrop" class="filter-panel-backdrop"></div>
+<div id="filter-panel" class="filter-panel">
+  <div class="filter-panel-header">
+    <div class="filter-panel-header-left">
+      <span class="filter-panel-title">filters</span>
+      <span id="filter-active-count" class="filter-active-count" style="display: none;">0</span>
+    </div>
+    <button class="filter-panel-close" id="filter-panel-close-btn">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round">
+        <path d="M18 6L6 18M6 6l12 12"/>
+      </svg>
+    </button>
+  </div>
+  <div class="filter-panel-body" id="filter-panel-body">
+
+    <!-- Category — always visible -->
+    <div class="filter-section" data-section="category">
+      <button class="filter-section-header" data-toggle="category">
+        <span class="filter-section-title">category</span>
+        <svg class="filter-section-chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="m6 9 6 6 6-6"/></svg>
+      </button>
+      <div class="filter-section-content is-open" data-list="category"></div>
+    </div>
+
+    <!-- Type (subcategory) — shows when category selected -->
+    <div class="filter-section" data-section="subcategory" id="filter-section-subcategory" style="display: none;">
+      <button class="filter-section-header" data-toggle="subcategory">
+        <span class="filter-section-title">type</span>
+        <svg class="filter-section-chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="m6 9 6 6 6-6"/></svg>
+      </button>
+      <div class="filter-section-content is-open" data-list="subcategory"></div>
+    </div>
+
+    <!-- Size — always visible (profile mode: XS-XXL / specific mode: actual sizes) -->
+    <div class="filter-section" data-section="size" id="filter-section-size">
+      <button class="filter-section-header" data-toggle="size">
+        <span class="filter-section-title">size</span>
+        <svg class="filter-section-chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="m6 9 6 6 6-6"/></svg>
+      </button>
+      <div class="filter-section-content is-open" data-list="size"></div>
+    </div>
+
+    <!-- Color — always visible -->
+    <div class="filter-section" data-section="color">
+      <button class="filter-section-header" data-toggle="color">
+        <span class="filter-section-title">color</span>
+        <svg class="filter-section-chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="m6 9 6 6 6-6"/></svg>
+      </button>
+      <div class="filter-section-content is-open" data-list="color"></div>
+    </div>
+
+    <!-- Sleeve Length — auto-shows if items have this attribute -->
+    <div class="filter-section" data-section="sleeve_length" id="filter-section-sleeve_length" style="display: none;">
+      <button class="filter-section-header" data-toggle="sleeve_length">
+        <span class="filter-section-title">sleeve length</span>
+        <svg class="filter-section-chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="m6 9 6 6 6-6"/></svg>
+      </button>
+      <div class="filter-section-content is-open" data-list="sleeve_length"></div>
+    </div>
+
+    <!-- Rise — auto-shows -->
+    <div class="filter-section" data-section="rise" id="filter-section-rise" style="display: none;">
+      <button class="filter-section-header" data-toggle="rise">
+        <span class="filter-section-title">rise</span>
+        <svg class="filter-section-chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="m6 9 6 6 6-6"/></svg>
+      </button>
+      <div class="filter-section-content is-open" data-list="rise"></div>
+    </div>
+
+    <!-- Length — auto-shows -->
+    <div class="filter-section" data-section="length" id="filter-section-length" style="display: none;">
+      <button class="filter-section-header" data-toggle="length">
+        <span class="filter-section-title">length</span>
+        <svg class="filter-section-chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="m6 9 6 6 6-6"/></svg>
+      </button>
+      <div class="filter-section-content is-open" data-list="length"></div>
+    </div>
+
+    <!-- Material — auto-shows -->
+    <div class="filter-section" data-section="material" id="filter-section-material" style="display: none;">
+      <button class="filter-section-header" data-toggle="material">
+        <span class="filter-section-title">material</span>
+        <svg class="filter-section-chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="m6 9 6 6 6-6"/></svg>
+      </button>
+      <div class="filter-section-content is-open" data-list="material"></div>
+    </div>
+
+    <!-- Fit — auto-shows -->
+    <div class="filter-section" data-section="fit" id="filter-section-fit" style="display: none;">
+      <button class="filter-section-header" data-toggle="fit">
+        <span class="filter-section-title">fit</span>
+        <svg class="filter-section-chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="m6 9 6 6 6-6"/></svg>
+      </button>
+      <div class="filter-section-content is-open" data-list="fit"></div>
+    </div>
+
+    <!-- Pattern — auto-shows -->
+    <div class="filter-section" data-section="pattern" id="filter-section-pattern" style="display: none;">
+      <button class="filter-section-header" data-toggle="pattern">
+        <span class="filter-section-title">pattern</span>
+        <svg class="filter-section-chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="m6 9 6 6 6-6"/></svg>
+      </button>
+      <div class="filter-section-content is-open" data-list="pattern"></div>
+    </div>
+
+    <!-- Neckline — auto-shows -->
+    <div class="filter-section" data-section="neckline" id="filter-section-neckline" style="display: none;">
+      <button class="filter-section-header" data-toggle="neckline">
+        <span class="filter-section-title">neckline</span>
+        <svg class="filter-section-chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="m6 9 6 6 6-6"/></svg>
+      </button>
+      <div class="filter-section-content is-open" data-list="neckline"></div>
+    </div>
+
+  </div>
+  <div class="filter-panel-footer">
+    <button class="filter-panel-reset" id="filter-panel-reset-btn">reset all</button>
+    <button class="filter-panel-apply" id="filter-panel-apply-btn">show results</button>
+  </div>
+</div>
+
+*/
+
+
 <!-- ============================================ -->
 <!-- MULTI-STEP ONBOARDING MODAL -->
 <!-- 8 Steps: Welcome, Name, Contact/Address, Birthday, Sizes, Body Type, Referral, Complete -->
