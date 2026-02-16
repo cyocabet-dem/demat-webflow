@@ -96,7 +96,9 @@ window.PurchasesManager = {
     const items = order.items || [];
     const itemCount = items.length;
     const itemLabel = itemCount === 1 ? '1 item' : `${itemCount} items`;
-    const total = order.total_amount_in_cents || 0;
+    // Show subtotal (sum of item prices) on the card, not just the card charge
+    const calculatedSubtotal = items.reduce((sum, item) => sum + (item.price_in_cents || 0), 0);
+    const total = order.subtotal_cents || calculatedSubtotal || order.total_amount_in_cents || 0;
     const orderDate = this.formatDate(order.order_date);
     const maxThumbs = 3;
     const extraCount = itemCount - maxThumbs;
@@ -212,9 +214,12 @@ window.PurchasesManager = {
     }).join('');
 
     // Build payment breakdown
-    const subtotal = order.subtotal_cents || 0;
-    const creditsApplied = order.credits_applied_cents || 0;
+    // Calculate subtotal from item prices (more reliable than subtotal_cents which may be 0)
+    const calculatedSubtotal = items.reduce((sum, item) => sum + (item.price_in_cents || 0), 0);
+    const subtotal = order.subtotal_cents || calculatedSubtotal;
     const totalCharged = order.total_amount_in_cents || 0;
+    // Credits: use API value if available, otherwise derive from subtotal - total
+    const creditsApplied = order.credits_applied_cents || Math.max(0, subtotal - totalCharged);
 
     let paymentHtml = `
       <div class="purchase-modal-payment">
@@ -246,10 +251,11 @@ window.PurchasesManager = {
       paymentHtml += `
         <div class="purchase-modal-payment-method">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
-            <rect x="1" y="4" width="22" height="16" rx="2" ry="2"/>
-            <line x1="1" y1="10" x2="23" y2="10"/>
+            <circle cx="12" cy="12" r="10"/>
+            <path d="M16 8h-6a2 2 0 1 0 0 4h4a2 2 0 1 1 0 4H8"/>
+            <path d="M12 18V6"/>
           </svg>
-          <span>paid with store credits + card</span>
+          <span>${this.formatPrice(creditsApplied)} store credits + ${this.formatPrice(totalCharged)} card</span>
         </div>
       `;
     } else if (creditsApplied > 0 && totalCharged === 0) {
