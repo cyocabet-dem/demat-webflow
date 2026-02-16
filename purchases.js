@@ -1,5 +1,5 @@
 // ============================================
-// PURCHASES PAGE
+// PURCHASES PAGE — UPDATED
 // Add to Page Body Code (or host on GitHub)
 // ============================================
 
@@ -9,7 +9,6 @@ window.PurchasesManager = {
   // Get API base URL with fallback
   getApiBase() {
     if (window.API_BASE_URL) return window.API_BASE_URL;
-    
     const hostname = window.location.hostname;
     const isProduction = hostname === 'dematerialized.nl' || hostname === 'www.dematerialized.nl';
     return isProduction ? 'https://api.dematerialized.nl' : 'https://test-api.dematerialized.nl';
@@ -33,7 +32,7 @@ window.PurchasesManager = {
 
       const token = await window.auth0Client.getTokenSilently();
       const apiBase = this.getApiBase();
-      
+
       const response = await fetch(`${apiBase}/private_clothing_items/orders`, {
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -74,104 +73,253 @@ window.PurchasesManager = {
     return `€${(cents / 100).toFixed(2).replace('.', ',')}`;
   },
 
-  // Get status class
-  getStatusClass(status) {
-    const s = (status || '').toLowerCase();
-    if (s === 'paid' || s === 'completed') return 'status-paid';
-    if (s === 'pending') return 'status-pending';
-    if (s === 'processing') return 'status-processing';
-    if (s === 'failed' || s === 'cancelled') return 'status-failed';
-    return 'status-pending';
-  },
-
   // Get item image URL
   getItemImage(item) {
     if (!item) return null;
-    
+
     // Check for images array
     if (item.images && item.images.length > 0) {
-      // Find front image by image_type field
       const frontImage = item.images.find(img => img.image_type === 'front') || item.images[0];
       return frontImage?.object_url || null;
     }
-    
+
     // Check for direct image_url
     if (item.image_url) return item.image_url;
-    
+
     return null;
   },
 
-  // Render a single order card
+  // ── Render: Compact Order Card ─────────────
   renderOrderCard(order) {
     const orderId = order.hash_id || order.id || 'unknown';
     const shortId = typeof orderId === 'string' ? orderId.substring(0, 8) : orderId;
-    const status = order.payment_status || order.status || 'pending';
-    const statusClass = this.getStatusClass(status);
-    const createdDate = this.formatDate(order.order_date);
-    
     const items = order.items || [];
     const itemCount = items.length;
     const itemLabel = itemCount === 1 ? '1 item' : `${itemCount} items`;
-    
     const total = order.total_amount_in_cents || 0;
+    const orderDate = this.formatDate(order.order_date);
+    const maxThumbs = 3;
+    const extraCount = itemCount - maxThumbs;
 
-    // Render item thumbnails (up to 4)
-    const itemsHtml = items.slice(0, 4).map(item => {
-      // clothing_item contains the full item data
+    // Render overlapping thumbnails (up to 3)
+    const thumbs = items.slice(0, maxThumbs).map((item, index) => {
       const clothingItem = item.clothing_item || {};
       const imgUrl = this.getItemImage(clothingItem);
       const name = clothingItem.name?.toLowerCase() || 'item';
       return `
-        <div class="purchase-item">
-          <div class="purchase-item-image">
-            ${imgUrl ? `<img src="${imgUrl}" alt="${name}">` : ''}
-          </div>
-          <div class="purchase-item-name">${name}</div>
+        <div class="purchase-group-thumb" style="z-index: ${maxThumbs - index}; left: ${index * 28}px;">
+          ${imgUrl ? `<img src="${imgUrl}" alt="${name}">` : ''}
         </div>
       `;
     }).join('');
 
-    const moreItems = items.length > 4 ? `<div class="purchase-item-more">+${items.length - 4} more</div>` : '';
+    const moreIndicator = extraCount > 0 ? `
+      <div class="purchase-group-more-badge" style="left: ${(Math.min(itemCount, maxThumbs) * 28) - 6}px;">
+        +${extraCount}
+      </div>
+    ` : '';
+
+    const imageWidth = Math.min(itemCount, maxThumbs) * 28 + 30;
 
     return `
-      <div class="purchase-card">
-        <div class="purchase-card-header">
-          <div class="purchase-card-info">
-            <span class="purchase-card-label">order</span>
-            <span class="purchase-card-id">#${shortId}</span>
+      <div class="purchase-group" onclick="PurchasesManager.openOrderModal('${orderId}')">
+        <div class="purchase-group-header">
+          <div class="purchase-group-images" style="width: ${imageWidth}px;">
+            ${thumbs}
+            ${moreIndicator}
           </div>
-          <span class="purchase-card-status ${statusClass}">${status.toLowerCase()}</span>
-        </div>
-        
-        <div class="purchase-card-details">
-          <div class="purchase-detail">
-            <span class="purchase-detail-label">date</span>
-            <span class="purchase-detail-value">${createdDate}</span>
+          <div class="purchase-group-info">
+            <div class="purchase-group-summary">${itemLabel} purchased on ${orderDate}</div>
+            <div class="purchase-group-meta">#${shortId} · ${this.formatPrice(total)}</div>
           </div>
-          <div class="purchase-detail">
-            <span class="purchase-detail-label">items</span>
-            <span class="purchase-detail-value">${itemLabel}</span>
-          </div>
-          <div class="purchase-detail">
-            <span class="purchase-detail-label">total</span>
-            <span class="purchase-detail-value">${this.formatPrice(total)}</span>
+          <div class="purchase-group-arrow">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+              <path d="m9 18 6-6-6-6"></path>
+            </svg>
           </div>
         </div>
-        
-        ${items.length > 0 ? `
-          <div class="purchase-card-items">
-            <div class="purchase-items-title">items purchased</div>
-            <div class="purchase-items-grid">
-              ${itemsHtml}
-              ${moreItems}
-            </div>
-          </div>
-        ` : ''}
       </div>
     `;
   },
 
-  // Render the purchases page
+  // ── Modal: Order Detail ────────────────────
+  openOrderModal(orderId) {
+    console.log('🛍️ Opening order modal for:', orderId);
+
+    const orders = this._ordersCache || [];
+    const order = orders.find(o => {
+      const oId = o.hash_id || o.id || '';
+      return String(oId) === String(orderId);
+    });
+
+    if (!order) {
+      console.error('Order not found:', orderId);
+      return;
+    }
+
+    const modal = document.getElementById('purchase-detail-modal');
+    const backdrop = document.getElementById('purchase-detail-backdrop');
+    const modalContent = document.getElementById('purchase-modal-content');
+
+    if (!modal || !backdrop || !modalContent) {
+      console.error('Modal elements not found');
+      return;
+    }
+
+    const items = order.items || [];
+    const shortId = typeof (order.hash_id || order.id) === 'string'
+      ? (order.hash_id || order.id).substring(0, 8)
+      : (order.hash_id || order.id);
+
+    // Set modal header with title + order #
+    const headerEl = document.querySelector('.purchase-modal-header');
+    if (headerEl) {
+      headerEl.innerHTML = `
+        <div class="purchase-modal-header-info">
+          <div class="purchase-modal-title">purchase details</div>
+          <div class="purchase-modal-subtitle">#${shortId}</div>
+        </div>
+        <button class="purchase-modal-close" onclick="PurchasesManager.closeOrderModal()">&times;</button>
+      `;
+    }
+
+    // Build items HTML
+    const itemsHtml = items.map(item => {
+      const clothingItem = item.clothing_item || {};
+      const imgUrl = this.getItemImage(clothingItem);
+      const name = clothingItem.name?.toLowerCase() || 'item';
+      const sku = clothingItem.sku || '';
+      const priceCents = item.price_in_cents || 0;
+
+      // Try to get retail price from the item or clothing item
+      const retailCents = item.retail_price_cents
+        || clothingItem.retail_price_cents
+        || clothingItem.pricing_category?.retail_price_cents
+        || null;
+
+      return `
+        <div class="purchase-modal-item-card">
+          <div class="purchase-modal-item-image">
+            ${imgUrl ? `<img src="${imgUrl}" alt="${name}">` : ''}
+          </div>
+          <div class="purchase-modal-item-info">
+            <div class="purchase-modal-item-name">${name}</div>
+            <div class="purchase-modal-item-price">${this.formatPrice(priceCents)}${retailCents ? ` <span class="purchase-modal-item-retail">${this.formatPrice(retailCents)}</span>` : ''}</div>
+            ${sku ? `<a href="/product?sku=${encodeURIComponent(sku)}" class="purchase-modal-item-link">view item →</a>` : ''}
+          </div>
+        </div>
+      `;
+    }).join('');
+
+    // Build payment breakdown
+    const subtotal = order.subtotal_cents || 0;
+    const creditsApplied = order.credits_applied_cents || 0;
+    const totalCharged = order.total_amount_in_cents || 0;
+
+    let paymentHtml = `
+      <div class="purchase-modal-payment">
+        <div class="purchase-modal-payment-title">payment</div>
+        <div class="purchase-modal-payment-row">
+          <span>subtotal (50% off)</span>
+          <span>${this.formatPrice(subtotal)}</span>
+        </div>
+    `;
+
+    if (creditsApplied > 0) {
+      paymentHtml += `
+        <div class="purchase-modal-payment-row credits">
+          <span>store credits applied</span>
+          <span>-${this.formatPrice(creditsApplied)}</span>
+        </div>
+      `;
+    }
+
+    paymentHtml += `
+        <div class="purchase-modal-payment-row total">
+          <span>total charged</span>
+          <span>${this.formatPrice(totalCharged)}</span>
+        </div>
+    `;
+
+    // Payment method indicator
+    if (creditsApplied > 0 && totalCharged > 0) {
+      paymentHtml += `
+        <div class="purchase-modal-payment-method">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+            <rect x="1" y="4" width="22" height="16" rx="2" ry="2"/>
+            <line x1="1" y1="10" x2="23" y2="10"/>
+          </svg>
+          <span>paid with store credits + card</span>
+        </div>
+      `;
+    } else if (creditsApplied > 0 && totalCharged === 0) {
+      paymentHtml += `
+        <div class="purchase-modal-payment-method">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+            <circle cx="12" cy="12" r="10"/>
+            <path d="M16 8h-6a2 2 0 1 0 0 4h4a2 2 0 1 1 0 4H8"/>
+            <path d="M12 18V6"/>
+          </svg>
+          <span>fully paid with store credits</span>
+        </div>
+      `;
+    } else {
+      paymentHtml += `
+        <div class="purchase-modal-payment-method">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+            <rect x="1" y="4" width="22" height="16" rx="2" ry="2"/>
+            <line x1="1" y1="10" x2="23" y2="10"/>
+          </svg>
+          <span>paid with card</span>
+        </div>
+      `;
+    }
+
+    paymentHtml += `</div>`;
+
+    // Assemble modal content
+    const status = (order.payment_status || 'paid').toLowerCase();
+
+    modalContent.innerHTML = `
+      <div class="purchase-modal-status-banner">
+        <span class="purchase-modal-status">${status}</span>
+        <span>this order has been ${status}</span>
+      </div>
+
+      <div class="purchase-modal-details-title">order details</div>
+      <div class="purchase-modal-details-grid">
+        <div class="purchase-modal-detail-card">
+          <span class="purchase-modal-detail-label">date</span>
+          <span class="purchase-modal-detail-value">${this.formatDate(order.order_date)}</span>
+        </div>
+        <div class="purchase-modal-detail-card">
+          <span class="purchase-modal-detail-label">items</span>
+          <span class="purchase-modal-detail-value">${items.length} item${items.length !== 1 ? 's' : ''}</span>
+        </div>
+      </div>
+
+      <div class="purchase-modal-items-title">items purchased</div>
+      ${itemsHtml}
+
+      ${paymentHtml}
+    `;
+
+    // Open modal
+    backdrop.classList.add('open');
+    modal.classList.add('open');
+    document.body.style.overflow = 'hidden';
+  },
+
+  closeOrderModal() {
+    const modal = document.getElementById('purchase-detail-modal');
+    const backdrop = document.getElementById('purchase-detail-backdrop');
+
+    if (modal) modal.classList.remove('open');
+    if (backdrop) backdrop.classList.remove('open');
+    document.body.style.overflow = '';
+  },
+
+  // ── Render the purchases page ──────────────
   async renderPurchasesPage() {
     console.log('🛍️ Rendering purchases page...');
 
@@ -198,7 +346,6 @@ window.PurchasesManager = {
 
       try {
         const isAuthenticated = await window.auth0Client.isAuthenticated();
-        
         if (!isAuthenticated) {
           if (loadingEl) loadingEl.style.display = 'none';
           if (signinEl) signinEl.style.display = 'flex';
@@ -236,15 +383,15 @@ window.PurchasesManager = {
       // Sort orders by date descending (newest first)
       orders.sort((a, b) => new Date(b.order_date) - new Date(a.order_date));
 
-      // Render orders
+      // Render compact order cards
       console.log('🛍️ Rendering', orders.length, 'orders...');
       if (listEl) {
         listEl.innerHTML = orders.map(order => this.renderOrderCard(order)).join('');
       }
 
       if (contentEl) contentEl.style.display = 'block';
-
       console.log('🛍️ Purchases page rendered');
+
     } catch (err) {
       console.error('🛍️ Error rendering purchases page:', err);
       if (loadingEl) loadingEl.style.display = 'none';
@@ -252,6 +399,20 @@ window.PurchasesManager = {
     }
   }
 };
+
+// Close modal on backdrop click
+document.addEventListener('click', (e) => {
+  if (e.target.id === 'purchase-detail-backdrop') {
+    PurchasesManager.closeOrderModal();
+  }
+});
+
+// Close modal on Escape key
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'Escape') {
+    PurchasesManager.closeOrderModal();
+  }
+});
 
 // Initialize on page load
 function initPurchasesPage() {
@@ -288,12 +449,12 @@ function initPurchasesPage() {
 
             if (userResponse.ok) {
               const userData = await userResponse.json();
-              
+
               if (!userData.stripe_id) {
                 const loadingEl = document.getElementById('purchases-loading');
                 const noMembershipEl = document.getElementById('purchases-no-membership');
                 const contactEl = document.getElementById('purchases-contact');
-                
+
                 if (loadingEl) loadingEl.style.display = 'none';
                 if (noMembershipEl) noMembershipEl.style.display = 'flex';
                 if (contactEl) contactEl.style.display = 'none';
