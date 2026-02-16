@@ -241,7 +241,7 @@ window.PurchasesManager = {
 
     paymentHtml += `
         <div class="purchase-modal-payment-row total">
-          <span>total charged</span>
+          <span>total charged incl. VAT</span>
           <span>${this.formatPrice(totalCharged)}</span>
         </div>
     `;
