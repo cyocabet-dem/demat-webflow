@@ -1,11 +1,12 @@
 /**
  * Client-Side Catalog with Slide-Out Filter Panel
  * 
- * Size logic:
- * - On init, fetches /clothing_items/sizes to build profile ↔ specific size maps
- * - No category selected → shows standard sizes (XS, S, M, L, XL, XXL, etc.)
- * - Category selected → shows specific sizes (38, 40, 42, etc.)
- * - Switching between modes translates selections (M → all M-specific sizes, and back)
+ * 1. Fetches catalog from /search endpoint
+ * 2. Fetches subcategories + sizes from API
+ * 3. Populates slide-out filter panel dynamically
+ * 4. Client-side filtering with live counts
+ * 5. Status / availability filter
+ * 6. Filter chips, URL sync, result count
  */
 
 (async function () {
@@ -17,126 +18,10 @@
   
   const BASE = window.API_BASE_URL;
   const CATALOG_URL = `${BASE}/search`;
+  const SUBCATEGORIES_URL = `${BASE}/clothing_items/subcategories`;
   const SIZES_URL = `${BASE}/clothing_items/sizes`;
   const STORAGE_KEY = 'dm_catalog';
   const ITEMS_PER_PAGE = 20;
-  
-  // ============================================================
-  // SIZE PROFILE DATA (populated from API)
-  // ============================================================
-  
-  // standard_size_string → Set of specific size strings
-  // e.g. "M" → Set(["M", "38", "10", ...])
-  let profileToSpecific = new Map();
-  
-  // specific_size_string → standard_size_string
-  // e.g. "38" → "M"
-  let specificToProfile = new Map();
-  
-  // Ordered list of standard size names (from API)
-  let standardSizeOrder = [];
-  
-  // Raw sizes data from API
-  let sizesData = [];
-  
-  async function fetchSizesData() {
-    try {
-      console.log('[Sizes] Fetching size profiles...');
-      const res = await fetch(SIZES_URL, { headers: { 'Accept': 'application/json' } });
-      if (!res.ok) throw new Error(`HTTP ${res.status}`);
-      
-      sizesData = await res.json();
-      console.log(`[Sizes] Loaded ${sizesData.length} sizes`);
-      
-      // Build lookup maps
-      profileToSpecific.clear();
-      specificToProfile.clear();
-      
-      const standardSizeSet = new Set();
-      
-      sizesData.forEach(sizeEntry => {
-        if (!sizeEntry.active) return;
-        
-        const specificSize = (sizeEntry.size || '').trim();
-        const standardSize = (sizeEntry.standard_size?.standard_size || '').trim();
-        
-        if (!specificSize || !standardSize) return;
-        
-        // Map specific → profile
-        specificToProfile.set(specificSize, standardSize);
-        
-        // Map profile → specifics
-        if (!profileToSpecific.has(standardSize)) {
-          profileToSpecific.set(standardSize, new Set());
-        }
-        profileToSpecific.get(standardSize).add(specificSize);
-        
-        standardSizeSet.add(standardSize);
-      });
-      
-      // Build ordered standard sizes
-      // Use a sensible default order, then append any extras
-      const defaultOrder = ['XXS', 'XS', 'S', 'M', 'L', 'XL', 'XXL', 'XXXL', '2XL', '3XL'];
-      standardSizeOrder = defaultOrder.filter(s => standardSizeSet.has(s));
-      // Add any that weren't in default order
-      standardSizeSet.forEach(s => {
-        if (!standardSizeOrder.includes(s)) standardSizeOrder.push(s);
-      });
-      
-      console.log('[Sizes] Standard sizes:', standardSizeOrder);
-      console.log('[Sizes] Profile→Specific map:', Object.fromEntries(
-        Array.from(profileToSpecific.entries()).map(([k, v]) => [k, Array.from(v)])
-      ));
-      
-    } catch (err) {
-      console.error('[Sizes] Failed to fetch size data:', err);
-      // Fallback: empty maps, size filter will just show raw values
-    }
-  }
-  
-  // Get the standard/profile size for a specific size string
-  function getProfileForSize(specificSize) {
-    return specificToProfile.get(specificSize) || null;
-  }
-  
-  // Get all specific sizes that belong to a profile
-  function getSpecificSizes(profileName) {
-    return profileToSpecific.get(profileName) || new Set();
-  }
-  
-  // Get the item's specific size value
-  function getItemSize(item) {
-    if (item.size_name) return item.size_name.trim();
-    if (typeof item.size === 'string') return item.size.trim();
-    if (item.size && typeof item.size === 'object') {
-      return (item.size.size || item.size.name || item.size.value || '').trim();
-    }
-    if (Array.isArray(item.attributes)) {
-      const attr = item.attributes.find(a => a.key === 'size');
-      if (attr) return (attr.value || '').trim();
-    }
-    return '';
-  }
-  
-  // Translate profile selections → specific size selections
-  function profilesToSpecifics(profileNames) {
-    const specifics = new Set();
-    profileNames.forEach(pName => {
-      const specs = getSpecificSizes(pName);
-      specs.forEach(s => specifics.add(s));
-    });
-    return Array.from(specifics);
-  }
-  
-  // Translate specific size selections → profile selections
-  function specificsToProfiles(specificNames) {
-    const profiles = new Set();
-    specificNames.forEach(sName => {
-      const profile = getProfileForSize(sName);
-      if (profile) profiles.add(profile);
-    });
-    return Array.from(profiles);
-  }
   
   // ============================================================
   // STATUS DISPLAY MAPPING
@@ -176,7 +61,6 @@
   
   function getExtraValue(item, filterDef) {
     let val = item[filterDef.field];
-    if (!val && filterDef.altField) val = item[filterDef.altField];
     if (!val && filterDef.field && item[filterDef.type]) {
       const nested = item[filterDef.type];
       if (typeof nested === 'object' && nested !== null) {
@@ -194,7 +78,7 @@
   }
   
   // ============================================================
-  // DOM HOOKS
+  // DOM HOOKS (static elements only)
   // ============================================================
   
   const grid = document.querySelector('[data-grid="products"]');
@@ -206,12 +90,11 @@
   const searchClear = document.querySelector('[data-search="clear"]');
   const resetAllBtn = document.querySelector('[data-reset-all]');
   
-  const filterPanel = document.getElementById('filter-panel');
-  const filterBackdrop = document.getElementById('filter-panel-backdrop');
-  const filterCloseBtn = document.getElementById('filter-panel-close-btn');
-  const filterResetBtn = document.getElementById('filter-panel-reset-btn');
-  const filterApplyBtn = document.getElementById('filter-panel-apply-btn');
-  const filterActiveCount = document.getElementById('filter-active-count');
+  // Lazy lookups — components.js may inject filter panel after this script runs
+  function getFilterPanel() { return document.getElementById('filter-panel'); }
+  function getFilterBackdrop() { return document.getElementById('filter-panel-backdrop'); }
+  function getFilterActiveCount() { return document.getElementById('filter-active-count'); }
+  function getFilterApplyBtn() { return document.getElementById('filter-panel-apply-btn'); }
   
   if (!grid || !template) {
     console.warn('[Catalog] Grid or template not found');
@@ -226,9 +109,157 @@
   let currentPage = 1;
   let filteredItems = [];
   let searchQuery = '';
+  let apiSubcategories = []; // from GET /clothing_items/subcategories
   
-  // Track size mode so we can translate on change
-  let wasSizeProfileMode = true;
+  // Size profile data (from GET /clothing_items/sizes)
+  let sizesData = [];
+  let profileToSpecific = new Map(); // "M" → Set(["M", "38", "10"])
+  let specificToProfile = new Map(); // "38" → "M"
+  let standardSizeOrder = [];
+  
+  // ============================================================
+  // FETCH: SUBCATEGORIES
+  // ============================================================
+  
+  async function fetchSubcategories() {
+    try {
+      const res = await fetch(SUBCATEGORIES_URL, { headers: { 'Accept': 'application/json' } });
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      const data = await res.json();
+      apiSubcategories = (data.subcategories || data || []).filter(s => s.active !== false);
+      console.log(`[Catalog] Loaded ${apiSubcategories.length} subcategories from API`);
+    } catch (err) {
+      console.warn('[Catalog] Could not fetch subcategories:', err);
+      apiSubcategories = [];
+    }
+  }
+  
+  // ============================================================
+  // FETCH: SIZES
+  // ============================================================
+  
+  async function fetchSizesData() {
+    try {
+      const res = await fetch(SIZES_URL, { headers: { 'Accept': 'application/json' } });
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      sizesData = await res.json();
+      if (!Array.isArray(sizesData)) sizesData = sizesData.sizes || [];
+      
+      profileToSpecific.clear();
+      specificToProfile.clear();
+      const orderSet = new Set();
+      
+      sizesData.forEach(s => {
+        const specific = s.size || s.name || '';
+        const profile = s.standard_size?.standard_size || '';
+        if (!specific) return;
+        
+        if (profile) {
+          if (!profileToSpecific.has(profile)) profileToSpecific.set(profile, new Set());
+          profileToSpecific.get(profile).add(specific);
+          profileToSpecific.get(profile).add(profile); // profile name itself
+          specificToProfile.set(specific, profile);
+          orderSet.add(profile);
+        }
+      });
+      
+      const sizeOrderRef = ['XXS', 'XS', 'S', 'M', 'L', 'XL', 'XXL', 'XXXL', '2XL', '3XL', 'One Size'];
+      standardSizeOrder = Array.from(orderSet).sort((a, b) => {
+        const ai = sizeOrderRef.indexOf(a);
+        const bi = sizeOrderRef.indexOf(b);
+        if (ai !== -1 && bi !== -1) return ai - bi;
+        if (ai !== -1) return -1;
+        if (bi !== -1) return 1;
+        return a.localeCompare(b);
+      });
+      
+      console.log(`[Catalog] Loaded ${sizesData.length} sizes, ${standardSizeOrder.length} profiles`);
+    } catch (err) {
+      console.warn('[Catalog] Could not fetch sizes:', err);
+    }
+  }
+  
+  // ============================================================
+  // SIZE HELPERS
+  // ============================================================
+  
+  function getItemSize(item) {
+    if (item.size_name) return String(item.size_name).trim();
+    if (typeof item.size === 'string') return item.size.trim();
+    if (item.size && typeof item.size === 'object') {
+      return (item.size.name || item.size.size || item.size.value || '').toString().trim();
+    }
+    if (Array.isArray(item.attributes)) {
+      const attr = item.attributes.find(a => a.key === 'size');
+      if (attr) return String(attr.value).trim();
+    }
+    return '';
+  }
+  
+  function isSizeProfileMode() {
+    const filters = getSelectedFilters();
+    return filters.categories.length === 0;
+  }
+  
+  function buildSizeOptions(items) {
+    if (isSizeProfileMode() && standardSizeOrder.length > 0) {
+      // Show standard sizes (XS, S, M, L...)
+      const available = new Set();
+      items.forEach(item => {
+        const sz = getItemSize(item);
+        if (!sz) return;
+        const profile = specificToProfile.get(sz) || sz;
+        available.add(profile);
+      });
+      return standardSizeOrder
+        .filter(p => available.has(p))
+        .map(p => ({ id: p, name: p }));
+    } else {
+      // Show specific sizes from items
+      const valMap = new Map();
+      items.forEach(item => {
+        const sz = getItemSize(item);
+        if (sz) valMap.set(sz, { id: sz, name: sz });
+      });
+      return Array.from(valMap.values());
+    }
+  }
+  
+  function translateSizeSelections(oldSelections) {
+    if (!oldSelections.length) return [];
+    const newSelections = new Set();
+    
+    if (isSizeProfileMode()) {
+      // Specific → Profile
+      oldSelections.forEach(sz => {
+        const profile = specificToProfile.get(sz) || sz;
+        newSelections.add(profile);
+      });
+    } else {
+      // Profile → Specific
+      oldSelections.forEach(sz => {
+        if (profileToSpecific.has(sz)) {
+          profileToSpecific.get(sz).forEach(s => newSelections.add(s));
+        } else {
+          newSelections.add(sz);
+        }
+      });
+    }
+    return Array.from(newSelections);
+  }
+  
+  function itemMatchesSize(item, selectedSizes) {
+    if (!selectedSizes.length) return true;
+    const sz = getItemSize(item);
+    if (!sz) return false;
+    
+    if (isSizeProfileMode()) {
+      const profile = specificToProfile.get(sz) || sz;
+      return selectedSizes.includes(profile);
+    } else {
+      return selectedSizes.includes(sz);
+    }
+  }
   
   // ============================================================
   // STORAGE
@@ -238,9 +269,7 @@
     if (data.query) return;
     try {
       sessionStorage.setItem(STORAGE_KEY, JSON.stringify({ data, timestamp: Date.now() }));
-    } catch (e) {
-      console.warn('[Catalog] Could not save to sessionStorage:', e);
-    }
+    } catch (e) { console.warn('[Catalog] Could not save:', e); }
   }
   
   function loadCatalog() {
@@ -254,24 +283,20 @@
         return null;
       }
       return data;
-    } catch (e) {
-      return null;
-    }
+    } catch (e) { return null; }
   }
   
   // ============================================================
-  // FETCH
+  // FETCH: CATALOG
   // ============================================================
   
   async function fetchCatalog(query = '') {
     const url = query 
       ? `${CATALOG_URL}?q=${encodeURIComponent(query)}&limit=500`
       : CATALOG_URL;
-    
     console.log('[Catalog] Fetching:', url);
     const res = await fetch(url, { headers: { 'Accept': 'application/json' } });
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
-    
     const data = await res.json();
     console.log(`[Catalog] Loaded ${data.total_items} items${query ? ` for "${query}"` : ''}`);
     return data;
@@ -289,18 +314,22 @@
   }
   
   // ============================================================
-  // FILTER PANEL: OPEN / CLOSE
+  // FILTER PANEL: OPEN / CLOSE (lazy lookups)
   // ============================================================
   
   function openFilterPanel() {
-    if (filterPanel) filterPanel.classList.add('is-open');
-    if (filterBackdrop) filterBackdrop.classList.add('is-open');
+    const panel = getFilterPanel();
+    const backdrop = getFilterBackdrop();
+    if (panel) panel.classList.add('is-open');
+    if (backdrop) backdrop.classList.add('is-open');
     document.body.classList.add('filter-panel-open');
   }
   
   function closeFilterPanel() {
-    if (filterPanel) filterPanel.classList.remove('is-open');
-    if (filterBackdrop) filterBackdrop.classList.remove('is-open');
+    const panel = getFilterPanel();
+    const backdrop = getFilterBackdrop();
+    if (panel) panel.classList.remove('is-open');
+    if (backdrop) backdrop.classList.remove('is-open');
     document.body.classList.remove('filter-panel-open');
   }
   
@@ -312,22 +341,23 @@
   // ============================================================
   
   function setupSectionToggles() {
-    document.querySelectorAll('.filter-section-header[data-toggle]').forEach(btn => {
-      btn.addEventListener('click', (e) => {
-        e.preventDefault();
-        const type = btn.getAttribute('data-toggle');
-        const content = document.querySelector(`.filter-section-content[data-list="${type}"]`);
-        if (!content) return;
-        
-        const isOpen = content.classList.contains('is-open');
-        if (isOpen) {
-          content.classList.remove('is-open');
-          btn.classList.add('is-collapsed');
-        } else {
-          content.classList.add('is-open');
-          btn.classList.remove('is-collapsed');
-        }
-      });
+    // Use delegation since panel may be injected late
+    document.addEventListener('click', (e) => {
+      const btn = e.target.closest('.filter-section-header[data-toggle]');
+      if (!btn) return;
+      e.preventDefault();
+      const type = btn.getAttribute('data-toggle');
+      const content = document.querySelector(`.filter-section-content[data-list="${type}"]`);
+      if (!content) return;
+      
+      const isOpen = content.classList.contains('is-open');
+      if (isOpen) {
+        content.classList.remove('is-open');
+        btn.classList.add('is-collapsed');
+      } else {
+        content.classList.add('is-open');
+        btn.classList.remove('is-collapsed');
+      }
     });
   }
   
@@ -344,7 +374,8 @@
       categories: get('category'),
       subcategories: get('subcategory'),
       colors: get('color'),
-      sizes: get('size'),
+      size: get('size'),
+      status: get('status'), // "available" if checked
     };
     
     EXTRA_FILTERS.forEach(def => {
@@ -355,48 +386,34 @@
   }
   
   function countActiveFilters(filters) {
-    let count = filters.categories.length + filters.subcategories.length + 
-                filters.colors.length + filters.sizes.length;
-    EXTRA_FILTERS.forEach(def => { count += (filters[def.type] || []).length; });
+    let count = 0;
+    count += filters.categories.length;
+    count += filters.subcategories.length;
+    count += filters.colors.length;
+    count += filters.size.length;
+    count += filters.status.length;
+    EXTRA_FILTERS.forEach(def => {
+      count += (filters[def.type] || []).length;
+    });
     return count;
   }
   
-  function isSizeProfileMode(filters) {
-    return filters.categories.length === 0;
-  }
-  
-  // Check if an item's size matches the selected sizes
-  // In profile mode: selected values are standard sizes, match via profile mapping
-  // In specific mode: selected values are specific sizes, match directly
-  function itemMatchesSize(item, selectedSizes, profileMode) {
-    if (selectedSizes.length === 0) return true;
-    
-    const itemSize = getItemSize(item);
-    if (!itemSize) return false;
-    
-    if (profileMode) {
-      // Selected values are standard/profile sizes like "M", "L"
-      // Check if item's specific size belongs to any selected profile
-      const itemProfile = getProfileForSize(itemSize);
-      if (itemProfile && selectedSizes.includes(itemProfile)) return true;
-      // Fallback: direct match (in case item size IS the profile name)
-      if (selectedSizes.includes(itemSize)) return true;
-      return false;
-    } else {
-      // Selected values are specific sizes
-      return selectedSizes.includes(itemSize);
-    }
-  }
-  
   function filterItems(items, filters) {
-    const profileMode = isSizeProfileMode(filters);
-    
     return items.filter(item => {
+      // Status filter
+      if (filters.status.length > 0) {
+        const itemStatus = (item.status || 'available').toLowerCase().trim();
+        if (!filters.status.some(s => itemStatus === s.toLowerCase())) return false;
+      }
+      
       if (filters.categories.length > 0 && !filters.categories.includes(item.category_name)) return false;
       if (filters.subcategories.length > 0 && !filters.subcategories.includes(item.subcategory_name)) return false;
       if (filters.colors.length > 0 && !item.color_names.some(c => filters.colors.includes(c))) return false;
-      if (!itemMatchesSize(item, filters.sizes, profileMode)) return false;
       
+      // Size filter with profile support
+      if (filters.size.length > 0 && !itemMatchesSize(item, filters.size)) return false;
+      
+      // Extra filters
       for (const def of EXTRA_FILTERS) {
         const selected = filters[def.type] || [];
         if (selected.length > 0) {
@@ -410,21 +427,20 @@
   }
   
   function calculateFilterCounts(allItems, currentFilters) {
-    const profileMode = isSizeProfileMode(currentFilters);
-    const counts = { categories: {}, subcategories: {}, colors: {}, sizes: {} };
+    const counts = { categories: {}, subcategories: {}, colors: {}, size: {} };
     EXTRA_FILTERS.forEach(def => { counts[def.type] = {}; });
     
     function itemsExcluding(excludeType) {
       return allItems.filter(item => {
+        // Always apply status filter
+        if (excludeType !== 'status' && currentFilters.status.length > 0) {
+          const itemStatus = (item.status || 'available').toLowerCase().trim();
+          if (!currentFilters.status.some(s => itemStatus === s.toLowerCase())) return false;
+        }
         if (excludeType !== 'category' && currentFilters.categories.length > 0 && !currentFilters.categories.includes(item.category_name)) return false;
         if (excludeType !== 'subcategory' && currentFilters.subcategories.length > 0 && !currentFilters.subcategories.includes(item.subcategory_name)) return false;
         if (excludeType !== 'color' && currentFilters.colors.length > 0 && !item.color_names.some(c => currentFilters.colors.includes(c))) return false;
-        
-        if (excludeType !== 'size') {
-          // When excluding category, use profile mode for size matching
-          const usePM = (excludeType === 'category') ? true : profileMode;
-          if (!itemMatchesSize(item, currentFilters.sizes, usePM)) return false;
-        }
+        if (excludeType !== 'size' && currentFilters.size.length > 0 && !itemMatchesSize(item, currentFilters.size)) return false;
         
         for (const def of EXTRA_FILTERS) {
           if (excludeType === def.type) continue;
@@ -438,37 +454,40 @@
       });
     }
     
+    // Category counts
     itemsExcluding('category').forEach(item => {
       if (item.category_name) counts.categories[item.category_name] = (counts.categories[item.category_name] || 0) + 1;
     });
     
+    // Subcategory counts
     itemsExcluding('subcategory').forEach(item => {
       if (item.subcategory_name) counts.subcategories[item.subcategory_name] = (counts.subcategories[item.subcategory_name] || 0) + 1;
     });
     
+    // Color counts
     itemsExcluding('color').forEach(item => {
       (item.color_names || []).forEach(color => {
         counts.colors[color] = (counts.colors[color] || 0) + 1;
       });
     });
     
-    // Size counts: depends on mode
+    // Size counts (profile or specific)
     const sizeItems = itemsExcluding('size');
-    if (profileMode) {
-      // Count by standard/profile size
-      sizeItems.forEach(item => {
-        const itemSize = getItemSize(item);
-        const profile = getProfileForSize(itemSize);
-        if (profile) counts.sizes[profile] = (counts.sizes[profile] || 0) + 1;
-      });
-    } else {
-      // Count by specific size
+    if (isSizeProfileMode() && standardSizeOrder.length > 0) {
       sizeItems.forEach(item => {
         const sz = getItemSize(item);
-        if (sz) counts.sizes[sz] = (counts.sizes[sz] || 0) + 1;
+        if (!sz) return;
+        const profile = specificToProfile.get(sz) || sz;
+        counts.size[profile] = (counts.size[profile] || 0) + 1;
+      });
+    } else {
+      sizeItems.forEach(item => {
+        const sz = getItemSize(item);
+        if (sz) counts.size[sz] = (counts.size[sz] || 0) + 1;
       });
     }
     
+    // Extra filter counts
     EXTRA_FILTERS.forEach(def => {
       itemsExcluding(def.type).forEach(item => {
         const val = getExtraValue(item, def);
@@ -480,7 +499,7 @@
   }
   
   // ============================================================
-  // BUILD FILTER OPTIONS FROM ITEMS
+  // BUILD FILTER OPTIONS
   // ============================================================
   
   function buildFiltersFromItems(items) {
@@ -512,26 +531,37 @@
     };
   }
   
-  function buildSizeOptions(items, profileMode) {
-    if (profileMode) {
-      // Show standard/profile sizes in defined order
-      const available = new Set();
-      items.forEach(item => {
-        const profile = getProfileForSize(getItemSize(item));
-        if (profile) available.add(profile);
-      });
-      return standardSizeOrder
-        .filter(p => available.has(p))
-        .map(p => ({ id: p, name: p }));
-    } else {
-      // Show actual specific sizes
-      const sizeMap = new Map();
-      items.forEach(item => {
-        const sz = getItemSize(item);
-        if (sz) sizeMap.set(sz, { id: sz, name: sz });
-      });
-      return Array.from(sizeMap.values());
+  // Build subcategory options: prefer API data, fallback to item data
+  function buildSubcategoryOptions(itemFilters, selectedCategories) {
+    if (apiSubcategories.length > 0) {
+      let subcats = apiSubcategories;
+      
+      // If categories are selected, filter to matching ones
+      if (selectedCategories.length > 0) {
+        const selectedCatIds = (itemFilters.categories || [])
+          .filter(c => selectedCategories.includes(c.name))
+          .map(c => c.id);
+        if (selectedCatIds.length > 0) {
+          subcats = subcats.filter(s => selectedCatIds.includes(s.category_id));
+        }
+      }
+      
+      return subcats.map(s => ({ 
+        id: s.id, 
+        name: s.name, 
+        category_id: s.category_id 
+      }));
     }
+    
+    // Fallback to item-derived subcategories
+    let subcatsToShow = itemFilters.subcategories || [];
+    if (selectedCategories.length > 0) {
+      const selectedCatIds = (itemFilters.categories || [])
+        .filter(c => selectedCategories.includes(c.name))
+        .map(c => c.id);
+      subcatsToShow = subcatsToShow.filter(s => selectedCatIds.includes(s.category_id));
+    }
+    return subcatsToShow;
   }
   
   function buildExtraFilterOptions(items) {
@@ -545,24 +575,6 @@
       extraOptions[def.type] = Array.from(valMap.values());
     });
     return extraOptions;
-  }
-  
-  // ============================================================
-  // SIZE MODE TRANSLATION
-  // When switching from profile → specific or specific → profile,
-  // translate the selected sizes so the filter stays meaningful.
-  // ============================================================
-  
-  function translateSizeSelections(selectedSizes, fromProfileMode) {
-    if (selectedSizes.length === 0) return [];
-    
-    if (fromProfileMode) {
-      // Was profile mode, now specific: expand profiles → specific sizes
-      return profilesToSpecifics(selectedSizes);
-    } else {
-      // Was specific mode, now profile: collapse specifics → profiles
-      return specificsToProfiles(selectedSizes);
-    }
   }
   
   // ============================================================
@@ -581,6 +593,7 @@
       return;
     }
     
+    // Deduplicate
     const seen = new Set();
     const uniqueOptions = options.filter(opt => {
       if (seen.has(opt.name)) return false;
@@ -588,25 +601,15 @@
       return true;
     });
     
-    // Sort sizes in a logical order
+    // Sort
+    const sizeOrder = ['XXS', 'XS', 'S', 'M', 'L', 'XL', 'XXL', 'XXXL', '2XL', '3XL', 'One Size'];
     if (filterType === 'size') {
-      const sizeOrder = standardSizeOrder.length > 0 
-        ? standardSizeOrder 
-        : ['XXS', 'XS', 'S', 'M', 'L', 'XL', 'XXL', 'XXXL', '2XL', '3XL'];
-        
       uniqueOptions.sort((a, b) => {
-        const ai = sizeOrder.indexOf(a.name);
-        const bi = sizeOrder.indexOf(b.name);
+        const ai = sizeOrder.indexOf(a.name.toUpperCase());
+        const bi = sizeOrder.indexOf(b.name.toUpperCase());
         if (ai !== -1 && bi !== -1) return ai - bi;
         if (ai !== -1) return -1;
         if (bi !== -1) return 1;
-        // Try uppercase match
-        const aiu = sizeOrder.indexOf(a.name.toUpperCase());
-        const biu = sizeOrder.indexOf(b.name.toUpperCase());
-        if (aiu !== -1 && biu !== -1) return aiu - biu;
-        if (aiu !== -1) return -1;
-        if (biu !== -1) return 1;
-        // Numeric sort
         const an = parseFloat(a.name);
         const bn = parseFloat(b.name);
         if (!isNaN(an) && !isNaN(bn)) return an - bn;
@@ -641,7 +644,8 @@
     EXTRA_FILTERS.forEach(def => {
       const section = document.getElementById(`filter-section-${def.type}`);
       if (section) {
-        section.style.display = (extraOptions[def.type] && extraOptions[def.type].length > 0) ? '' : 'none';
+        const hasOptions = extraOptions[def.type] && extraOptions[def.type].length > 0;
+        section.style.display = hasOptions ? '' : 'none';
       }
     });
   }
@@ -703,7 +707,7 @@
     grid.innerHTML = '';
     
     if (pageItems.length === 0) {
-      grid.innerHTML = '<p style="grid-column: 1/-1; text-align: center; padding: 40px 0; font-family: Urbanist, sans-serif; font-weight: 300; color: #666;">no items found.</p>';
+      grid.innerHTML = '<p style="grid-column: 1/-1; text-align: center; padding: 40px 0; font-family: Urbanist, sans-serif; font-weight: 300; color: #a86b9c;">no items found.</p>';
       return;
     }
     
@@ -749,13 +753,21 @@
     if (!chipsBar) return;
     
     const chips = [];
-    const addChips = (values, type) => values.forEach(val => chips.push({ value: val, type }));
+    const addChips = (values, filterType, label) => {
+      values.forEach(val => chips.push({ value: val, type: filterType, label }));
+    };
     
-    addChips(filters.categories, 'category');
-    addChips(filters.subcategories, 'subcategory');
-    addChips(filters.sizes, 'size');
-    addChips(filters.colors, 'color');
-    EXTRA_FILTERS.forEach(def => addChips(filters[def.type] || [], def.type));
+    addChips(filters.categories, 'category', 'category');
+    addChips(filters.subcategories, 'subcategory', 'type');
+    addChips(filters.colors, 'color', 'color');
+    addChips(filters.size, 'size', 'size');
+    if (filters.status.length > 0) {
+      chips.push({ value: 'available only', type: 'status', label: 'status' });
+    }
+    
+    EXTRA_FILTERS.forEach(def => {
+      addChips(filters[def.type] || [], def.type, def.label);
+    });
     
     if (chips.length === 0) {
       chipsBar.classList.remove('has-chips');
@@ -777,15 +789,18 @@
   // ============================================================
   
   function updateSearchClearVisibility() {
-    if (searchClear) searchClear.style.display = searchInput?.value ? 'block' : 'none';
+    if (searchClear) {
+      searchClear.style.display = searchInput?.value ? 'block' : 'none';
+    }
   }
   
   function updateActiveFilterCount(filters) {
     const count = countActiveFilters(filters);
     
-    if (filterActiveCount) {
-      filterActiveCount.textContent = count;
-      filterActiveCount.style.display = count > 0 ? 'inline-flex' : 'none';
+    const fac = getFilterActiveCount();
+    if (fac) {
+      fac.textContent = count;
+      fac.style.display = count > 0 ? 'inline-flex' : 'none';
     }
     
     document.querySelectorAll('.filter-trigger-btn').forEach(btn => {
@@ -809,13 +824,24 @@
   function updateResultCount(total) {
     const el = document.querySelector('.clothing-result-count');
     if (el) el.textContent = total === 1 ? '1 item' : `${total} items`;
-    if (filterApplyBtn) filterApplyBtn.textContent = total === 1 ? 'show 1 item' : `show ${total} items`;
+    const applyBtn = getFilterApplyBtn();
+    if (applyBtn) applyBtn.textContent = total === 1 ? 'show 1 item' : `show ${total} items`;
+  }
+  
+  function updateStatusCount(items) {
+    const countEl = document.getElementById('filter-status-available-count');
+    if (countEl) {
+      const available = items.filter(i => (i.status || 'available').toLowerCase().trim() === 'available').length;
+      countEl.textContent = available;
+    }
   }
   
   function updateResetVisibility(filters) {
     const hasFilters = countActiveFilters(filters) > 0;
     const hasSearch = !!searchQuery;
+    
     if (resetAllBtn) resetAllBtn.style.display = (hasFilters || hasSearch) ? 'flex' : 'none';
+    
     const inlineReset = document.querySelector('.clothing-reset-all');
     if (inlineReset) inlineReset.style.display = (hasFilters || hasSearch) ? 'inline-flex' : 'none';
   }
@@ -826,58 +852,50 @@
   
   function render(page = 1, initialFilters = null) {
     const filters = initialFilters || getSelectedFilters();
-    const profileMode = isSizeProfileMode(filters);
-    
     filteredItems = filterItems(catalogData.items, filters);
     
     const availableFilters = searchQuery 
       ? buildFiltersFromItems(catalogData.items)
-      : catalogData.filters;
+      : catalogData.filters || buildFiltersFromItems(catalogData.items);
     
     const extraOptions = buildExtraFilterOptions(catalogData.items);
     const counts = calculateFilterCounts(catalogData.items, filters);
     
     showExtraSections(extraOptions);
     
-    // Core sections
+    // Core filter sections
     renderFilterSection('[data-list="category"]', availableFilters.categories, 'category', counts.categories, filters.categories);
     renderFilterSection('[data-list="color"]', availableFilters.colors, 'color', counts.colors, filters.colors);
     
-    // Subcategory
-    let subcatsToShow = availableFilters.subcategories;
-    if (filters.categories.length > 0) {
-      const selectedCatIds = availableFilters.categories
-        .filter(c => filters.categories.includes(c.name))
-        .map(c => c.id);
-      subcatsToShow = subcatsToShow.filter(s => selectedCatIds.includes(s.category_id));
-    }
-    renderFilterSection('[data-list="subcategory"]', subcatsToShow, 'subcategory', counts.subcategories, filters.subcategories);
-    const subSection = document.getElementById('filter-section-subcategory');
-    if (subSection) subSection.style.display = filters.categories.length > 0 ? '' : 'none';
+    // Type (subcategory) — always visible, filtered by category if selected
+    const subcatOptions = buildSubcategoryOptions(availableFilters, filters.categories);
+    renderFilterSection('[data-list="subcategory"]', subcatOptions, 'subcategory', counts.subcategories, filters.subcategories);
     
-    // Size — always visible, content depends on mode
-    const sizeOptions = buildSizeOptions(catalogData.items, profileMode);
-    renderFilterSection('[data-list="size"]', sizeOptions, 'size', counts.sizes, filters.sizes);
+    // Size — profile or specific mode
+    const sizeOptions = buildSizeOptions(catalogData.items);
+    renderFilterSection('[data-list="size"]', sizeOptions, 'size', counts.size, filters.size);
     
-    // Extra sections
+    // Extra filter sections
     EXTRA_FILTERS.forEach(def => {
       renderFilterSection(`[data-list="${def.type}"]`, extraOptions[def.type], def.type, counts[def.type], filters[def.type] || []);
     });
     
+    // Status count
+    updateStatusCount(catalogData.items);
+    
+    // Render grid
     renderGrid(filteredItems, page);
     currentPage = page;
     updatePager(filteredItems.length, page);
     
+    // Update UI
     updateActiveFilterCount(filters);
     updateResultCount(filteredItems.length);
     updateResetVisibility(filters);
     renderFilterChips(filters);
     updateURL(filters, page);
     
-    // Track mode for next change
-    wasSizeProfileMode = profileMode;
-    
-    console.log(`[Catalog] Rendered ${filteredItems.length} items (page ${page}) [size mode: ${profileMode ? 'profile' : 'specific'}]${searchQuery ? ` [search: "${searchQuery}"]` : ''}`);
+    console.log(`[Catalog] Rendered ${filteredItems.length} items (page ${page})${searchQuery ? ` [search: "${searchQuery}"]` : ''}`);
   }
   
   // ============================================================
@@ -891,10 +909,13 @@
     filters.categories.forEach(c => params.append('categories', c));
     filters.subcategories.forEach(s => params.append('subcategories', s));
     filters.colors.forEach(c => params.append('colors', c));
-    filters.sizes.forEach(s => params.append('sizes', s));
+    filters.size.forEach(s => params.append('size', s));
+    filters.status.forEach(s => params.append('status', s));
+    
     EXTRA_FILTERS.forEach(def => {
       (filters[def.type] || []).forEach(v => params.append(def.type, v));
     });
+    
     history.replaceState({ page }, '', '?' + params.toString());
   }
   
@@ -904,13 +925,16 @@
       categories: params.getAll('categories').filter(Boolean),
       subcategories: params.getAll('subcategories').filter(Boolean),
       colors: params.getAll('colors').filter(Boolean),
-      sizes: params.getAll('sizes').filter(Boolean),
+      size: params.getAll('size').filter(Boolean),
+      status: params.getAll('status').filter(Boolean),
       page: parseInt(params.get('page') || '1', 10),
       q: params.get('q') || ''
     };
+    
     EXTRA_FILTERS.forEach(def => {
       filters[def.type] = params.getAll(def.type).filter(Boolean);
     });
+    
     return filters;
   }
   
@@ -939,6 +963,7 @@
   
   async function handleResetAll() {
     document.querySelectorAll('[data-filter]').forEach(i => i.checked = false);
+    
     if (searchInput) searchInput.value = '';
     searchQuery = '';
     updateSearchClearVisibility();
@@ -951,61 +976,62 @@
   }
   
   // ============================================================
-  // EVENT HANDLERS
+  // EVENT HANDLERS (all delegated for late-injected panel)
   // ============================================================
   
+  // Filter panel open
   document.addEventListener('click', (e) => {
     const trigger = e.target.closest('[data-filter-open], .filter-trigger-btn');
-    if (trigger) { e.preventDefault(); openFilterPanel(); }
+    if (trigger) {
+      e.preventDefault();
+      openFilterPanel();
+    }
   });
   
-  if (filterCloseBtn) filterCloseBtn.addEventListener('click', closeFilterPanel);
-  if (filterBackdrop) filterBackdrop.addEventListener('click', closeFilterPanel);
-  if (filterApplyBtn) filterApplyBtn.addEventListener('click', closeFilterPanel);
-  if (filterResetBtn) filterResetBtn.addEventListener('click', async () => { await handleResetAll(); });
+  // Filter panel close, apply, reset — delegated
+  document.addEventListener('click', (e) => {
+    if (e.target.closest('#filter-panel-close-btn')) { closeFilterPanel(); return; }
+    if (e.target.closest('#filter-panel-backdrop')) { closeFilterPanel(); return; }
+    if (e.target.closest('#filter-panel-apply-btn')) { closeFilterPanel(); return; }
+    if (e.target.closest('#filter-panel-reset-btn')) { handleResetAll(); return; }
+  });
   
+  // Escape key
   document.addEventListener('keydown', (e) => {
-    if (e.key === 'Escape' && filterPanel?.classList.contains('is-open')) closeFilterPanel();
+    if (e.key === 'Escape' && getFilterPanel()?.classList.contains('is-open')) closeFilterPanel();
   });
   
-  // Filter checkbox changes — live re-render with size translation
+  // Filter checkbox changes (live update)
   document.addEventListener('change', (e) => {
     if (!e.target.matches('[data-filter]')) return;
     
-    // Uncheck subcategories when unchecking a category
-    if (e.target.matches('[data-filter="category"]') && !e.target.checked) {
-      document.querySelectorAll('[data-filter="subcategory"]:checked').forEach(i => i.checked = false);
-    }
+    const filterType = e.target.getAttribute('data-filter');
     
-    // CATEGORY CHANGE → translate size selections between modes
-    if (e.target.matches('[data-filter="category"]')) {
-      const currentSizes = Array.from(
-        document.querySelectorAll('[data-filter="size"]:checked')
+    // Category change: translate size selections if needed
+    if (filterType === 'category') {
+      const currentSizeSelections = Array.from(
+        document.querySelectorAll('input[data-filter="size"]:checked')
       ).map(i => i.value);
       
-      if (currentSizes.length > 0) {
-        // Figure out the new mode after this category change
-        const categoriesAfter = Array.from(
-          document.querySelectorAll('[data-filter="category"]:checked')
-        ).map(i => i.value);
-        const newProfileMode = categoriesAfter.length === 0;
-        
-        if (wasSizeProfileMode !== newProfileMode) {
-          // Mode is changing — translate sizes
-          const translated = translateSizeSelections(currentSizes, wasSizeProfileMode);
-          console.log(`[Sizes] Translating ${wasSizeProfileMode ? 'profiles' : 'specifics'} → ${newProfileMode ? 'profiles' : 'specifics'}:`, currentSizes, '→', translated);
-          
-          // We can't check boxes yet because render will rebuild the checkboxes.
-          // Instead, we'll pass translated sizes into render via initialFilters.
-          const filters = getSelectedFilters();
-          filters.sizes = translated;
-          render(1, filters);
-          return; // Skip the normal render below
-        }
+      if (currentSizeSelections.length > 0) {
+        // Will re-render with translated sizes
+        const translated = translateSizeSelections(currentSizeSelections);
+        // Store for re-render
+        window._pendingSizeTranslation = translated;
       }
     }
     
     render(1);
+    
+    // Apply translated size selections after re-render
+    if (window._pendingSizeTranslation) {
+      const translated = window._pendingSizeTranslation;
+      delete window._pendingSizeTranslation;
+      document.querySelectorAll('input[data-filter="size"]').forEach(cb => {
+        cb.checked = translated.includes(cb.value);
+      });
+      render(1);
+    }
   });
   
   // Filter chip removal
@@ -1016,28 +1042,15 @@
     const type = chip.getAttribute('data-chip-type');
     const value = chip.getAttribute('data-chip-value');
     
-    const checkbox = document.querySelector(`input[data-filter="${type}"][value="${value}"]`);
-    if (checkbox) {
-      checkbox.checked = false;
-      if (type === 'category') {
-        document.querySelectorAll('[data-filter="subcategory"]:checked').forEach(i => i.checked = false);
-        // Translate sizes when removing category
-        const currentSizes = Array.from(
-          document.querySelectorAll('[data-filter="size"]:checked')
-        ).map(i => i.value);
-        if (currentSizes.length > 0) {
-          const categoriesAfter = Array.from(
-            document.querySelectorAll('[data-filter="category"]:checked')
-          ).map(i => i.value);
-          const newProfileMode = categoriesAfter.length === 0;
-          if (wasSizeProfileMode !== newProfileMode) {
-            const translated = translateSizeSelections(currentSizes, wasSizeProfileMode);
-            const filters = getSelectedFilters();
-            filters.sizes = translated;
-            render(1, filters);
-            window.scrollTo({ top: 0, behavior: 'smooth' });
-            return;
-          }
+    if (type === 'status') {
+      const statusCb = document.querySelector('input[data-filter="status"]');
+      if (statusCb) statusCb.checked = false;
+    } else {
+      const checkbox = document.querySelector(`input[data-filter="${type}"][value="${value}"]`);
+      if (checkbox) {
+        checkbox.checked = false;
+        if (type === 'category') {
+          document.querySelectorAll('[data-filter="subcategory"]:checked').forEach(i => i.checked = false);
         }
       }
     }
@@ -1046,20 +1059,38 @@
     window.scrollTo({ top: 0, behavior: 'smooth' });
   });
   
+  // Inline reset
   document.addEventListener('click', (e) => {
-    if (e.target.closest('.clothing-reset-all')) { e.preventDefault(); handleResetAll(); }
+    if (e.target.closest('.clothing-reset-all')) {
+      e.preventDefault();
+      handleResetAll();
+    }
   });
   
+  // Reset all button
   if (resetAllBtn) resetAllBtn.addEventListener('click', handleResetAll);
   
-  if (btnPrev) btnPrev.addEventListener('click', () => {
-    if (currentPage > 1) { render(currentPage - 1); window.scrollTo({ top: 0, behavior: 'smooth' }); }
-  });
-  if (btnNext) btnNext.addEventListener('click', () => {
-    const totalPages = Math.ceil(filteredItems.length / ITEMS_PER_PAGE);
-    if (currentPage < totalPages) { render(currentPage + 1); window.scrollTo({ top: 0, behavior: 'smooth' }); }
-  });
+  // Pagination
+  if (btnPrev) {
+    btnPrev.addEventListener('click', () => {
+      if (currentPage > 1) {
+        render(currentPage - 1);
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      }
+    });
+  }
   
+  if (btnNext) {
+    btnNext.addEventListener('click', () => {
+      const totalPages = Math.ceil(filteredItems.length / ITEMS_PER_PAGE);
+      if (currentPage < totalPages) {
+        render(currentPage + 1);
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      }
+    });
+  }
+  
+  // Search input with debounce
   if (searchInput) {
     let debounceTimer;
     searchInput.addEventListener('input', (e) => {
@@ -1073,24 +1104,29 @@
     });
   }
   
-  if (searchClear) searchClear.addEventListener('click', async () => {
-    if (searchInput) searchInput.value = '';
-    await handleSearch('');
-  });
+  if (searchClear) {
+    searchClear.addEventListener('click', async () => {
+      if (searchInput) searchInput.value = '';
+      await handleSearch('');
+    });
+  }
   
+  // Legacy Webflow buttons
   document.querySelectorAll('[data-filter-reset]').forEach(btn => {
-    btn.addEventListener('click', async (e) => { e.preventDefault(); await handleResetAll(); });
+    btn.addEventListener('click', (e) => { e.preventDefault(); handleResetAll(); });
   });
   document.querySelectorAll('[data-filter-apply]').forEach(btn => {
     btn.addEventListener('click', (e) => { e.preventDefault(); closeFilterPanel(); });
   });
   
+  // Browser back/forward
   window.addEventListener('popstate', async () => {
     const urlFilters = readFiltersFromURL();
     if (urlFilters.q !== searchQuery) await handleSearch(urlFilters.q);
     render(urlFilters.page, urlFilters);
   });
   
+  // Section toggles (delegated)
   setupSectionToggles();
   
   // ============================================================
@@ -1098,26 +1134,27 @@
   // ============================================================
   
   try {
-    // Fetch size profile data and catalog in parallel
-    const [_, __] = await Promise.all([
-      fetchSizesData(),
-      (async () => {
-        const urlFilters = readFiltersFromURL();
-        if (urlFilters.q) {
-          searchQuery = urlFilters.q;
-          if (searchInput) searchInput.value = searchQuery;
-          catalogData = await fetchCatalog(searchQuery);
-        } else {
-          await initCatalog();
-        }
-      })()
-    ]);
+    const urlFilters = readFiltersFromURL();
+    
+    // Fetch subcategories + sizes in parallel with catalog
+    const initPromises = [fetchSubcategories(), fetchSizesData()];
+    
+    if (urlFilters.q) {
+      searchQuery = urlFilters.q;
+      if (searchInput) searchInput.value = searchQuery;
+      initPromises.push(fetchCatalog(searchQuery).then(d => { catalogData = d; }));
+    } else {
+      initPromises.push(initCatalog());
+    }
+    
+    await Promise.all(initPromises);
     
     updateSearchClearVisibility();
     
-    const urlFilters = readFiltersFromURL();
+    // Apply URL filters + status
     const hasFilters = urlFilters.categories.length || urlFilters.subcategories.length || 
-                       urlFilters.colors.length || urlFilters.sizes.length ||
+                       urlFilters.colors.length || (urlFilters.size || []).length ||
+                       (urlFilters.status || []).length ||
                        EXTRA_FILTERS.some(def => (urlFilters[def.type] || []).length > 0);
     
     if (hasFilters || urlFilters.page !== 1) {
@@ -1125,11 +1162,20 @@
         categories: urlFilters.categories,
         subcategories: urlFilters.subcategories,
         colors: urlFilters.colors,
-        sizes: urlFilters.sizes,
+        size: urlFilters.size || [],
+        status: urlFilters.status || [],
       };
-      EXTRA_FILTERS.forEach(def => { filters[def.type] = urlFilters[def.type] || []; });
+      EXTRA_FILTERS.forEach(def => {
+        filters[def.type] = urlFilters[def.type] || [];
+      });
+      
+      // Check status checkbox if in URL
+      if (filters.status.length > 0) {
+        const statusCb = document.querySelector('input[data-filter="status"]');
+        if (statusCb) statusCb.checked = true;
+      }
+      
       render(urlFilters.page, filters);
-      console.log('[Catalog] Applied URL filters:', filters);
     } else {
       render(1);
     }
@@ -1138,7 +1184,7 @@
     
   } catch (err) {
     console.error('[Catalog] Init failed:', err);
-    grid.innerHTML = '<p style="grid-column: 1/-1; text-align: center; padding: 40px 0; font-family: Urbanist, sans-serif;">Could not load catalog. Please refresh the page.</p>';
+    grid.innerHTML = '<p style="grid-column: 1/-1; text-align: center; padding: 40px 0; font-family: Urbanist, sans-serif; color: #a86b9c;">could not load catalog. please refresh the page.</p>';
   }
   
 })();
