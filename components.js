@@ -164,15 +164,6 @@
   </div>
 </div>
 
-// ============================================
-// FILTER PANEL COMPONENT - add to componentsHTML
-// No brand filter. Size always visible.
-// ============================================
-
-/* PASTE THIS HTML INTO YOUR componentsHTML STRING IN components.js: */
-
-/*
-
 <!-- ============================================ -->
 <!-- FILTER PANEL - Slide-out from right           -->
 <!-- ============================================ -->
@@ -209,7 +200,7 @@
       <div class="filter-section-content is-open" data-list="subcategory"></div>
     </div>
 
-    <!-- Size — always visible (profile mode: XS-XXL / specific mode: actual sizes) -->
+    <!-- Size — always visible (profile mode or specific mode) -->
     <div class="filter-section" data-section="size" id="filter-section-size">
       <button class="filter-section-header" data-toggle="size">
         <span class="filter-section-title">size</span>
@@ -296,9 +287,6 @@
     <button class="filter-panel-apply" id="filter-panel-apply-btn">show results</button>
   </div>
 </div>
-
-*/
-
 
 <!-- ============================================ -->
 <!-- MULTI-STEP ONBOARDING MODAL -->
