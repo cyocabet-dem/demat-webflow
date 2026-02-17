@@ -191,8 +191,8 @@ function formatDonatedBy(raw) {
   let val = (raw ?? '').toString().trim();
   if (!val) return '';
 
-  // Special case
-  if (val.toLowerCase() === 'curated by the dematerialized team') {
+ // Special case: any mention of dematerialized/demat → "curated by demat"
+  if (/demat(erialized)?/i.test(val)) {
     return 'curated by demat';
   }
 
