@@ -188,6 +188,7 @@
 // ============================================================
 
 function formatDonatedBy(raw) {
+  console.log('[PDP] donated_by raw value:', JSON.stringify(raw));
   let val = (raw ?? '').toString().trim();
   if (!val) return '';
 
