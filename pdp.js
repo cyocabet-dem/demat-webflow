@@ -188,7 +188,7 @@
 // ============================================================
 
 function formatDonatedBy(raw) {
-  let val = (raw || '').trim();
+  let val = (raw ?? '').toString().trim();
   if (!val) return '';
 
   // Special case
@@ -205,10 +205,11 @@ function formatDonatedBy(raw) {
   const parts = val.split(/\s+/);
   if (parts.length < 2) return parts[0];
 
-  // Find the meaningful last name part (skip "van", "van de", "van der", etc.)
+  const firstName = parts[0];
+
+  // Find the meaningful last name part (skip "van", "de", "der", etc.)
   let lastIdx = parts.length - 1;
-  const prefixes = ['van', 'de', 'der', 'den', 'het', 'het'];
-  // Walk forward from index 1; the last non-prefix word is the surname
+  const prefixes = ['van', 'de', 'der', 'den', 'het'];
   for (let i = parts.length - 1; i >= 1; i--) {
     if (!prefixes.includes(parts[i].toLowerCase())) {
       lastIdx = i;
