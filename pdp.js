@@ -188,7 +188,7 @@
 // ============================================================
 
 function formatDonatedBy(raw) {
-  const val = (raw || '').trim();
+  let val = (raw || '').trim();
   if (!val) return '';
 
   // Special case
@@ -196,10 +196,14 @@ function formatDonatedBy(raw) {
     return 'curated by demat';
   }
 
-  const parts = val.split(/\s+/);
-  if (parts.length < 2) return parts[0]; // single name only
+  // Strip "donated by" prefix if present
+  if (val.toLowerCase().startsWith('donated by')) {
+    val = val.substring('donated by'.length).trim();
+  }
+  if (!val) return '';
 
-  const firstName = parts[0];
+  const parts = val.split(/\s+/);
+  if (parts.length < 2) return parts[0];
 
   // Find the meaningful last name part (skip "van", "van de", "van der", etc.)
   let lastIdx = parts.length - 1;
