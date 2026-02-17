@@ -396,45 +396,52 @@
   }
 
   // ============================================================
-  // GALLERY
+  // GALLERY (supports multiple [data-thumbs] containers)
   // ============================================================
 
   function initGallery(n) {
     const main = $('[data-main-img]');
-    const thumbs = $('[data-thumbs]');
+    const allThumbs = $$('[data-thumbs]');
     const tpl = $('[data-template="thumb"]');
 
-    if (!main || !thumbs || !tpl) return;
+    if (!main || !allThumbs.length || !tpl) return;
 
     const imgs = (n.images || []).map(i => ({ ...i, _type: detectImageType(i) })).sort(sortImages);
 
     if (!imgs.length) {
       setVisual(main, '', n.name);
-      thumbs.style.display = 'none';
+      allThumbs.forEach(t => t.style.display = 'none');
       return;
     }
 
     const indexByUrl = new Map(imgs.map((im, i) => [im.object_url, i]));
-    $$('.thumb-clone', thumbs).forEach(el => el.remove());
-
-    const nodes = imgs.map(img => {
-      const x = tpl.cloneNode(true);
-      x.classList.remove('is-template');
-      x.removeAttribute('data-template');
-      x.classList.add('thumb-clone');
-      x.dataset.url = img.object_url;
-      setVisual(x.querySelector('[data-thumb-img]'), img.object_url, n.name);
-      x.onclick = () => show(indexByUrl.get(img.object_url));
-      thumbs.appendChild(x);
-      return x;
-    });
-
     let current = Math.max(0, imgs.findIndex(i => i._type === 'front'));
 
+    // Collect all thumb nodes across all containers for coordinated highlighting
+    const allNodes = [];
+
+    for (const thumbs of allThumbs) {
+      // Clean up any existing clones
+      $$('.thumb-clone', thumbs).forEach(el => el.remove());
+
+      const nodes = imgs.map(img => {
+        const x = tpl.cloneNode(true);
+        x.classList.remove('is-template');
+        x.removeAttribute('data-template');
+        x.classList.add('thumb-clone');
+        x.dataset.url = img.object_url;
+        setVisual(x.querySelector('[data-thumb-img]'), img.object_url, n.name);
+        x.onclick = () => show(indexByUrl.get(img.object_url));
+        thumbs.appendChild(x);
+        return x;
+      });
+
+      allNodes.push(...nodes);
+    }
+
     function highlight(url) {
-      nodes.forEach(nd => nd.classList.remove('is-active'));
-      const node = nodes.find(nd => nd.dataset.url === url);
-      if (node) node.classList.add('is-active');
+      allNodes.forEach(nd => nd.classList.remove('is-active'));
+      allNodes.filter(nd => nd.dataset.url === url).forEach(nd => nd.classList.add('is-active'));
     }
 
     function show(i) {
