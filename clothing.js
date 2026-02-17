@@ -1114,10 +1114,13 @@
     searchClear.addEventListener('click', async () => {
       if (searchInput) searchInput.value = '';
       await handleSearch('');
-      // Collapse mobile search
-      const container = document.querySelector('.search-container');
-      if (container && window.innerWidth <= 767) {
-        container.classList.remove('is-expanded');
+      // Collapse mobile search + backdrop
+      if (window.innerWidth <= 767) {
+        const container = document.querySelector('.search-container');
+        if (container) container.classList.remove('is-expanded');
+        document.body.classList.remove('search-expanded');
+        const backdrop = document.querySelector('.search-mobile-backdrop');
+        if (backdrop) backdrop.classList.remove('is-open');
       }
     });
   }
@@ -1149,10 +1152,37 @@
   
   function setupMobileSearch() {
     const isMobile = () => window.innerWidth <= 767;
+    let backdrop = null;
+    
+    function createBackdrop() {
+      if (backdrop) return backdrop;
+      backdrop = document.createElement('div');
+      backdrop.className = 'search-mobile-backdrop';
+      document.body.appendChild(backdrop);
+      backdrop.addEventListener('click', collapseSearch);
+      return backdrop;
+    }
+    
+    function expandSearch() {
+      const container = document.querySelector('.search-container');
+      if (!container) return;
+      container.classList.add('is-expanded');
+      document.body.classList.add('search-expanded');
+      createBackdrop().classList.add('is-open');
+      const input = container.querySelector('.search-input');
+      if (input) requestAnimationFrame(() => input.focus());
+    }
+    
+    function collapseSearch() {
+      const container = document.querySelector('.search-container');
+      if (!container) return;
+      container.classList.remove('is-expanded');
+      document.body.classList.remove('search-expanded');
+      if (backdrop) backdrop.classList.remove('is-open');
+    }
     
     document.addEventListener('click', (e) => {
       if (!isMobile()) return;
-      
       const container = document.querySelector('.search-container');
       if (!container) return;
       
@@ -1161,35 +1191,27 @@
       if (icon && !container.classList.contains('is-expanded')) {
         e.preventDefault();
         e.stopPropagation();
-        container.classList.add('is-expanded');
-        const input = container.querySelector('.search-input');
-        if (input) {
-          requestAnimationFrame(() => input.focus());
-        }
-        return;
-      }
-      
-      // Tap close button → collapse
-      const closeBtn = e.target.closest('.search-mobile-close');
-      if (closeBtn) {
-        e.preventDefault();
-        container.classList.remove('is-expanded');
-        const input = container.querySelector('.search-input');
-        if (input && !input.value) {
-          // no search active, just close
-        } else if (input && input.value) {
-          // keep the search but collapse the bar
-        }
+        expandSearch();
         return;
       }
     });
     
-    // Escape key closes expanded search on mobile
+    // Escape key closes
     document.addEventListener('keydown', (e) => {
       if (e.key === 'Escape' && isMobile()) {
         const container = document.querySelector('.search-container');
         if (container?.classList.contains('is-expanded')) {
-          container.classList.remove('is-expanded');
+          collapseSearch();
+        }
+      }
+    });
+    
+    // Collapse on resize to desktop
+    window.addEventListener('resize', () => {
+      if (!isMobile()) {
+        const container = document.querySelector('.search-container');
+        if (container?.classList.contains('is-expanded')) {
+          collapseSearch();
         }
       }
     });
