@@ -1114,13 +1114,10 @@
     searchClear.addEventListener('click', async () => {
       if (searchInput) searchInput.value = '';
       await handleSearch('');
-      // Collapse mobile search + backdrop
+      // Collapse mobile search
       if (window.innerWidth <= 767) {
         const container = document.querySelector('.search-container');
         if (container) container.classList.remove('is-expanded');
-        document.body.classList.remove('search-expanded');
-        const backdrop = document.querySelector('.search-mobile-backdrop');
-        if (backdrop) backdrop.classList.remove('is-open');
       }
     });
   }
@@ -1147,28 +1144,46 @@
   setupMobileSearch();
   
   // ============================================================
-  // MOBILE SEARCH: tap icon to expand, close to collapse
+  // MOBILE SEARCH: tap icon to expand, click outside to collapse
+  // Moves search-container in the DOM so CSS flex spacing works
   // ============================================================
   
   function setupMobileSearch() {
     const isMobile = () => window.innerWidth <= 767;
-    let backdrop = null;
+    let movedToParent = false;
+    let originalParent = null;
+    let originalNextSibling = null;
     
-    function createBackdrop() {
-      if (backdrop) return backdrop;
-      backdrop = document.createElement('div');
-      backdrop.className = 'search-mobile-backdrop';
-      document.body.appendChild(backdrop);
-      backdrop.addEventListener('click', collapseSearch);
-      return backdrop;
+    // Move search-container to be a direct child of .full-page-section
+    // so it sits as a flex sibling of .div-filter-section
+    function rearrangeDOM() {
+      const container = document.querySelector('.search-container');
+      const section = document.querySelector('.full-page-section');
+      if (!container || !section) return;
+      
+      if (isMobile() && !movedToParent) {
+        // Save original position so we can restore on desktop
+        originalParent = container.parentElement;
+        originalNextSibling = container.nextSibling;
+        // Move to be a direct child of .full-page-section
+        section.appendChild(container);
+        movedToParent = true;
+      } else if (!isMobile() && movedToParent && originalParent) {
+        // Restore to original position
+        if (originalNextSibling) {
+          originalParent.insertBefore(container, originalNextSibling);
+        } else {
+          originalParent.appendChild(container);
+        }
+        movedToParent = false;
+        container.classList.remove('is-expanded');
+      }
     }
     
     function expandSearch() {
       const container = document.querySelector('.search-container');
       if (!container) return;
       container.classList.add('is-expanded');
-      document.body.classList.add('search-expanded');
-      createBackdrop().classList.add('is-open');
       const input = container.querySelector('.search-input');
       if (input) requestAnimationFrame(() => input.focus());
     }
@@ -1177,10 +1192,12 @@
       const container = document.querySelector('.search-container');
       if (!container) return;
       container.classList.remove('is-expanded');
-      document.body.classList.remove('search-expanded');
-      if (backdrop) backdrop.classList.remove('is-open');
     }
     
+    // Initial DOM rearrangement
+    rearrangeDOM();
+    
+    // Click handler: expand on icon tap, collapse on outside tap
     document.addEventListener('click', (e) => {
       if (!isMobile()) return;
       const container = document.querySelector('.search-container');
@@ -1194,6 +1211,14 @@
         expandSearch();
         return;
       }
+      
+      // If expanded, tap outside search → collapse
+      if (container.classList.contains('is-expanded')) {
+        const isInsideSearch = e.target.closest('.search-container');
+        if (!isInsideSearch) {
+          collapseSearch();
+        }
+      }
     });
     
     // Escape key closes
@@ -1206,14 +1231,9 @@
       }
     });
     
-    // Collapse on resize to desktop
+    // Re-arrange DOM on resize
     window.addEventListener('resize', () => {
-      if (!isMobile()) {
-        const container = document.querySelector('.search-container');
-        if (container?.classList.contains('is-expanded')) {
-          collapseSearch();
-        }
-      }
+      rearrangeDOM();
     });
   }
   
