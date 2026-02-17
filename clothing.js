@@ -11,11 +11,120 @@
 
 (async function () {
   'use strict';
-  
+
+// Inject filter panel HTML (only needed on clothing page)
+if (!document.getElementById('filter-panel')) {
+  const filterHTML = `
+<div id="filter-panel-backdrop" class="filter-panel-backdrop"></div>
+<div id="filter-panel" class="filter-panel">
+  <div class="filter-panel-header">
+    <div class="filter-panel-header-left">
+      <span class="filter-panel-title">filters</span>
+      <span id="filter-active-count" class="filter-active-count" style="display: none;">0</span>
+    </div>
+    <button class="filter-panel-close" id="filter-panel-close-btn">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+        <path d="M18 6L6 18M6 6l12 12"/>
+      </svg>
+    </button>
+  </div>
+  <div class="filter-panel-body" id="filter-panel-body">
+    <label class="filter-status-row" id="filter-status-row">
+      <input type="checkbox" data-filter="status" value="available">
+      <span class="filter-status-label">show available only</span>
+      <span class="filter-status-count" id="filter-status-available-count"></span>
+    </label>
+    <div class="filter-section" data-section="category">
+      <button class="filter-section-header is-collapsed" data-toggle="category">
+        <span class="filter-section-title">category</span>
+        <svg class="filter-section-chevron" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="m6 9 6 6 6-6"/></svg>
+      </button>
+      <div class="filter-section-content" data-list="category"></div>
+    </div>
+    <div class="filter-section" data-section="subcategory" id="filter-section-subcategory">
+      <button class="filter-section-header is-collapsed" data-toggle="subcategory">
+        <span class="filter-section-title">type</span>
+        <svg class="filter-section-chevron" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="m6 9 6 6 6-6"/></svg>
+      </button>
+      <div class="filter-section-content" data-list="subcategory"></div>
+    </div>
+    <div class="filter-section" data-section="size" id="filter-section-size">
+      <button class="filter-section-header is-collapsed" data-toggle="size">
+        <span class="filter-section-title">size</span>
+        <svg class="filter-section-chevron" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="m6 9 6 6 6-6"/></svg>
+      </button>
+      <div class="filter-section-content" data-list="size"></div>
+    </div>
+    <div class="filter-section" data-section="color">
+      <button class="filter-section-header is-collapsed" data-toggle="color">
+        <span class="filter-section-title">color</span>
+        <svg class="filter-section-chevron" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="m6 9 6 6 6-6"/></svg>
+      </button>
+      <div class="filter-section-content" data-list="color"></div>
+    </div>
+    <div class="filter-section" data-section="sleeve_length" id="filter-section-sleeve_length" style="display: none;">
+      <button class="filter-section-header is-collapsed" data-toggle="sleeve_length">
+        <span class="filter-section-title">sleeve length</span>
+        <svg class="filter-section-chevron" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="m6 9 6 6 6-6"/></svg>
+      </button>
+      <div class="filter-section-content" data-list="sleeve_length"></div>
+    </div>
+    <div class="filter-section" data-section="rise" id="filter-section-rise" style="display: none;">
+      <button class="filter-section-header is-collapsed" data-toggle="rise">
+        <span class="filter-section-title">rise</span>
+        <svg class="filter-section-chevron" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="m6 9 6 6 6-6"/></svg>
+      </button>
+      <div class="filter-section-content" data-list="rise"></div>
+    </div>
+    <div class="filter-section" data-section="length" id="filter-section-length" style="display: none;">
+      <button class="filter-section-header is-collapsed" data-toggle="length">
+        <span class="filter-section-title">length</span>
+        <svg class="filter-section-chevron" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="m6 9 6 6 6-6"/></svg>
+      </button>
+      <div class="filter-section-content" data-list="length"></div>
+    </div>
+    <div class="filter-section" data-section="material" id="filter-section-material" style="display: none;">
+      <button class="filter-section-header is-collapsed" data-toggle="material">
+        <span class="filter-section-title">material</span>
+        <svg class="filter-section-chevron" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="m6 9 6 6 6-6"/></svg>
+      </button>
+      <div class="filter-section-content" data-list="material"></div>
+    </div>
+    <div class="filter-section" data-section="fit" id="filter-section-fit" style="display: none;">
+      <button class="filter-section-header is-collapsed" data-toggle="fit">
+        <span class="filter-section-title">fit</span>
+        <svg class="filter-section-chevron" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="m6 9 6 6 6-6"/></svg>
+      </button>
+      <div class="filter-section-content" data-list="fit"></div>
+    </div>
+    <div class="filter-section" data-section="pattern" id="filter-section-pattern" style="display: none;">
+      <button class="filter-section-header is-collapsed" data-toggle="pattern">
+        <span class="filter-section-title">pattern</span>
+        <svg class="filter-section-chevron" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="m6 9 6 6 6-6"/></svg>
+      </button>
+      <div class="filter-section-content" data-list="pattern"></div>
+    </div>
+    <div class="filter-section" data-section="neckline" id="filter-section-neckline" style="display: none;">
+      <button class="filter-section-header is-collapsed" data-toggle="neckline">
+        <span class="filter-section-title">neckline</span>
+        <svg class="filter-section-chevron" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="m6 9 6 6 6-6"/></svg>
+      </button>
+      <div class="filter-section-content" data-list="neckline"></div>
+    </div>
+  </div>
+  <div class="filter-panel-footer">
+    <button class="filter-panel-reset" id="filter-panel-reset-btn">reset all</button>
+    <button class="filter-panel-apply" id="filter-panel-apply-btn">show results</button>
+  </div>
+</div>`;
+  document.body.insertAdjacentHTML('beforeend', filterHTML);
+}
+
   // ============================================================
   // CONFIG
   // ============================================================
-  
+  <!-- ============================================ -->
+
   const BASE = window.API_BASE_URL;
   const CATALOG_URL = `${BASE}/search`;
   const SUBCATEGORIES_URL = `${BASE}/clothing_items/subcategories`;
