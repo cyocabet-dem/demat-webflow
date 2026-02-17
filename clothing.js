@@ -201,17 +201,21 @@
     return filters.categories.length === 0;
   }
   
+  const STANDARD_PROFILE_SIZES = ['XXS', 'XS', 'S', 'M', 'L', 'XL', 'XXL'];
+  
   function buildSizeOptions(items) {
     if (isSizeProfileMode() && standardSizeOrder.length > 0) {
-      // Show standard sizes (XS, S, M, L...)
+      // Show ONLY standard letter sizes (XXS through XXL)
       const available = new Set();
       items.forEach(item => {
         const sz = getItemSize(item);
         if (!sz) return;
         const profile = specificToProfile.get(sz) || sz;
-        available.add(profile);
+        if (STANDARD_PROFILE_SIZES.includes(profile)) {
+          available.add(profile);
+        }
       });
-      return standardSizeOrder
+      return STANDARD_PROFILE_SIZES
         .filter(p => available.has(p))
         .map(p => ({ id: p, name: p }));
     } else {
@@ -478,7 +482,9 @@
         const sz = getItemSize(item);
         if (!sz) return;
         const profile = specificToProfile.get(sz) || sz;
-        counts.size[profile] = (counts.size[profile] || 0) + 1;
+        if (STANDARD_PROFILE_SIZES.includes(profile)) {
+          counts.size[profile] = (counts.size[profile] || 0) + 1;
+        }
       });
     } else {
       sizeItems.forEach(item => {
