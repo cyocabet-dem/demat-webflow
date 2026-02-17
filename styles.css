@@ -23,7 +23,7 @@ body {
    ============================================ */
 
 input, select, textarea {
-  border-radius: 0 !important;
+  border-radius: 20 !important;
   -webkit-appearance: none;
   -moz-appearance: none;
   appearance: none;
@@ -44,7 +44,7 @@ input[type="radio"] {
   width: 16px !important;
   height: 16px !important;
   border: 1px solid #111 !important;
-  border-radius: 0 !important;
+  border-radius: 20 !important;
   vertical-align: middle;
   margin-right: 8px;
   position: static !important;
@@ -79,9 +79,9 @@ input[type="radio"] {
 
 /* Checked state */
 .w-checkbox-input--inputType-custom.checkbox.w--redirected-checked {
-  background-color: black;
-  border-color: black;
-  color: #000000;
+  background-color: #a92296;
+  border-color: none;
+  color: #f6f8f9;
 }
 
 /* Layout wrapper */
@@ -94,7 +94,7 @@ input[type="radio"] {
 
 /* Global black checkbox */
 input[type="checkbox"] {
-  accent-color: #000;
+  accent-color: #24282d;
   width: 16px;
   height: 16px;
   margin: 0;
@@ -1416,12 +1416,12 @@ body.onboarding-modal-open {
 /* Buttons */
 .btn-primary {
   width: 100%;
-  padding: 14px 20px;
-  background: #000;
-  color: #fff;
+  padding: 16px 20px;
+  background: #a92296;
+  color: #f6f8f9;
   border: none;
   font-family: 'Urbanist', sans-serif;
-  font-size: 14px;
+  font-size: 16px;
   font-weight: 400;
   cursor: pointer;
   text-decoration: none;
@@ -1431,7 +1431,7 @@ body.onboarding-modal-open {
 }
 
 .btn-primary:hover {
-  background: #333;
+  background: #4b073f;
 }
 
 .btn-secondary {
