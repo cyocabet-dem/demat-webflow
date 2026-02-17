@@ -1114,6 +1114,11 @@
     searchClear.addEventListener('click', async () => {
       if (searchInput) searchInput.value = '';
       await handleSearch('');
+      // Collapse mobile search
+      const container = document.querySelector('.search-container');
+      if (container && window.innerWidth <= 767) {
+        container.classList.remove('is-expanded');
+      }
     });
   }
   
@@ -1134,6 +1139,61 @@
   
   // Section toggles (delegated)
   setupSectionToggles();
+  
+  // Mobile search expand/collapse
+  setupMobileSearch();
+  
+  // ============================================================
+  // MOBILE SEARCH: tap icon to expand, close to collapse
+  // ============================================================
+  
+  function setupMobileSearch() {
+    const isMobile = () => window.innerWidth <= 767;
+    
+    document.addEventListener('click', (e) => {
+      if (!isMobile()) return;
+      
+      const container = document.querySelector('.search-container');
+      if (!container) return;
+      
+      // Tap search icon pill → expand
+      const icon = e.target.closest('.search-icon');
+      if (icon && !container.classList.contains('is-expanded')) {
+        e.preventDefault();
+        e.stopPropagation();
+        container.classList.add('is-expanded');
+        const input = container.querySelector('.search-input');
+        if (input) {
+          requestAnimationFrame(() => input.focus());
+        }
+        return;
+      }
+      
+      // Tap close button → collapse
+      const closeBtn = e.target.closest('.search-mobile-close');
+      if (closeBtn) {
+        e.preventDefault();
+        container.classList.remove('is-expanded');
+        const input = container.querySelector('.search-input');
+        if (input && !input.value) {
+          // no search active, just close
+        } else if (input && input.value) {
+          // keep the search but collapse the bar
+        }
+        return;
+      }
+    });
+    
+    // Escape key closes expanded search on mobile
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape' && isMobile()) {
+        const container = document.querySelector('.search-container');
+        if (container?.classList.contains('is-expanded')) {
+          container.classList.remove('is-expanded');
+        }
+      }
+    });
+  }
   
   // ============================================================
   // INIT
