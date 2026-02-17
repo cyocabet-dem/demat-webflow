@@ -182,6 +182,40 @@
     return front?.object_url || images[0]?.object_url || '';
   }
 
+
+// ============================================================
+// DONATED BY FORMATTING
+// ============================================================
+
+function formatDonatedBy(raw) {
+  const val = (raw || '').trim();
+  if (!val) return '';
+
+  // Special case
+  if (val.toLowerCase() === 'curated by the dematerialized team') {
+    return 'curated by demat';
+  }
+
+  const parts = val.split(/\s+/);
+  if (parts.length < 2) return parts[0]; // single name only
+
+  const firstName = parts[0];
+
+  // Find the meaningful last name part (skip "van", "van de", "van der", etc.)
+  let lastIdx = parts.length - 1;
+  const prefixes = ['van', 'de', 'der', 'den', 'het', 'het'];
+  // Walk forward from index 1; the last non-prefix word is the surname
+  for (let i = parts.length - 1; i >= 1; i--) {
+    if (!prefixes.includes(parts[i].toLowerCase())) {
+      lastIdx = i;
+      break;
+    }
+  }
+
+  const initial = parts[lastIdx].charAt(0).toUpperCase();
+  return `${firstName} ${initial}.`;
+}
+  
   // ============================================================
   // COLOR NORMALIZATION
   // ============================================================
@@ -343,6 +377,7 @@
       fabric: ((i.fabric ?? '').toString().trim()) || 'Unknown',
       care_instructions: ((i.care_instructions ?? '').toString().trim()) || 'Unknown',
       acquired_from: (i.acquired_from ?? '').toString().trim(),
+      donated_by: formatDonatedBy(i.donated_by),
       color: displayNames.join(', '),
       color_keys: canonNames,
       color_hexes: hexes,
@@ -371,6 +406,7 @@
     writeText('fabric', n.fabric);
     writeText('care_instructions', n.care_instructions);
     writeText('acquired_from', n.acquired_from);
+    writeText('donated_by', n.donated_by);
     writeText('color', n.color);
     writeText('size', n.size);
     writeText('condition', n.condition);
