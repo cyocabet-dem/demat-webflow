@@ -504,3 +504,359 @@
   document.body.insertAdjacentHTML('beforeend', componentsHTML);
   console.log('✅ Components injected');
 })();
+
+
+// ============================================
+// SITE-WIDE WISHLIST MANAGER
+// Handles API calls, local storage, and UI updates
+// for heart icons on clothing page, homepage, etc.
+// ============================================
+
+(function() {
+  // Skip if already defined (e.g. by homepage inline script)
+  if (window.WishlistManager) {
+    console.log('💖 [Wishlist] WishlistManager already defined, skipping');
+    return;
+  }
+
+  window.WishlistManager = {
+    STORAGE_KEY: 'dematerialized_wishlist',
+    API_BASE: window.API_BASE_URL || 'https://api.dematerialized.nl',
+    _syncing: false,
+    _initialized: false,
+    _wishlistIds: new Set(),
+
+    async init() {
+      if (this._initialized) return;
+      console.log('💖 [Wishlist] Initializing...');
+
+      this._loadLocal();
+
+      // Wait for auth0Client
+      let attempts = 0;
+      while (!window.auth0Client && attempts < 50) {
+        await new Promise(resolve => setTimeout(resolve, 100));
+        attempts++;
+      }
+
+      if (window.auth0Client) {
+        try {
+          const isAuthenticated = await window.auth0Client.isAuthenticated();
+          if (isAuthenticated) {
+            console.log('💖 [Wishlist] User authenticated, syncing with API...');
+            await this.syncWithAPI();
+          }
+        } catch (err) {
+          console.error('💖 [Wishlist] Init error:', err);
+        }
+      }
+
+      this._initialized = true;
+      console.log('💖 [Wishlist] Initialized with', this._wishlistIds.size, 'items');
+    },
+
+    _loadLocal() {
+      try {
+        const stored = localStorage.getItem(this.STORAGE_KEY);
+        if (stored) {
+          const ids = JSON.parse(stored);
+          if (Array.isArray(ids)) {
+            this._wishlistIds = new Set(ids.map(Number));
+          }
+        }
+      } catch (err) {
+        console.error('💖 [Wishlist] Error loading local:', err);
+      }
+    },
+
+    _saveLocal() {
+      try {
+        localStorage.setItem(this.STORAGE_KEY, JSON.stringify(Array.from(this._wishlistIds)));
+      } catch (err) {
+        console.error('💖 [Wishlist] Error saving local:', err);
+      }
+    },
+
+    async getToken() {
+      try {
+        if (window.auth0Client) {
+          const isAuthenticated = await window.auth0Client.isAuthenticated();
+          if (isAuthenticated) {
+            return await window.auth0Client.getTokenSilently();
+          }
+        }
+      } catch (err) {
+        console.error('💖 [Wishlist] Token error:', err);
+      }
+      return null;
+    },
+
+    async fetchAPIWishlist() {
+      const token = await this.getToken();
+      if (!token) return null;
+
+      try {
+        const response = await fetch(`${this.API_BASE}/private_clothing_items/wishlist/clothing_items`, {
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Accept': 'application/json'
+          }
+        });
+
+        if (!response.ok) {
+          console.error('💖 [Wishlist] API fetch failed:', response.status);
+          return null;
+        }
+
+        const data = await response.json();
+        const items = Array.isArray(data) ? data : (data.items || data.clothing_items || []);
+        return items.map(item => Number(item.id || item.clothing_item_id));
+      } catch (err) {
+        console.error('💖 [Wishlist] API fetch error:', err);
+        return null;
+      }
+    },
+
+    async syncWithAPI() {
+      if (this._syncing) return;
+      this._syncing = true;
+
+      try {
+        const apiIds = await this.fetchAPIWishlist();
+        if (apiIds !== null) {
+          this._wishlistIds = new Set(apiIds);
+          this._saveLocal();
+          this.updateAllUI();
+          console.log('💖 [Wishlist] Synced with API:', this._wishlistIds.size, 'items');
+        }
+      } catch (err) {
+        console.error('💖 [Wishlist] Sync error:', err);
+      } finally {
+        this._syncing = false;
+      }
+    },
+
+    isInWishlist(itemId) {
+      return this._wishlistIds.has(Number(itemId));
+    },
+
+    async addToWishlist(itemId) {
+      const id = Number(itemId);
+      console.log('💖 [Wishlist] Adding:', id);
+
+      // Optimistic local update
+      this._wishlistIds.add(id);
+      this._saveLocal();
+      this.updateUI(id, true);
+
+      const token = await this.getToken();
+      if (token) {
+        try {
+          const response = await fetch(`${this.API_BASE}/private_clothing_items/wishlist/${id}`, {
+            method: 'POST',
+            headers: {
+              'Authorization': `Bearer ${token}`,
+              'Content-Type': 'application/json'
+            }
+          });
+
+          if (!response.ok) {
+            console.error('💖 [Wishlist] API add failed:', response.status);
+            this._wishlistIds.delete(id);
+            this._saveLocal();
+            this.updateUI(id, false);
+            return false;
+          }
+
+          console.log('✅ [Wishlist] Added to API:', id);
+        } catch (err) {
+          console.error('💖 [Wishlist] API add error:', err);
+          this._wishlistIds.delete(id);
+          this._saveLocal();
+          this.updateUI(id, false);
+          return false;
+        }
+      }
+
+      return true;
+    },
+
+    async removeFromWishlist(itemId) {
+      const id = Number(itemId);
+      console.log('💖 [Wishlist] Removing:', id);
+
+      // Optimistic local update
+      this._wishlistIds.delete(id);
+      this._saveLocal();
+      this.updateUI(id, false);
+
+      const token = await this.getToken();
+      if (token) {
+        try {
+          const response = await fetch(`${this.API_BASE}/private_clothing_items/wishlist/${id}`, {
+            method: 'DELETE',
+            headers: {
+              'Authorization': `Bearer ${token}`,
+              'Accept': 'application/json'
+            }
+          });
+
+          if (!response.ok) {
+            console.error('💖 [Wishlist] API remove failed:', response.status);
+            this._wishlistIds.add(id);
+            this._saveLocal();
+            this.updateUI(id, true);
+            return false;
+          }
+
+          console.log('✅ [Wishlist] Removed from API:', id);
+        } catch (err) {
+          console.error('💖 [Wishlist] API remove error:', err);
+          this._wishlistIds.add(id);
+          this._saveLocal();
+          this.updateUI(id, true);
+          return false;
+        }
+      }
+
+      return true;
+    },
+
+    async toggle(itemId) {
+      if (this.isInWishlist(itemId)) {
+        return await this.removeFromWishlist(itemId);
+      } else {
+        return await this.addToWishlist(itemId);
+      }
+    },
+
+    // Update heart icon UI for a single item (works with both Webflow cards and custom cards)
+    updateUI(itemId, isInWishlist) {
+      const id = Number(itemId);
+
+      // Webflow template cards: [data-item-id]
+      document.querySelectorAll(`[data-item-id="${id}"]`).forEach(card => {
+        const outline = card.querySelector('.heart-icon-outline-20px');
+        const filled = card.querySelector('.heart-icon-filled-20px');
+        if (outline) outline.style.display = isInWishlist ? 'none' : 'block';
+        if (filled) filled.style.display = isInWishlist ? 'block' : 'none';
+      });
+
+      // Custom cards (homepage): [data-wishlist-id]
+      document.querySelectorAll(`[data-wishlist-id="${id}"]`).forEach(btn => {
+        if (isInWishlist) {
+          btn.classList.add('active');
+        } else {
+          btn.classList.remove('active');
+        }
+      });
+    },
+
+    // Update ALL heart icons on the page
+    updateAllUI() {
+      // Webflow template cards
+      document.querySelectorAll('[data-item-id]').forEach(card => {
+        const itemId = Number(card.getAttribute('data-item-id'));
+        const isIn = this.isInWishlist(itemId);
+        const outline = card.querySelector('.heart-icon-outline-20px');
+        const filled = card.querySelector('.heart-icon-filled-20px');
+        if (outline) outline.style.display = isIn ? 'none' : 'block';
+        if (filled) filled.style.display = isIn ? 'block' : 'none';
+      });
+
+      // Custom cards (homepage)
+      document.querySelectorAll('[data-wishlist-id]').forEach(btn => {
+        const itemId = Number(btn.getAttribute('data-wishlist-id'));
+        if (this.isInWishlist(itemId)) {
+          btn.classList.add('active');
+        } else {
+          btn.classList.remove('active');
+        }
+      });
+    }
+  };
+
+  // ============================================
+  // updateWishlistIcons — called by clothing.js
+  // after rendering each page of product cards.
+  // Sets up click handlers + visual state.
+  // ============================================
+
+  window.updateWishlistIcons = function() {
+    // Ensure WishlistManager is initialized
+    if (!window.WishlistManager._initialized) {
+      window.WishlistManager.init().then(() => {
+        window.updateWishlistIcons();
+      });
+      return;
+    }
+
+    document.querySelectorAll('[data-item-id]').forEach(card => {
+      const itemId = Number(card.getAttribute('data-item-id'));
+      if (!itemId) return;
+
+      const wrapper = card.querySelector('.div-wish-list-wrapper');
+      if (!wrapper) return;
+
+      // Skip if already wired up
+      if (wrapper.hasAttribute('data-wishlist-bound')) return;
+      wrapper.setAttribute('data-wishlist-bound', 'true');
+
+      // Set initial visual state
+      const isIn = window.WishlistManager.isInWishlist(itemId);
+      const outline = card.querySelector('.heart-icon-outline-20px');
+      const filled = card.querySelector('.heart-icon-filled-20px');
+      if (outline) outline.style.display = isIn ? 'none' : 'block';
+      if (filled) filled.style.display = isIn ? 'block' : 'none';
+
+      // Attach click handler (captures to beat Webflow IX2)
+      wrapper.addEventListener('click', async function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        e.stopImmediatePropagation();
+
+        // Check auth — prompt login if not authenticated
+        if (window.auth0Client) {
+          const isAuthenticated = await window.auth0Client.isAuthenticated();
+          if (!isAuthenticated) {
+            console.log('💖 [Wishlist] Not authenticated, prompting login...');
+            try {
+              await window.auth0Client.loginWithPopup();
+              const nowAuthenticated = await window.auth0Client.isAuthenticated();
+              if (!nowAuthenticated) return;
+              await window.WishlistManager.syncWithAPI();
+            } catch (err) {
+              console.error('💖 [Wishlist] Login error:', err);
+              return;
+            }
+          }
+        }
+
+        await window.WishlistManager.toggle(itemId);
+      }, true); // capture phase to fire before IX2
+    });
+  };
+
+  // Auto-initialize WishlistManager when auth is ready
+  // (for pages that don't explicitly call init)
+  function autoInit() {
+    if (window.auth0Client || document.readyState === 'complete') {
+      window.WishlistManager.init().then(() => {
+        window.updateWishlistIcons();
+      });
+    } else {
+      window.addEventListener('load', function() {
+        setTimeout(() => {
+          window.WishlistManager.init().then(() => {
+            window.updateWishlistIcons();
+          });
+        }, 500);
+      });
+    }
+  }
+
+  // Kick off auto-init after a short delay to let auth.js load
+  setTimeout(autoInit, 200);
+
+  console.log('💖 [Wishlist] WishlistManager + updateWishlistIcons registered');
+})();
