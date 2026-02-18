@@ -43,7 +43,7 @@ document.addEventListener('DOMContentLoaded', function() {
         // Clean up URL and redirect to return path
         window.history.replaceState({}, document.title, returnPath);
         
-        // After successful login, check user status
+        // After successful login, check user status and redirect if needed (ONE TIME)
         await checkUserStatusAndRedirect();
       }
       
@@ -56,7 +56,7 @@ document.addEventListener('DOMContentLoaded', function() {
         const user = await window.auth0Client.getUser();
         displayUserInfo(user);
         
-        // Check user status on page load if already authenticated
+        // Check user status on page load (for onboarding modal only - NO redirects)
         await checkUserStatus();
       }
     } catch (error) {
@@ -64,14 +64,19 @@ document.addEventListener('DOMContentLoaded', function() {
     }
   }
 
-  // Check user status and show onboarding modal if needed
+  // ============================================
+  // CHECK USER STATUS (every page load, already authenticated)
+  // Only shows onboarding modal. No redirects.
+  // ============================================
   async function checkUserStatus() {
     try {
-      // Don't show onboarding modal if we're already on the onboarding page!
-        const excludedPaths = ['/onboarding', '/complete-your-profile', '/profile'];
-        if (excludedPaths.includes(window.location.pathname)) {
+      // Pages where we skip the onboarding modal
+      const skipPages = ['/onboarding', '/complete-your-profile', '/profile', '/memberships', '/error-membership-signup'];
+      if (skipPages.includes(window.location.pathname)) {
+        console.log('⏭️ On excluded page, skipping onboarding check');
         return;
-        }
+      }
+
       const token = await window.auth0Client.getTokenSilently();
       const response = await fetch(`${API_URL}/users/me`, {
         headers: { Authorization: `Bearer ${token}` }
@@ -85,24 +90,31 @@ document.addEventListener('DOMContentLoaded', function() {
       const userData = await response.json();
       console.log('User data:', userData);
       
-      // Check if user needs to complete their profile
-        if (!userData.provided_information) {
-        // Only show once per session
-        if (!sessionStorage.getItem('onboarding_modal_dismissed')) {
-            console.log('⚠️ User has not completed their profile');
-            showOnboardingModal();
-        }
-        }
-      
       // Store user data globally for easy access
       window.currentUserData = userData;
+      
+   const hasActiveMembership = !!userData.stripe_id;
+const hasCompletedProfile = userData.provided_information;
+const modalDismissed = sessionStorage.getItem('onboarding_modal_dismissed') === 'true';
+
+// Only show onboarding modal if user HAS a membership but hasn't completed profile
+if (hasActiveMembership && !hasCompletedProfile && !modalDismissed) {
+        console.log('⚠️ User has not completed their profile - showing onboarding modal');
+        setTimeout(function() { showOnboardingModal(); }, 500);
+      }
+      
+      // Update display with first name
+      displayFirstName();
       
     } catch (error) {
       console.error('Error checking user status:', error);
     }
   }
 
-  // Check user status and redirect to onboarding if needed (after login)
+  // ============================================
+  // CHECK USER STATUS AFTER LOGIN (runs ONCE after Auth0 callback)
+  // No membership → redirect to /memberships
+  // ============================================
   async function checkUserStatusAndRedirect() {
     try {
       console.log('🔍 Checking user status after login...');
@@ -119,25 +131,28 @@ document.addEventListener('DOMContentLoaded', function() {
       const userData = await response.json();
       console.log('User data after login:', userData);
       
-      // Check if user needs to complete their profile
-      if (!userData.provided_information) {
-        console.log('🚀 Redirecting to onboarding page...');
-        // Redirect to onboarding page
-        window.location.href = '/onboarding';
-      } else {
-        console.log('✅ User profile is complete');
-        // User stays on current page (which is the return path)
-      }
-      
       // Store user data globally
       window.currentUserData = userData;
+      
+      const hasActiveMembership = !!userData.stripe_id;
+      
+      if (!hasActiveMembership) {
+        console.log('🚀 No membership - redirecting to /memberships');
+        window.location.href = '/memberships';
+        return;
+      }
+      
+      console.log('✅ User has membership, staying on current page');
+      
+      // Update display with first name
+      displayFirstName();
       
     } catch (error) {
       console.error('Error checking user status:', error);
     }
   }
 
-  // Show onboarding modal (for when user is already logged in but hasn't completed profile)
+  // Show onboarding modal
   function showOnboardingModal() {
     if (typeof window.openOnboardingModal === 'function') {
       window.openOnboardingModal();
@@ -172,6 +187,22 @@ document.addEventListener('DOMContentLoaded', function() {
     });
   }
 
+  // Display first name from API data
+  function displayFirstName() {
+    if (!window.currentUserData) return;
+    
+    const attributes = window.currentUserData.attributes || [];
+    const firstNameAttr = attributes.find(attr => attr.key === 'first_name');
+    const firstName = firstNameAttr?.value || '';
+    
+    if (firstName) {
+      document.querySelectorAll('[data-auth="user-name"]').forEach(el => {
+        el.textContent = firstName;
+      });
+      console.log('👤 Displaying first name:', firstName);
+    }
+  }
+
   // Login - Store current path before redirecting
   async function login() {
     if (!window.auth0Client) return;
@@ -186,6 +217,7 @@ document.addEventListener('DOMContentLoaded', function() {
   // Logout
   async function logout() {
     if (!window.auth0Client) return;
+    sessionStorage.removeItem('onboarding_modal_dismissed');
     await window.auth0Client.logout({
       logoutParams: {
         returnTo: window.location.origin + '/'

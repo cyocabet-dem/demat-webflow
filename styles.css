@@ -17,84 +17,13 @@ body {
 .is-hidden { display: none !important; }
 .is-template { display: none !important; }
 
-/* ============================================
-   FILTER MENU
-   ============================================ */
-
-/* Overlay hidden by default */
-.filter-menu-viewport {
-  display: none;
-  position: fixed;
-  inset: 0;
-  flex-direction: column;
-  height: 100dvh;
-  padding-bottom: env(safe-area-inset-bottom, 0);
-  z-index: 100000;
-}
-
-/* Show overlay only when filter-open is on <body> */
-body.filter-open .filter-menu-viewport {
-  display: flex;
-}
-
-/* Lock body scroll only when filter is open */
-body.filter-open {
-  overflow: hidden;
-}
-
-/* Row wrapper (container for pages) */
-.filter-panels-wrapper {
-  display: flex;
-  flex-direction: row;
-  overflow: hidden;
-  flex: 1 1 auto;
-  min-height: 0;
-  width: 100%;
-  height: 100%;
-}
-
-/* Single panel host */
-.link-block-filter {
-  position: relative;
-  display: flex;
-  flex-direction: column;
-  width: 100%;
-  height: 100%;
-  min-height: 0;
-  overflow: visible;
-}
-
-/* The scroller (Row 1 of the Form grid) */
-.filter-panel-scroll {
-  flex: 1 1 auto;
-  min-height: 0;
-  max-height: 100%;
-  overflow-y: auto;
-  overflow-x: hidden;
-  -webkit-overflow-scrolling: touch;
-  padding-bottom: calc(var(--apply-footer-h) + env(safe-area-inset-bottom, 16px));
-}
-
-/* Footer row (Row 2 of the Form grid) */
-.filter-panel-footer {
-  position: relative;
-  z-index: 100001;
-  height: var(--apply-footer-h);
-  padding-bottom: env(safe-area-inset-bottom, 16px);
-}
-
-/* Hide site navbar when filter is open */
-body.filter-open #bottom-navbar,
-body.filter-open .navbar-2.w-nav {
-  display: none !important;
-}
 
 /* ============================================
    FORM ELEMENTS
    ============================================ */
 
 input, select, textarea {
-  border-radius: 0 !important;
+  border-radius: 20 !important;
   -webkit-appearance: none;
   -moz-appearance: none;
   appearance: none;
@@ -115,7 +44,7 @@ input[type="radio"] {
   width: 16px !important;
   height: 16px !important;
   border: 1px solid #111 !important;
-  border-radius: 0 !important;
+  border-radius: 20 !important;
   vertical-align: middle;
   margin-right: 8px;
   position: static !important;
@@ -150,9 +79,9 @@ input[type="radio"] {
 
 /* Checked state */
 .w-checkbox-input--inputType-custom.checkbox.w--redirected-checked {
-  background-color: black;
-  border-color: black;
-  color: #000000;
+  background-color: #a92296;
+  border-color: none;
+  color: #f6f8f9;
 }
 
 /* Layout wrapper */
@@ -165,7 +94,7 @@ input[type="radio"] {
 
 /* Global black checkbox */
 input[type="checkbox"] {
-  accent-color: #000;
+  accent-color: #24282d;
   width: 16px;
   height: 16px;
   margin: 0;
@@ -185,13 +114,14 @@ input[type="checkbox"] {
   position: fixed;
   top: 0;
   left: 0;
-  right: 0;
-  bottom: 0;
-  background-color: rgba(0, 0, 0, 0.7);
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.6);
   z-index: 999999;
   align-items: center;
   justify-content: center;
-  backdrop-filter: blur(4px);
+  padding: 20px;
+  box-sizing: border-box;
 }
 
 .auth-modal-overlay.is-visible {
@@ -199,81 +129,66 @@ input[type="checkbox"] {
 }
 
 .auth-modal-container {
-  background-color: #fff;
-  border-radius: 2px;
-  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.15);
-  max-width: 440px;
-  width: 90%;
-  max-height: 90vh;
-  overflow-y: auto;
+  background: #ffffff;
+  border-radius: 24px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+  max-width: 420px;
+  width: 100%;
+  overflow: hidden;
   position: relative;
-  animation: modalSlideIn 0.3s ease-out;
-}
-
-@keyframes modalSlideIn {
-  from {
-    opacity: 0;
-    transform: translateY(-20px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
 }
 
 .auth-modal-header {
-  padding: 32px 32px 24px;
-  border-bottom: 1px solid #f0f0f0;
+  padding: 48px 40px 24px;
+  text-align: center;
   position: relative;
 }
 
 .auth-modal-title {
-  color: #000;
-  letter-spacing: .5px;
   font-family: 'Urbanist', sans-serif;
-  font-size: 24px;
-  font-weight: 500;
-  text-transform: capitalize;
-  letter-spacing: 1px;
-  margin: 0;
-  line-height: 1.3;
+  font-size: 32px;
+  font-weight: 700;
+  color: #1a1a1a;
+  margin: 0 0 12px 0;
+  text-transform: lowercase;
+  letter-spacing: 0.3px;
 }
 
 .auth-modal-subtitle {
-  color: #000;
-  letter-spacing: .3px;
   font-family: 'Urbanist', sans-serif;
-  font-size: 14px;
-  font-weight: 300;
-  margin: 8px 0 0;
-  line-height: 20px;
+  font-size: 18px;
+  color: #666;
+  margin: 0;
+  line-height: 1.5;
+  letter-spacing: 0.3px;
 }
 
 .auth-modal-close {
   position: absolute;
-  top: 24px;
-  right: 24px;
-  background: none;
+  top: 20px;
+  right: 20px;
+  width: 36px;
+  height: 36px;
   border: none;
-  color: #000;
+  background: #f5f5f5;
+  border-radius: 50%;
   font-size: 24px;
+  color: #666;
   cursor: pointer;
-  padding: 4px;
-  line-height: 1;
-  transition: color 0.2s;
-  width: 32px;
-  height: 32px;
   display: flex;
   align-items: center;
   justify-content: center;
+  transition: all 0.2s ease;
+  line-height: 1;
 }
 
 .auth-modal-close:hover {
-  color: #000;
+  background: #e0e0e0;
+  color: #333;
 }
 
 .auth-modal-body {
-  padding: 32px;
+  padding: 24px 40px 48px;
 }
 
 .auth-buttons-container {
@@ -283,262 +198,754 @@ input[type="checkbox"] {
 }
 
 .auth-button-primary {
-  color: #fff;
-  letter-spacing: 2px;
-  text-transform: capitalize;
-  background-color: #000;
-  padding: 14px 32px;
   font-family: 'Urbanist', sans-serif;
-  font-size: 14px;
-  font-weight: 300;
-  line-height: 20px;
-  transition: all 0.2s;
+  font-size: 18px;
+  font-weight: 600;
+  color: #ffffff;
+  background: #4b073f;
   border: none;
+  border-radius: 50px;
+  padding: 18px 32px;
   cursor: pointer;
-  text-decoration: none;
-  text-align: center;
-  display: block;
+  transition: all 0.2s ease;
+  text-transform: lowercase;
+  letter-spacing: 0.3px;
   width: 100%;
 }
 
 .auth-button-primary:hover {
-  background-color: #32343a;
-}
-
-.auth-button-secondary {
-  color: #000;
-  letter-spacing: 2px;
-  text-transform: capitalize;
-  background-color: transparent;
-  border: 1px solid #000;
-  padding: 14px 32px;
-  font-family: 'Urbanist', sans-serif;
-  font-size: 14px;
-  font-weight: 300;
-  line-height: 20px;
-  transition: all 0.2s;
-  cursor: pointer;
-  text-decoration: none;
-  text-align: center;
-  display: block;
-  width: 100%;
-}
-
-.auth-button-secondary:hover {
-  background-color: #f5f5f5;
+  background: #3a0630;
 }
 
 .auth-divider {
-  display: flex;
-  align-items: center;
-  margin: 24px 0;
-  color: #999;
   font-family: 'Urbanist', sans-serif;
-  font-size: 12px;
-  font-weight: 300;
-  text-transform: uppercase;
-  letter-spacing: 1px;
+  font-size: 14px;
+  color: #999;
+  text-align: center;
+  position: relative;
+  margin: 8px 0;
 }
 
 .auth-divider::before,
 .auth-divider::after {
   content: '';
-  flex: 1;
+  position: absolute;
+  top: 50%;
+  width: 40%;
   height: 1px;
-  background-color: #e0e0e0;
+  background: #e0e0e0;
 }
 
 .auth-divider::before {
-  margin-right: 16px;
+  left: 0;
 }
 
 .auth-divider::after {
-  margin-left: 16px;
+  right: 0;
+}
+
+.auth-button-secondary {
+  font-family: 'Urbanist', sans-serif;
+  font-size: 18px;
+  font-weight: 600;
+  color: #4b073f;
+  background: transparent;
+  border: 2px solid #4b073f;
+  border-radius: 50px;
+  padding: 16px 32px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  text-transform: lowercase;
+  letter-spacing: 0.3px;
+  width: 100%;
+}
+
+.auth-button-secondary:hover {
+  background: #fff4fe;
 }
 
 .auth-info-text {
-  color: #666;
-  letter-spacing: .3px;
   font-family: 'Urbanist', sans-serif;
-  font-size: 11px;
-  font-weight: 300;
-  line-height: 18px;
+  font-size: 13px;
+  color: #999;
   text-align: center;
-  margin-top: 24px;
+  margin: 24px 0 0 0;
+  line-height: 1.5;
 }
 
 .auth-info-text a {
-  color: #000;
-  letter-spacing: .3px;
-  text-decoration: underline;
+  color: #4b073f;
+  text-decoration: none;
 }
 
 .auth-info-text a:hover {
-  color: #32343a;
+  text-decoration: underline;
 }
 
 body.auth-modal-open {
   overflow: hidden;
 }
 
+@media (max-width: 480px) {
+  .auth-modal-header {
+    padding: 40px 24px 20px;
+  }
+  
+  .auth-modal-title {
+    font-size: 26px;
+  }
+  
+  .auth-modal-subtitle {
+    font-size: 16px;
+  }
+  
+  .auth-modal-body {
+    padding: 20px 24px 40px;
+  }
+  
+  .auth-button-primary,
+  .auth-button-secondary {
+    font-size: 16px;
+    padding: 16px 24px;
+  }
+}
+
 /* ============================================
-   ONBOARDING MODAL
+   MULTI-STEP ONBOARDING MODAL STYLES
+   Font sizes: 22px labels, 18px minimum everywhere
    ============================================ */
 
+/* Overlay - dark backdrop */
 .onboarding-modal-overlay {
   display: none;
   position: fixed;
   top: 0;
   left: 0;
-  right: 0;
-  bottom: 0;
-  background-color: rgba(0, 0, 0, 0.85);
-  z-index: 1000000;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.6);
+  z-index: 10000;
+  overflow-y: auto;
+  padding: 40px 20px;
+  box-sizing: border-box;
   align-items: center;
   justify-content: center;
-  backdrop-filter: blur(8px);
 }
 
 .onboarding-modal-overlay.is-visible {
   display: flex;
 }
 
+/* Container - large modal */
 .onboarding-modal-container {
-  background-color: #fff;
-  border-radius: 2px;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
-  max-width: 500px;
-  width: 90%;
-  max-height: 90vh;
-  overflow-y: auto;
-  position: relative;
-  animation: onboardingSlideIn 0.4s ease-out;
-}
-
-@keyframes onboardingSlideIn {
-  from {
-    opacity: 0;
-    transform: translateY(-30px) scale(0.95);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0) scale(1);
-  }
-}
-
-.onboarding-modal-header {
-  padding: 40px 32px 24px;
-  text-align: center;
-  border-bottom: 1px solid #f0f0f0;
-}
-
-.onboarding-modal-title {
-  color: #000;
-  letter-spacing: .3px;
-  font-family: 'Urbanist', sans-serif;
-  font-size: 28px;
-  font-weight: 500;
-  text-transform: uppercase;
-  letter-spacing: 1px;
-  margin: 0 0 8px 0;
-  line-height: 1.3;
-}
-
-.onboarding-modal-subtitle {
-  color: #666;
-  font-family: 'Urbanist', sans-serif;
-  font-size: 14px;
-  font-weight: 300;
-  margin: 0;
-  line-height: 22px;
-}
-
-.onboarding-modal-body {
-  padding: 40px 32px;
-  text-align: center;
-}
-
-.onboarding-icon {
-  display: flex;
-  justify-content: center;
-  margin-bottom: 24px;
-  color: #000;
-}
-
-.onboarding-icon svg {
-  opacity: 0.8;
-}
-
-.onboarding-text {
-  color: #000;
-  letter-spacing: .3px;
-  font-family: 'Urbanist', sans-serif;
-  font-size: 14px;
-  font-weight: 300;
-  line-height: 24px;
-  margin: 0 0 32px 0;
-}
-
-.onboarding-buttons-container {
+  width: 100%;
+  max-width: 800px;
+  min-width: 60%;
+  background: #ffffff;
+  border-radius: 24px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  max-height: calc(100vh - 80px);
+  overflow: hidden;
 }
 
-.onboarding-button-primary {
-  color: #fff;
-  letter-spacing: 2px;
-  text-transform: uppercase;
-  background-color: #000;
-  padding: 16px 32px;
+/* Progress Bar */
+.onboarding-progress {
+  display: flex;
+  padding: 28px 48px;
+  gap: 24px;
+  border-bottom: 1px solid #f0f0f0;
+  background: #fafafa;
+  border-radius: 24px 24px 0 0;
+}
+
+.onboarding-progress-step {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.progress-label {
   font-family: 'Urbanist', sans-serif;
-  font-size: 14px;
-  font-weight: 500;
-  line-height: 20px;
-  transition: all 0.2s;
-  border: none;
-  cursor: pointer;
-  text-decoration: none;
-  text-align: center;
-  display: block;
+  font-size: 22px;
+  font-weight: 600;
+  text-transform: lowercase;
+  color: #999;
+  letter-spacing: 0.3px;
+}
+
+.onboarding-progress-step.active .progress-label,
+.onboarding-progress-step.completed .progress-label {
+  color: #4b073f;
+}
+
+.progress-bar {
+  height: 4px;
+  background: #e0e0e0;
+  border-radius: 2px;
+  overflow: hidden;
+}
+
+.progress-fill {
+  height: 100%;
+  width: 0%;
+  background: #4b073f;
+  border-radius: 2px;
+  transition: width 0.3s ease;
+}
+
+.onboarding-progress-step.completed .progress-fill {
   width: 100%;
 }
 
-.onboarding-button-primary:hover {
-  background-color: #32343a;
-  transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+.onboarding-progress-step.active .progress-fill {
+  width: 50%;
 }
 
-.onboarding-button-secondary {
+/* Steps */
+.onboarding-step {
+  display: none;
+  padding: 60px 48px 50px;
+  overflow-y: auto;
+  flex: 1;
+}
+
+.onboarding-step.active {
+  display: block;
+}
+
+.onboarding-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  max-width: 550px;
+  margin: 0 auto;
+}
+
+/* Icon */
+.onboarding-icon {
+  margin-bottom: 32px;
+}
+
+/* Typography */
+.onboarding-title {
+  font-family: 'Urbanist', sans-serif;
+  font-size: 36px;
+  font-weight: 700;
+  color: #1a1a1a;
+  margin: 0 0 20px 0;
+  text-transform: lowercase;
+  line-height: 1.2;
+  letter-spacing: 0.3px;
+}
+
+.onboarding-subtitle {
+  font-family: 'Urbanist', sans-serif;
+  font-size: 22px;
   color: #666;
-  letter-spacing: 1px;
-  text-transform: uppercase;
-  background-color: transparent;
-  border: none;
-  padding: 12px 32px;
+  margin: 0 0 44px 0;
+  line-height: 1.5;
+  letter-spacing: 0.3px;
+  max-width: 480px;
+}
+
+/* Buttons */
+.onboarding-btn-primary {
   font-family: 'Urbanist', sans-serif;
-  font-size: 12px;
-  font-weight: 400;
-  line-height: 20px;
-  transition: all 0.2s;
+  font-size: 20px;
+  font-weight: 600;
+  color: #ffffff;
+  background: #4b073f;
+  border: none;
+  border-radius: 50px;
+  padding: 20px 64px;
   cursor: pointer;
-  text-decoration: none;
-  text-align: center;
-  display: block;
+  transition: all 0.2s ease;
+  text-transform: lowercase;
+  letter-spacing: 0.3px;
+  min-width: 240px;
+}
+
+.onboarding-btn-primary:hover {
+  background: #3a0630;
+  transform: translateY(-1px);
+}
+
+.onboarding-btn-primary:disabled {
+  background: #ccc;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.onboarding-btn-secondary {
+  font-family: 'Urbanist', sans-serif;
+  font-size: 18px;
+  font-weight: 500;
+  color: #4b073f;
+  background: transparent;
+  border: none;
+  padding: 16px 32px;
+  cursor: pointer;
+  margin-top: 16px;
+  text-transform: lowercase;
+  letter-spacing: 0.3px;
+  transition: color 0.2s ease;
+}
+
+.onboarding-btn-secondary:hover {
+  color: #a92296;
+}
+
+.onboarding-btn-back {
+  font-family: 'Urbanist', sans-serif;
+  font-size: 18px;
+  font-weight: 500;
+  color: #4b073f;
+  background: transparent;
+  border: none;
+  padding: 16px 32px;
+  cursor: pointer;
+  margin-top: 12px;
+  text-transform: lowercase;
+  letter-spacing: 0.3px;
+}
+
+.onboarding-btn-back:hover {
+  color: #a92296;
+}
+
+/* Form Styles */
+.onboarding-form {
   width: 100%;
+  max-width: 500px;
+  margin-bottom: 44px;
 }
 
-.onboarding-button-secondary:hover {
-  color: #000;
+.onboarding-form-row {
+  display: flex;
+  gap: 24px;
 }
 
+.onboarding-form-row .onboarding-input-group {
+  flex: 1;
+}
+
+.onboarding-input-group {
+  margin-bottom: 28px;
+  text-align: left;
+  position: relative;
+}
+
+.onboarding-label {
+  font-family: 'Urbanist', sans-serif;
+  font-size: 22px;
+  font-weight: 500;
+  color: #666;
+  text-transform: lowercase;
+  display: block;
+  margin-bottom: 12px;
+  letter-spacing: 0.3px;
+}
+
+.onboarding-input {
+  font-family: 'Urbanist', sans-serif;
+  font-size: 20px;
+  color: #1a1a1a;
+  background: transparent;
+  border: none;
+  border-bottom: 2px solid #e0e0e0;
+  padding: 14px 0;
+  width: 100%;
+  outline: none;
+  transition: border-color 0.2s ease;
+  letter-spacing: 0.3px;
+}
+
+.onboarding-input:focus {
+  border-bottom-color: #4b073f;
+}
+
+.onboarding-input::placeholder {
+  color: #bbb;
+  font-size: 18px;
+}
+
+/* Select dropdown styling */
+.onboarding-input option {
+  font-size: 18px;
+}
+
+/* Address Suggestions */
+.address-suggestions {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  background: white;
+  border: 1px solid #e0e0e0;
+  border-radius: 12px;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.12);
+  z-index: 100;
+  display: none;
+  max-height: 220px;
+  overflow-y: auto;
+}
+
+.address-suggestions.active {
+  display: block;
+}
+
+.address-suggestion {
+  padding: 16px 20px;
+  cursor: pointer;
+  font-family: 'Urbanist', sans-serif;
+  font-size: 18px;
+  border-bottom: 1px solid #f0f0f0;
+  letter-spacing: 0.3px;
+}
+
+.address-suggestion:last-child {
+  border-bottom: none;
+}
+
+.address-suggestion:hover {
+  background: #fff4fe;
+}
+
+/* Body Type Options */
+.onboarding-body-types {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 20px;
+  justify-content: center;
+  margin-bottom: 44px;
+  max-width: 550px;
+}
+
+.body-type-option {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  padding: 20px;
+  background: transparent;
+  border: 2px solid transparent;
+  border-radius: 16px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  width: 100px;
+}
+
+.body-type-option:hover {
+  background: #fff4fe;
+}
+
+.body-type-option.selected {
+  border-color: #4b073f;
+  background: #fff4fe;
+}
+
+.body-type-icon {
+  width: 60px;
+  height: 80px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.body-type-label {
+  font-family: 'Urbanist', sans-serif;
+  font-size: 18px;
+  font-weight: 500;
+  color: #1a1a1a;
+  text-transform: lowercase;
+  text-align: center;
+  letter-spacing: 0.3px;
+}
+
+/* Checkbox Options */
+.onboarding-checkboxes {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px 48px;
+  margin-bottom: 44px;
+  text-align: left;
+  max-width: 500px;
+}
+
+.checkbox-option {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  cursor: pointer;
+  font-family: 'Urbanist', sans-serif;
+  font-size: 20px;
+  color: #1a1a1a;
+  letter-spacing: 0.3px;
+}
+
+.checkbox-option input[type="checkbox"] {
+  display: none;
+}
+
+.checkbox-custom {
+  width: 26px;
+  height: 26px;
+  border: 2px solid #e0e0e0;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+  flex-shrink: 0;
+}
+
+.checkbox-option:hover .checkbox-custom {
+  border-color: #4b073f;
+}
+
+.checkbox-option input[type="checkbox"]:checked + .checkbox-custom {
+  background: #4b073f;
+  border-color: #4b073f;
+}
+
+.checkbox-option input[type="checkbox"]:checked + .checkbox-custom::after {
+  content: '✓';
+  color: white;
+  font-size: 16px;
+  font-weight: bold;
+}
+
+.checkbox-label {
+  text-transform: lowercase;
+}
+
+/* Loading State */
+.onboarding-btn-primary.loading {
+  position: relative;
+  color: transparent;
+}
+
+.onboarding-btn-primary.loading::after {
+  content: '';
+  position: absolute;
+  width: 24px;
+  height: 24px;
+  top: 50%;
+  left: 50%;
+  margin-left: -12px;
+  margin-top: -12px;
+  border: 2px solid #ffffff;
+  border-top-color: transparent;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+/* Mobile Responsive */
+@media (max-width: 768px) {
+  .onboarding-modal-overlay {
+    padding: 16px 12px;
+    align-items: flex-start;
+    padding-top: 40px;
+  }
+  
+  .onboarding-modal-container {
+    min-width: auto;
+    max-height: calc(100vh - 80px);
+    border-radius: 20px;
+  }
+  
+  .onboarding-progress {
+    padding: 16px 20px;
+    border-radius: 20px 20px 0 0;
+    gap: 16px;
+  }
+  
+  .progress-label {
+    font-size: 16px;
+  }
+  
+  .onboarding-step {
+    padding: 24px 20px 30px;
+  }
+  
+  .onboarding-icon {
+    margin-bottom: 20px;
+  }
+  
+  .onboarding-icon svg {
+    width: 100px;
+    height: 100px;
+  }
+  
+  .onboarding-title {
+    font-size: 24px;
+    margin-bottom: 12px;
+  }
+  
+  .onboarding-subtitle {
+    font-size: 16px;
+    margin-bottom: 28px;
+    line-height: 1.4;
+  }
+  
+  .onboarding-label {
+    font-size: 16px;
+    margin-bottom: 8px;
+  }
+  
+  .onboarding-input {
+    font-size: 18px;
+    padding: 10px 0;
+  }
+  
+  .onboarding-input-group {
+    margin-bottom: 20px;
+  }
+  
+  .onboarding-form {
+    margin-bottom: 28px;
+  }
+  
+  .onboarding-btn-primary {
+    font-size: 18px;
+    padding: 16px 40px;
+    min-width: 200px;
+  }
+  
+  .onboarding-btn-secondary,
+  .onboarding-btn-back {
+    font-size: 16px;
+    padding: 12px 24px;
+    margin-top: 8px;
+  }
+  
+  .onboarding-form-row {
+    flex-direction: column;
+    gap: 0;
+  }
+  
+  .onboarding-body-types {
+    gap: 10px;
+    margin-bottom: 28px;
+  }
+  
+  .body-type-option {
+    width: 70px;
+    padding: 10px;
+  }
+  
+  .body-type-icon {
+    width: 45px;
+    height: 60px;
+  }
+  
+  .body-type-icon svg {
+    width: 45px;
+    height: 60px;
+  }
+  
+  .body-type-label {
+    font-size: 12px;
+  }
+  
+  .onboarding-checkboxes {
+    grid-template-columns: 1fr;
+    gap: 14px;
+    margin-bottom: 28px;
+  }
+  
+  .checkbox-option {
+    font-size: 16px;
+  }
+  
+  .checkbox-custom {
+    width: 22px;
+    height: 22px;
+  }
+}
+
+@media (max-width: 480px) {
+  .onboarding-modal-overlay {
+    padding: 12px 10px;
+    padding-top: 24px;
+  }
+  
+  .onboarding-progress {
+    padding: 12px 16px;
+    gap: 12px;
+  }
+  
+  .progress-label {
+    font-size: 14px;
+  }
+  
+  .onboarding-step {
+    padding: 20px 16px 24px;
+  }
+  
+  .onboarding-icon {
+    margin-bottom: 16px;
+  }
+  
+  .onboarding-icon svg {
+    width: 80px;
+    height: 80px;
+  }
+  
+  .onboarding-title {
+    font-size: 22px;
+  }
+  
+  .onboarding-subtitle {
+    font-size: 15px;
+    margin-bottom: 24px;
+  }
+  
+  .onboarding-input {
+    font-size: 16px;
+  }
+  
+  .onboarding-btn-primary {
+    font-size: 16px;
+    padding: 14px 32px;
+  }
+  
+  .body-type-option {
+    width: 60px;
+    padding: 8px;
+  }
+  
+  .body-type-icon {
+    width: 40px;
+    height: 50px;
+  }
+  
+  .body-type-icon svg {
+    width: 40px;
+    height: 50px;
+  }
+  
+  .body-type-label {
+    font-size: 10px;
+  }
+}
+
+/* Body scroll lock */
 body.onboarding-modal-open {
   overflow: hidden;
 }
 
 /* ============================================
    CART OVERLAY
+   Updated to match purchase cart panel styling
    ============================================ */
 
 /* Backdrop */
@@ -562,11 +969,11 @@ body.onboarding-modal-open {
   position: fixed;
   top: 0;
   right: 0;
-  width: 400px;
+  bottom: 0;
+  width: 380px;
   max-width: 100%;
-  height: 100vh;
   background: #fff;
-  box-shadow: -4px 0 24px rgba(0, 0, 0, 0.15);
+  box-shadow: -4px 0 24px rgba(0, 0, 0, 0.12);
   z-index: 9999;
   display: flex;
   flex-direction: column;
@@ -590,9 +997,9 @@ body.onboarding-modal-open {
 
 .cart-overlay-title {
   font-family: 'Urbanist', sans-serif;
-  font-size: 18px;
-  font-weight: 500;
-  color: #000;
+  font-size: 20px;
+  font-weight: 600;
+  color: #1a1a1a;
 }
 
 .cart-overlay-close {
@@ -603,17 +1010,18 @@ body.onboarding-modal-open {
   display: flex;
   align-items: center;
   justify-content: center;
+  color: #666;
 }
 
 .cart-overlay-close:hover {
-  opacity: 0.6;
+  color: #1a1a1a;
 }
 
 /* Subtitle */
 .cart-overlay-subtitle {
   padding: 12px 24px;
   font-family: 'Urbanist', sans-serif;
-  font-size: 12px;
+  font-size: 14px;
   color: #666;
   border-bottom: 1px solid #f0f0f0;
   flex-shrink: 0;
@@ -623,7 +1031,7 @@ body.onboarding-modal-open {
 .cart-overlay-content {
   flex: 1;
   overflow-y: auto;
-  padding: 20px 24px;
+  padding: 16px 24px;
 }
 
 /* Empty State */
@@ -636,8 +1044,8 @@ body.onboarding-modal-open {
 
 .cart-overlay-empty-title {
   font-size: 18px;
-  font-weight: 500;
-  color: #000;
+  font-weight: 600;
+  color: #1a1a1a;
   margin-bottom: 8px;
 }
 
@@ -649,38 +1057,39 @@ body.onboarding-modal-open {
 .cart-overlay-empty-link {
   display: inline-block;
   padding: 12px 24px;
-  background: #000;
+  background: #4b073f;
   color: #fff;
   text-decoration: none;
   font-family: 'Urbanist', sans-serif;
-  font-size: 13px;
-  font-weight: 300;
-  text-transform: capitalize;
+  font-size: 16px;
+  font-weight: 600;
+  border-radius: 8px;
+  transition: background 0.2s ease;
 }
 
 .cart-overlay-empty-link:hover {
-  background: #333;
+  background: #3a0630;
 }
 
 /* Items List */
 .cart-overlay-items {
   display: flex;
   flex-direction: column;
-  gap: 20px;
+  gap: 0;
 }
 
 /* Individual Item */
 .cart-overlay-item {
   display: flex;
+  align-items: center;
   gap: 16px;
   cursor: pointer;
-  padding-bottom: 20px;
-  border-bottom: 1px solid #f0f0f0;
+  padding: 16px 0;
+  border-bottom: 1px solid #f5f5f5;
 }
 
 .cart-overlay-item:last-child {
   border-bottom: none;
-  padding-bottom: 0;
 }
 
 .cart-overlay-item:hover .cart-overlay-item-name {
@@ -689,19 +1098,23 @@ body.onboarding-modal-open {
 
 /* Item Image */
 .cart-overlay-item-image {
-  width: 80px;
-  height: 107px;
-  background-color: #f0f0f0;
+  width: 70px;
+  height: 90px;
+  background-color: #f5f5f5;
+  border-radius: 8px;
   flex-shrink: 0;
   overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 8px;
+  box-sizing: border-box;
 }
 
 .cart-overlay-item-image img {
-  width: 100%;
-  height: 100%;
+  max-width: 100%;
+  max-height: 100%;
   object-fit: contain;
-  padding: 6px;
-  box-sizing: border-box;
 }
 
 /* Item Details */
@@ -710,12 +1123,12 @@ body.onboarding-modal-open {
   display: flex;
   flex-direction: column;
   gap: 4px;
-  padding-top: 4px;
+  min-width: 0;
 }
 
 .cart-overlay-item-brand {
   font-family: 'Urbanist', sans-serif;
-  font-size: 10px;
+  font-size: 13px;
   color: #666;
   text-transform: uppercase;
   letter-spacing: 0.5px;
@@ -723,15 +1136,15 @@ body.onboarding-modal-open {
 
 .cart-overlay-item-name {
   font-family: 'Urbanist', sans-serif;
-  font-size: 14px;
+  font-size: 18px;
   font-weight: 500;
-  color: #000;
+  color: #1a1a1a;
   line-height: 1.3;
 }
 
 .cart-overlay-item-size {
   font-family: 'Urbanist', sans-serif;
-  font-size: 12px;
+  font-size: 14px;
   color: #666;
 }
 
@@ -739,51 +1152,48 @@ body.onboarding-modal-open {
   background: none;
   border: none;
   cursor: pointer;
-  font-family: 'Urbanist', sans-serif;
-  font-size: 11px;
-  color: #999;
-  padding: 0;
-  margin-top: auto;
-  text-align: left;
-  width: fit-content;
+  padding: 8px;
+  color: #666;
+  opacity: 0.6;
+  flex-shrink: 0;
 }
 
 .cart-overlay-item-remove:hover {
-  color: #000;
-  text-decoration: underline;
+  opacity: 1;
+  color: #1a1a1a;
 }
 
 /* Footer */
 .cart-overlay-footer {
   padding: 20px 24px;
+  background: #f5f5f5;
   border-top: 1px solid #e0e0e0;
   flex-shrink: 0;
 }
 
 .cart-overlay-count {
   font-family: 'Urbanist', sans-serif;
-  font-size: 13px;
+  font-size: 16px;
   color: #666;
-  margin-bottom: 12px;
+  margin-bottom: 16px;
 }
 
 .cart-overlay-reserve-btn {
   width: 100%;
-  padding: 14px 20px;
-  background: #000;
+  padding: 16px;
+  background: #4b073f;
   color: #fff;
   border: none;
+  border-radius: 8px;
   font-family: 'Urbanist', sans-serif;
-  font-size: 14px;
-  font-weight: 300;
-  text-transform: capitalize;
-  letter-spacing: 0.3px;
+  font-size: 18px;
+  font-weight: 600;
   cursor: pointer;
-  transition: background 0.2s;
+  transition: background 0.2s ease;
 }
 
 .cart-overlay-reserve-btn:hover {
-  background: #333;
+  background: #3a0630;
 }
 
 .cart-overlay-reserve-btn:disabled {
@@ -853,9 +1263,9 @@ body.onboarding-modal-open {
 }
 
 
-
 /* ============================================
-   MODAL UTILITIES
+   MODAL UTILITIES — REDESIGNED
+   Rounded 20px, pill buttons, Urbanist, pink CTA
    ============================================ */
 
 .modal-backdrop {
@@ -865,8 +1275,9 @@ body.onboarding-modal-open {
   left: 0;
   width: 100%;
   height: 100%;
-  background: rgba(0,0,0,0.6);
+  background: rgba(0, 0, 0, 0.5);
   z-index: 10000;
+  backdrop-filter: blur(2px);
 }
 
 .modal-container {
@@ -879,8 +1290,9 @@ body.onboarding-modal-open {
   max-width: 480px;
   background: #fff;
   z-index: 10001;
-  border-radius: 4px;
-  box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+  border-radius: 20px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.2);
+  overflow: hidden;
 }
 
 .modal-large {
@@ -898,24 +1310,25 @@ body.onboarding-modal-open {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 20px 24px;
-  border-bottom: 1px solid #e0e0e0;
+  padding: 24px 28px;
+  border-bottom: 1px solid #ced5da;
   flex-shrink: 0;
 }
 
 .modal-title {
   font-family: 'Urbanist', sans-serif;
-  font-size: 18px;
-  font-weight: 500;
-  color: #000;
+  font-size: 22px;
+  font-weight: 600;
+  color: #24282d;
 }
 
 .modal-label {
   font-family: 'Urbanist', sans-serif;
-  font-size: 10px;
-  color: #999;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
+  font-size: 16px;
+  color: #46535e;
+  text-transform: lowercase;
+  letter-spacing: normal;
+  font-weight: 600;
 }
 
 .modal-close {
@@ -926,10 +1339,16 @@ body.onboarding-modal-open {
   display: flex;
   align-items: center;
   justify-content: center;
+  color: #46535e;
+  transition: color 0.2s ease;
+}
+
+.modal-close:hover {
+  color: #24282d;
 }
 
 .modal-body {
-  padding: 24px;
+  padding: 28px;
   font-family: 'Urbanist', sans-serif;
 }
 
@@ -943,48 +1362,52 @@ body.onboarding-modal-open {
 }
 
 .modal-footer {
-  padding: 16px 24px 24px;
+  padding: 20px 28px 28px;
   display: flex;
   flex-direction: column;
   gap: 12px;
 }
 
 .modal-heading {
-  font-size: 20px;
-  font-weight: 500;
-  color: #000;
+  font-family: 'Urbanist', sans-serif;
+  font-size: 24px;
+  font-weight: 700;
+  color: #24282d;
   margin: 0 0 12px 0;
 }
 
 .modal-text {
-  font-size: 14px;
-  color: #666;
+  font-family: 'Urbanist', sans-serif;
+  font-size: 16px;
+  color: #46535e;
   line-height: 1.6;
   margin: 0 0 24px 0;
 }
 
 .modal-subtext {
-  font-size: 13px;
-  color: #888;
+  font-family: 'Urbanist', sans-serif;
+  font-size: 16px;
+  color: #46535e;
   line-height: 1.5;
   margin: 0;
 }
 
 .modal-error {
   display: none;
-  padding: 12px 16px;
-  background: #fee2e2;
-  border: 1px solid #fca5a5;
-  border-radius: 4px;
+  padding: 14px 18px;
+  background: #fff4fe;
+  border: 1px solid #e8c4e3;
+  border-radius: 12px;
   margin-bottom: 16px;
-  font-size: 13px;
-  color: #991b1b;
+  font-size: 16px;
+  color: #4b073f;
+  font-family: 'Urbanist', sans-serif;
 }
 
 .modal-icon {
   width: 64px;
   height: 64px;
-  background: #f8f8f8;
+  background: #fff4fe;
   border-radius: 50%;
   display: flex;
   align-items: center;
@@ -1003,139 +1426,2292 @@ body.onboarding-modal-open {
   margin: 0 auto 24px;
 }
 
-/* Buttons */
+/* ── Buttons — PINK ──────────────────────── */
 .btn-primary {
   width: 100%;
-  padding: 14px 20px;
-  background: #000;
+  padding: 16px 20px;
+  background: #a92296;
   color: #fff;
   border: none;
+  border-radius: 50px;
   font-family: 'Urbanist', sans-serif;
-  font-size: 14px;
-  font-weight: 400;
+  font-size: 16px;
+  font-weight: 600;
   cursor: pointer;
   text-decoration: none;
   text-align: center;
   display: block;
   box-sizing: border-box;
+  transition: background 0.2s ease, transform 0.2s ease;
 }
 
 .btn-primary:hover {
-  background: #333;
+  background: #4b073f;
+  transform: translateY(-1px);
 }
 
 .btn-secondary {
   width: 100%;
-  padding: 12px 20px;
+  padding: 14px 20px;
   background: transparent;
-  color: #666;
-  border: 1px solid #ddd;
+  color: #46535e;
+  border: 1px solid #ced5da;
+  border-radius: 50px;
   font-family: 'Urbanist', sans-serif;
-  font-size: 13px;
-  font-weight: 400;
+  font-size: 16px;
+  font-weight: 500;
   cursor: pointer;
   text-decoration: none;
   text-align: center;
   display: block;
   box-sizing: border-box;
+  transition: all 0.2s ease;
 }
 
 .btn-secondary:hover {
-  background: #f5f5f5;
+  background: #f6f8f9;
+  border-color: #46535e;
 }
 
-/* Reservation specific */
+/* ── Reservation Confirmation Modal ──────── */
 .reservation-item-count-box {
   display: flex;
   align-items: center;
-  gap: 12px;
-  margin-bottom: 20px;
-  padding: 16px;
-  background: #f8f8f8;
-  border-radius: 4px;
+  gap: 14px;
+  margin-bottom: 24px;
+  padding: 18px;
+  background: #f6f8f9;
+  border-radius: 16px;
+}
+
+.reservation-item-count-box svg {
+  flex-shrink: 0;
+  color: #24282d;
 }
 
 .reservation-item-count-box span {
-  font-size: 15px;
-  color: #000;
-}
-
-.reservation-policy h4 {
-  font-size: 14px;
+  font-family: 'Urbanist', sans-serif;
+  font-size: 16px;
   font-weight: 600;
-  color: #000;
-  margin: 0 0 12px 0;
+  color: #24282d;
 }
 
 .reservation-policy {
   margin-bottom: 24px;
 }
 
+.reservation-policy h4 {
+  font-family: 'Urbanist', sans-serif;
+  font-size: 16px;
+  font-weight: 700;
+  color: #24282d;
+  margin: 0 0 16px 0;
+}
+
 .policy-item {
   display: flex;
-  gap: 10px;
-  margin-bottom: 12px;
-  font-size: 13px;
-  color: #444;
-  line-height: 1.5;
+  gap: 12px;
+  margin-bottom: 16px;
+  font-family: 'Urbanist', sans-serif;
+  font-size: 16px;
+  color: #46535e;
+  line-height: 1.6;
+}
+
+.policy-item:last-child {
+  margin-bottom: 0;
 }
 
 .policy-item svg {
   flex-shrink: 0;
-  margin-top: 2px;
+  margin-top: 3px;
+  color: #4b073f;
 }
 
+.policy-item strong {
+  color: #24282d;
+}
+
+/* ── Reservation Success Modal ───────────── */
 .reservation-id-box {
-  background: #f8f8f8;
-  padding: 14px 16px;
-  border-radius: 4px;
+  background: #f6f8f9;
+  padding: 18px 20px;
+  border-radius: 16px;
   margin-bottom: 24px;
 }
 
 .reservation-id-label {
-  font-size: 11px;
-  color: #999;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-  margin-bottom: 4px;
+  font-family: 'Urbanist', sans-serif;
+  font-size: 14px;
+  color: #46535e;
+  font-weight: 600;
+  letter-spacing: 1px;
+  margin-bottom: 8px;
 }
 
 .reservation-id-value {
-  font-size: 13px;
-  color: #000;
+  font-size: 14px;
+  color: #24282d;
   font-family: monospace;
   word-break: break-all;
+  line-height: 1.5;
 }
 
-/* Benefits box */
+/* ── Premium Upgrade Modal ───────────────── */
 .benefits-box {
-  background: #f8f8f8;
-  padding: 16px;
-  border-radius: 4px;
+  background: #f6f8f9;
+  padding: 20px;
+  border-radius: 16px;
   margin-bottom: 24px;
   text-align: left;
 }
 
 .benefits-title {
-  font-size: 13px;
-  font-weight: 500;
-  color: #000;
-  margin-bottom: 8px;
+  font-family: 'Urbanist', sans-serif;
+  font-size: 16px;
+  font-weight: 600;
+  color: #24282d;
+  margin-bottom: 10px;
 }
 
 .benefits-list {
   margin: 0;
   padding-left: 20px;
-  font-size: 13px;
-  color: #444;
-  line-height: 1.8;
+  font-family: 'Urbanist', sans-serif;
+  font-size: 16px;
+  color: #46535e;
+  line-height: 2;
 }
 
 .link-text-html {
-  color: #000;
+  color: #4b073f;
   text-decoration: underline;
+  text-underline-offset: 3px;
+  font-weight: 500;
 }
 
 .link-text-html:hover {
-  color: #333;
+  color: #a92296;
+}
+
+/* ── Mobile ──────────────────────────────── */
+@media (max-width: 479px) {
+  .modal-container {
+    width: 95%;
+  }
+
+  .modal-header {
+    padding: 20px 24px;
+  }
+
+  .modal-body {
+    padding: 24px;
+  }
+
+  .modal-footer {
+    padding: 16px 24px 24px;
+  }
+
+  .modal-heading {
+    font-size: 22px;
+  }
+
+  .policy-item {
+    font-size: 15px;
+  }
+}
+/* ============================================
+   ACCOUNT SIDE NAVIGATION
+   ============================================ */
+
+:root {
+  --nav-purple: #4b073f;
+  --nav-purple-light: #6b1a5e;
+  --nav-pink: #e84dd8;
+  --nav-pink-soft: #f5c6ef;
+  --nav-pink-glow: rgba(232, 77, 216, 0.08);
+  --nav-cyan: #2cc4ff;
+  --nav-teal: #008ad4;
+  --nav-white: #ffffff;
+  --nav-gray-light: #f8f5f7;
+  --nav-gray-text: #6b6b6b;
+  --nav-gray-dark: #2a2a2a;
+}
+
+.account-sidenav {
+  position: sticky;
+  top: 100px;
+  width: 300px;
+  flex-shrink: 0;
+  align-self: flex-start;
+  padding-top: 1rem;
+}
+
+.account-sidenav-inner {
+  background: var(--nav-white);
+  border-radius: 24px;
+  padding: 10px;
+  border: 1px solid rgba(75, 7, 63, 0.06);
+  box-shadow:
+    0 1px 3px rgba(75, 7, 63, 0.04),
+    0 8px 24px rgba(75, 7, 63, 0.03);
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.account-sidenav-link {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 16px 20px;
+  border-radius: 18px;
+  text-decoration: none;
+  font-size: 17px;
+  font-weight: 500;
+  color: var(--nav-gray-text);
+  transition: all 0.2s ease;
+  position: relative;
+  letter-spacing: 0.01em;
+}
+
+.account-sidenav-link:hover {
+  background: var(--nav-pink-glow);
+  color: var(--nav-purple);
+}
+
+.account-sidenav-link.active {
+  background: linear-gradient(135deg, var(--nav-purple) 0%, var(--nav-purple-light) 100%);
+  color: var(--nav-white);
+  font-weight: 600;
+  box-shadow: 0 4px 16px rgba(75, 7, 63, 0.2);
+}
+
+.account-sidenav-link.active .account-sidenav-icon {
+  color: var(--nav-white);
+}
+
+.account-sidenav-link.active .account-sidenav-icon svg {
+  stroke: var(--nav-white);
+}
+
+.account-sidenav-icon {
+  width: 22px;
+  height: 22px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--nav-gray-text);
+  transition: color 0.2s ease;
+}
+
+.account-sidenav-icon svg {
+  width: 22px;
+  height: 22px;
+  stroke: currentColor;
+  stroke-width: 1.5;
+  fill: none;
+}
+
+.account-sidenav-link:hover .account-sidenav-icon {
+  color: var(--nav-purple);
+}
+
+.account-sidenav-link.active::after {
+  content: '';
+  position: absolute;
+  right: 14px;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--nav-pink);
+  box-shadow: 0 0 8px rgba(232, 77, 216, 0.5);
+}
+
+.account-sidenav-sep {
+  height: 1px;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(232, 77, 216, 0.12) 30%,
+    rgba(44, 196, 255, 0.12) 70%,
+    transparent 100%
+  );
+  margin: 4px 18px;
+}
+
+.account-page-layout {
+  display: flex;
+  gap: 48px;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 40px 24px;
+  align-items: flex-start;
+}
+
+.account-page-content {
+  flex: 1;
+  min-width: 0;
+}
+
+@media (max-width: 768px) {
+  .account-sidenav {
+    position: relative;
+    top: 0;
+    width: 100%;
+  }
+
+  .account-sidenav-inner {
+    display: flex;
+    flex-direction: row;
+    overflow-x: auto;
+    gap: 4px;
+    padding: 6px;
+    border-radius: 18px;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+  }
+
+  .account-sidenav-inner::-webkit-scrollbar {
+    display: none;
+  }
+
+  .account-sidenav-link {
+    flex-shrink: 0;
+    padding: 10px 16px;
+    border-radius: 14px;
+    font-size: 15px;
+    gap: 8px;
+    white-space: nowrap;
+  }
+
+  .account-sidenav-link.active::after {
+    display: none;
+  }
+
+  .account-sidenav-sep {
+    display: none;
+  }
+
+  .account-page-layout {
+    flex-direction: column;
+    gap: 24px;
+    padding: 16px;
+  }
+
+  .account-page-content {
+    width: 100%;
+    display: block;
+  }
+}
+/* ============================================
+   DONATIONS & CREDITS PAGE STYLES
+   ============================================ */
+
+#donations-container {
+  font-family: 'Urbanist', sans-serif;
+  color: #24282d;
+}
+
+/* ── Loading ──────────────────────────────── */
+.donations-loading {
+  text-align: center;
+  padding: 80px 20px;
+}
+
+.donations-loading-spinner {
+  width: 44px;
+  height: 44px;
+  border: 3px solid #ced5da;
+  border-radius: 50%;
+  border-top-color: #4b073f;
+  animation: donationsSpin 1s linear infinite;
+  margin: 0 auto 16px;
+}
+
+.donations-loading-text {
+  color: #46535e;
+  font-size: 1rem;
+}
+
+@keyframes donationsSpin {
+  to { transform: rotate(360deg); }
+}
+
+/* ── Credit Balance Card ─────────────────── */
+.donations-balance-card {
+  background: #04314d;
+  color: #fff;
+  padding: 36px;
+  margin-bottom: 36px;
+  border-radius: 20px;
+}
+
+.donations-balance-label {
+  font-size: 16px;
+  font-weight: 600;
+  letter-spacing: 1px;
+  opacity: 0.85;
+  margin-bottom: 1.5rem;
+}
+
+.donations-balance-amount {
+  font-size: 48px;
+  font-weight: 700;
+  letter-spacing: -1px;
+  margin-bottom: 24px;
+}
+
+.donations-balance-desc {
+  font-size: 16px;
+  opacity: 0.75;
+  line-height: 1.6;
+}
+
+/* ── Section Header ──────────────────────── */
+.donations-section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.donations-section-title {
+  font-size: 28px;
+  font-weight: 700;
+  letter-spacing: 1.5px;
+  color: #46535e;
+}
+
+.donations-section-count {
+  font-size: 16px;
+  color: #46535e;
+}
+
+/* ── Donation Card ───────────────────────── */
+.donation-card {
+  background: #fff;
+  border: 1px solid #ced5da;
+  border-radius: 20px;
+  padding: 28px;
+  margin-bottom: 16px;
+  transition: box-shadow 0.2s ease;
+}
+
+.donation-card:hover {
+  box-shadow: 0 4px 20px rgba(75, 7, 63, 0.08);
+}
+
+.donation-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 20px;
+}
+
+.donation-card-id-label {
+  font-size: 16px;
+  color: #46535e;
+  margin-bottom: 4px;
+}
+
+.donation-card-id {
+  font-size: 16px;
+  color: #24282d;
+  font-family: monospace;
+  font-weight: 600;
+}
+
+.donation-badge {
+  display: inline-block;
+  padding: 6px 16px;
+  font-size: 14px;
+  font-weight: 600;
+  border-radius: 50px;
+}
+
+.donation-badge-complete {
+  background: #eff9ff;
+  color: #008ad4;
+}
+
+.donation-badge-processing {
+  background: #fff4fe;
+  color: #4b073f;
+}
+
+/* Stats Grid */
+.donation-card-stats {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+  margin-bottom: 20px;
+  padding: 18px;
+  background: #f6f8f9;
+  border-radius: 16px;
+}
+
+.donation-card-stat-label {
+  font-size: 14px;
+  color: #46535e;
+  margin-bottom: 6px;
+}
+
+.donation-card-stat-value {
+  font-size: 16px;
+  color: #24282d;
+  font-weight: 600;
+}
+
+.donation-card-stat-value--credits {
+  color: #008ad4;
+  font-weight: 700;
+}
+
+/* Notes */
+.donation-card-notes {
+  margin-bottom: 20px;
+  padding: 18px;
+  background: #fff4fe;
+  border-radius: 16px;
+}
+
+.donation-card-notes-label {
+  font-size: 14px;
+  color: #4b073f;
+  font-weight: 600;
+  margin-bottom: 8px;
+}
+
+.donation-card-notes-text {
+  font-size: 16px;
+  color: #24282d;
+  line-height: 1.5;
+}
+
+/* View Details Button */
+.donation-card-btn {
+  display: block;
+  width: 100%;
+  padding: 16px;
+  background: #4b073f;
+  color: #fff;
+  text-align: center;
+  text-decoration: none;
+  font-family: 'Urbanist', sans-serif;
+  font-size: 16px;
+  font-weight: 600;
+  border-radius: 50px;
+  border: none;
+  cursor: pointer;
+  transition: background 0.2s ease, transform 0.2s ease;
+}
+
+.donation-card-btn:hover {
+  background: #a92296;
+  transform: translateY(-1px);
+}
+
+/* ── Empty State ─────────────────────────── */
+.donations-empty {
+  text-align: center;
+  padding: 60px 24px;
+  background: #fff4fe;
+  border-radius: 20px;
+}
+
+.donations-empty-title {
+  font-size: 22px;
+  font-weight: 600;
+  color: #24282d;
+  margin: 0 0 8px 0;
+}
+
+.donations-empty-text {
+  font-size: 16px;
+  color: #46535e;
+  margin: 0 0 28px 0;
+  max-width: 300px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.donations-empty-btn {
+  display: inline-block;
+  padding: 14px 36px;
+  background: #4b073f;
+  color: #fff;
+  text-decoration: none;
+  font-family: 'Urbanist', sans-serif;
+  font-size: 16px;
+  font-weight: 600;
+  border-radius: 50px;
+  transition: background 0.2s ease, transform 0.2s ease;
+}
+
+.donations-empty-btn:hover {
+  background: #a92296;
+  transform: translateY(-1px);
+}
+
+/* No Membership State - Donations */
+.donations-no-membership {
+  display: none;
+  flex-direction: column;
+  align-items: center;
+  background: #eff9ff;
+  border: 1px solid #b8e4ff;
+  border-radius: 20px;
+  padding: 60px 32px;
+  text-align: center;
+}
+
+.donations-no-membership-icon {
+  width: 64px;
+  height: 64px;
+  margin: 0 auto 20px;
+  color: #04314d;
+  opacity: 0.5;
+}
+
+.donations-no-membership-title {
+  font-size: 22px;
+  font-weight: 600;
+  color: #24282d;
+  margin: 0 0 8px 0;
+}
+
+.donations-no-membership-text {
+  color: #46535e;
+  font-size: 16px;
+  line-height: 1.6;
+  margin: 0 0 28px 0;
+  max-width: 400px;
+}
+
+.donations-no-membership-btn {
+  display: inline-block;
+  padding: 16px 40px;
+  background: #04314d;
+  color: #fff;
+  text-decoration: none;
+  font-family: 'Urbanist', sans-serif;
+  font-size: 16px;
+  font-weight: 600;
+  border-radius: 50px;
+  transition: background 0.2s ease, transform 0.2s ease;
+}
+
+.donations-no-membership-btn:hover {
+  background: #032640;
+  transform: translateY(-1px);
+  color: #fff;
+}
+
+@media (max-width: 600px) {
+  .donations-no-membership {
+    padding: 40px 24px;
+  }
+}
+
+/* ── Error State ─────────────────────────── */
+.donations-error {
+  text-align: center;
+  padding: 40px 20px;
+  background: #fff4fe;
+  border-radius: 20px;
+}
+
+.donations-error-icon {
+  font-size: 32px;
+  margin-bottom: 12px;
+}
+
+.donations-error-text {
+  color: #4b073f;
+  font-size: 16px;
+}
+
+/* ── Sign In State ───────────────────────── */
+.donations-signin {
+  text-align: center;
+  padding: 80px 24px;
+  background: #fff4fe;
+  border-radius: 20px;
+}
+
+.donations-signin-title {
+  font-size: 22px;
+  font-weight: 600;
+  color: #24282d;
+  margin-bottom: 12px;
+}
+
+.donations-signin-text {
+  font-size: 16px;
+  color: #46535e;
+  margin-bottom: 28px;
+}
+
+.donations-signin-btn {
+  display: inline-block;
+  padding: 14px 36px;
+  background: #4b073f;
+  color: #fff;
+  border: none;
+  border-radius: 50px;
+  font-family: 'Urbanist', sans-serif;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s ease;
+}
+
+.donations-signin-btn:hover {
+  background: #a92296;
+}
+
+/* ── Detail Modal ────────────────────────── */
+.donation-modal-backdrop {
+  display: none;
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  z-index: 9998;
+  backdrop-filter: blur(2px);
+}
+
+.donation-modal {
+  display: none;
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  z-index: 9999;
+  justify-content: center;
+  align-items: center;
+  padding: 20px;
+}
+
+.donation-modal-container {
+  background: #fff;
+  width: 100%;
+  max-width: 480px;
+  max-height: 90vh;
+  overflow-y: auto;
+  border-radius: 20px;
+}
+
+.donation-modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 24px 28px;
+  border-bottom: 1px solid #ced5da;
+  position: sticky;
+  top: 0;
+  background: #fff;
+  border-radius: 20px 20px 0 0;
+  z-index: 1;
+}
+
+.donation-modal-title {
+  font-size: 22px;
+  font-weight: 600;
+  color: #24282d;
+}
+
+.donation-modal-id {
+  font-size: 16px;
+  color: #46535e;
+  font-family: monospace;
+  margin-top: 4px;
+}
+
+.donation-modal-close {
+  background: none;
+  border: none;
+  font-size: 28px;
+  cursor: pointer;
+  color: #46535e;
+  padding: 0;
+  line-height: 1;
+  transition: color 0.2s ease;
+}
+
+.donation-modal-close:hover {
+  color: #24282d;
+}
+
+.donation-modal-content {
+  padding: 28px;
+}
+
+.donation-modal-status {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 16px 18px;
+  background: #f6f8f9;
+  border-radius: 16px;
+  margin-bottom: 24px;
+}
+
+.donation-modal-status-text {
+  font-size: 16px;
+  color: #46535e;
+}
+
+.donation-modal-summary-title {
+  font-size: 16px;
+  font-weight: 700;
+  color: #46535e;
+  letter-spacing: 1px;
+  margin-bottom: 12px;
+}
+
+.donation-modal-summary-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  margin-bottom: 28px;
+}
+
+.donation-modal-summary-item {
+  padding: 16px;
+  background: #f6f8f9;
+  border-radius: 16px;
+}
+
+.donation-modal-summary-item--highlight {
+  background: #eff9ff;
+}
+
+.donation-modal-summary-label {
+  font-size: 14px;
+  color: #46535e;
+  margin-bottom: 6px;
+}
+
+.donation-modal-summary-value {
+  font-size: 18px;
+  color: #24282d;
+  font-weight: 600;
+}
+
+.donation-modal-summary-value--credits {
+  color: #008ad4;
+  font-weight: 700;
+}
+
+.donation-modal-notes {
+  margin-bottom: 28px;
+  padding: 18px;
+  background: #fff4fe;
+  border-radius: 16px;
+}
+
+.donation-modal-notes-label {
+  font-size: 14px;
+  font-weight: 600;
+  color: #4b073f;
+  margin-bottom: 8px;
+}
+
+.donation-modal-notes-text {
+  font-size: 16px;
+  color: #24282d;
+  line-height: 1.6;
+}
+
+.donation-modal-items-title {
+  font-size: 16px;
+  font-weight: 700;
+  color: #46535e;
+  letter-spacing: 1px;
+  margin-bottom: 12px;
+}
+
+.donation-modal-item {
+  display: flex;
+  gap: 16px;
+  align-items: center;
+  padding: 16px;
+  background: #f6f8f9;
+  border-radius: 16px;
+  margin-bottom: 12px;
+  text-decoration: none;
+  color: inherit;
+  transition: background 0.2s ease;
+}
+
+.donation-modal-item:hover {
+  background: #fff4fe;
+}
+
+.donation-modal-item:last-child {
+  margin-bottom: 0;
+}
+
+.donation-modal-item-img {
+  width: 90px;
+  height: 112px;
+  border-radius: 16px;
+  overflow: hidden;
+  background: #fff;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 6px;
+}
+
+.donation-modal-item-img img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  object-position: center;
+  display: block;
+}
+
+.donation-modal-item-placeholder {
+  color: #ced5da;
+  font-size: 24px;
+}
+
+.donation-modal-item-details {
+  flex: 1;
+  min-width: 0;
+}
+
+.donation-modal-item-name {
+  font-size: 18px;
+  font-weight: 600;
+  color: #24282d;
+  margin-bottom: 4px;
+}
+
+.donation-modal-item-credits {
+  font-size: 16px;
+  color: #008ad4;
+  font-weight: 600;
+  margin-top: 6px;
+}
+
+.donation-modal-item-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 16px;
+  font-weight: 600;
+  color: #4b073f;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  margin-top: 6px;
+  transition: color 0.2s ease;
+}
+
+.donation-modal-item-link:hover {
+  color: #a92296;
+}
+
+.donation-modal-info {
+  margin-top: 28px;
+  padding: 18px;
+  background: #f6f8f9;
+  border-radius: 16px;
+}
+
+.donation-modal-info-title {
+  font-size: 16px;
+  font-weight: 700;
+  color: #46535e;
+  letter-spacing: 1px;
+  margin-bottom: 8px;
+}
+
+.donation-modal-info-text {
+  font-size: 16px;
+  color: #46535e;
+  line-height: 1.6;
+}
+
+/* ── Responsive ──────────────────────────── */
+@media (max-width: 600px) {
+  .donations-balance-card {
+    padding: 28px;
+  }
+
+  .donations-balance-amount {
+    font-size: 40px;
+  }
+
+  .donation-card {
+    padding: 24px;
+  }
+
+  .donation-card-stats {
+    grid-template-columns: 1fr;
+    gap: 8px;
+  }
+
+  .donation-card-stats > div {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .donation-card-stat-label {
+    margin-bottom: 0;
+  }
+
+  .donation-modal-summary-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .donation-modal-item {
+    gap: 12px;
+    padding: 12px;
+  }
+
+  .donation-modal-item-img {
+    width: 64px;
+    height: 80px;
+  }
+}
+/* ============================================
+   RESERVATIONS PAGE STYLES
+   ============================================ */
+
+#reservations-container {
+  font-family: 'Urbanist', sans-serif;
+  color: #24282d;
+}
+
+/* ── Loading ──────────────────────────────── */
+.reservations-loading {
+  text-align: center;
+  padding: 80px 20px;
+}
+
+.reservations-loading-spinner {
+  width: 44px;
+  height: 44px;
+  border: 3px solid #ced5da;
+  border-radius: 50%;
+  border-top-color: #4b073f;
+  animation: reservationsSpin 1s linear infinite;
+  margin: 0 auto 16px;
+}
+
+.reservations-loading-text {
+  color: #46535e;
+  font-size: 1rem;
+}
+
+@keyframes reservationsSpin {
+  to { transform: rotate(360deg); }
+}
+
+/* ── Section Header ──────────────────────── */
+.reservations-section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.reservations-section-title {
+  font-size: 28px;
+  font-weight: 700;
+  letter-spacing: 1.5px;
+  color: #46535e;
+}
+
+.reservations-section-count {
+  font-size: 16px;
+  color: #46535e;
+}
+
+/* ── Reservation Card ────────────────────── */
+.reservation-card {
+  background: #fff;
+  border: 1px solid #ced5da;
+  border-radius: 20px;
+  padding: 28px;
+  margin-bottom: 16px;
+  transition: box-shadow 0.2s ease;
+}
+
+.reservation-card:hover {
+  box-shadow: 0 4px 20px rgba(75, 7, 63, 0.08);
+}
+
+.reservation-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 20px;
+}
+
+.reservation-card-id-label {
+  font-size: 16px;
+  color: #46535e;
+  margin-bottom: 4px;
+}
+
+.reservation-card-id {
+  font-size: 16px;
+  color: #24282d;
+  font-family: monospace;
+  font-weight: 600;
+}
+
+/* Status Badges */
+.reservation-badge {
+  display: inline-block;
+  padding: 6px 16px;
+  font-size: 14px;
+  font-weight: 600;
+  border-radius: 50px;
+}
+
+.reservation-badge-pending {
+  background: #fff4fe;
+  color: #24282d;
+}
+
+.reservation-badge-ready {
+  background: #f9aef3;
+  color: #24282d;
+}
+
+.reservation-badge-completed {
+  background: #b6e8ff;
+  color: #24282d;
+}
+
+.reservation-badge-cancelled {
+  background: #f6f8f9;
+  color: #24282d;
+}
+
+.reservation-badge-expired {
+  background: #f6f8f9;
+  color: #46535e;
+}
+
+/* Stats Grid */
+.reservation-card-stats {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+  margin-bottom: 20px;
+  padding: 18px;
+  background: #f6f8f9;
+  border-radius: 16px;
+}
+
+.reservation-card-stat-label {
+  font-size: 14px;
+  color: #46535e;
+  margin-bottom: 6px;
+}
+
+.reservation-card-stat-value {
+  font-size: 16px;
+  color: #24282d;
+  font-weight: 600;
+}
+
+.reservation-card-stat-value--highlight {
+  color: #4b073f;
+  font-weight: 700;
+}
+
+/* Items Preview */
+.reservation-card-items-label {
+  font-size: 16px;
+  color: #46535e;
+  margin-bottom: 10px;
+}
+
+.reservation-card-items-preview {
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+  margin-bottom: 20px;
+}
+
+.reservation-card-thumb {
+  width: 72px;
+  height: 90px;
+  border-radius: 16px;
+  overflow: hidden;
+  background: #f6f8f9;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 4px;
+}
+
+.reservation-card-thumb img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  object-position: center;
+  display: block;
+}
+
+.reservation-card-thumb-more {
+  width: 72px;
+  height: 90px;
+  border-radius: 16px;
+  background: #f6f8f9;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 16px;
+  font-weight: 600;
+  color: #46535e;
+  flex-shrink: 0;
+}
+
+.reservation-card-no-items {
+  padding: 16px;
+  background: #fff4fe;
+  border-radius: 12px;
+  font-size: 16px;
+  color: #4b073f;
+  margin-bottom: 20px;
+}
+
+/* View Details Button */
+.reservation-card-btn {
+  display: block;
+  width: 100%;
+  padding: 16px;
+  background: #4b073f;
+  color: #fff;
+  text-align: center;
+  text-decoration: none;
+  font-family: 'Urbanist', sans-serif;
+  font-size: 16px;
+  font-weight: 600;
+  border-radius: 50px;
+  border: none;
+  cursor: pointer;
+  transition: background 0.2s ease, transform 0.2s ease;
+}
+
+.reservation-card-btn:hover {
+  background: #a92296;
+  transform: translateY(-1px);
+}
+
+/* ── Empty State ─────────────────────────── */
+.reservations-empty {
+  display: none;
+  text-align: center;
+  padding: 80px 24px;
+  background: #fff4fe;
+  border-radius: 20px;
+}
+
+.reservations-empty-icon {
+  margin-bottom: 20px;
+}
+
+.reservations-empty-icon svg {
+  stroke: #4b073f;
+}
+
+.reservations-empty-title {
+  font-size: 22px;
+  font-weight: 600;
+  color: #24282d;
+  margin: 0 0 8px 0;
+}
+
+.reservations-empty-text {
+  font-size: 16px;
+  color: #46535e;
+  margin: 0 0 28px 0;
+}
+
+.reservations-empty-btn {
+  display: inline-block;
+  padding: 14px 36px;
+  background: #4b073f;
+  color: #fff;
+  text-decoration: none;
+  font-family: 'Urbanist', sans-serif;
+  font-size: 16px;
+  font-weight: 600;
+  border-radius: 50px;
+  transition: background 0.2s ease, transform 0.2s ease;
+}
+
+.reservations-empty-btn:hover {
+  background: #a92296;
+  transform: translateY(-1px);
+}
+
+/* No Membership State - Reservations */
+.reservations-no-membership {
+  display: none;
+  flex-direction: column;
+  align-items: center;
+  background: #eff9ff;
+  border: 1px solid #b8e4ff;
+  border-radius: 20px;
+  padding: 60px 32px;
+  text-align: center;
+}
+
+.reservations-no-membership-icon {
+  width: 64px;
+  height: 64px;
+  margin: 0 auto 20px;
+  color: #04314d;
+  opacity: 0.5;
+}
+
+.reservations-no-membership-title {
+  font-size: 22px;
+  font-weight: 600;
+  color: #24282d;
+  margin: 0 0 8px 0;
+}
+
+.reservations-no-membership-text {
+  color: #46535e;
+  font-size: 16px;
+  line-height: 1.6;
+  margin: 0 0 28px 0;
+  max-width: 400px;
+}
+
+.reservations-no-membership-btn {
+  display: inline-block;
+  padding: 16px 40px;
+  background: #04314d;
+  color: #fff;
+  text-decoration: none;
+  font-family: 'Urbanist', sans-serif;
+  font-size: 16px;
+  font-weight: 600;
+  border-radius: 50px;
+  transition: background 0.2s ease, transform 0.2s ease;
+}
+
+.reservations-no-membership-btn:hover {
+  background: #032640;
+  transform: translateY(-1px);
+  color: #fff;
+}
+
+@media (max-width: 600px) {
+  .reservations-no-membership {
+    padding: 40px 24px;
+  }
+}
+/* ── Sign In State ───────────────────────── */
+.reservations-signin {
+  text-align: center;
+  padding: 80px 24px;
+  background: #fff4fe;
+  border-radius: 20px;
+}
+
+.reservations-signin-title {
+  font-size: 22px;
+  font-weight: 600;
+  color: #24282d;
+  margin-bottom: 12px;
+}
+
+.reservations-signin-text {
+  font-size: 16px;
+  color: #46535e;
+  margin-bottom: 28px;
+}
+
+.reservations-signin-btn {
+  display: inline-block;
+  padding: 14px 36px;
+  background: #4b073f;
+  color: #fff;
+  border: none;
+  border-radius: 50px;
+  font-family: 'Urbanist', sans-serif;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s ease;
+}
+
+.reservations-signin-btn:hover {
+  background: #a92296;
+}
+
+/* ── Detail Modal: OLD structure overrides ── */
+/* The #reservation-detail-modal IS .modal-container.modal-large.
+   When JS adds .reservation-modal-redesigned, restyle it. */
+
+#reservation-detail-modal.reservation-modal-redesigned {
+  border-radius: 20px;
+  overflow-y: auto;
+}
+
+#reservation-detail-modal.reservation-modal-redesigned .modal-header {
+  padding: 24px 28px;
+  border-bottom: 1px solid #ced5da;
+  position: sticky;
+  top: 0;
+  background: #fff;
+  border-radius: 20px 20px 0 0;
+  z-index: 1;
+}
+
+#reservation-detail-modal.reservation-modal-redesigned .modal-label {
+  font-size: 16px;
+  color: #46535e;
+  text-transform: lowercase;
+  letter-spacing: normal;
+  font-weight: 600;
+}
+
+#reservation-detail-modal.reservation-modal-redesigned .modal-title {
+  font-size: 16px;
+  color: #46535e;
+  font-family: monospace;
+  font-weight: 400;
+}
+
+#reservation-detail-modal.reservation-modal-redesigned .modal-close {
+  font-size: 28px;
+  color: #46535e;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+#reservation-detail-modal.reservation-modal-redesigned .modal-close:hover {
+  color: #24282d;
+}
+
+#reservation-detail-modal.reservation-modal-redesigned .modal-body {
+  padding: 28px;
+  flex: 1;
+  overflow-y: auto;
+}
+
+#reservation-detail-modal.reservation-modal-redesigned .modal-footer {
+  display: none !important;
+}
+
+/* ── Modal inner content (shared) ────────── */
+.reservation-modal-status {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 16px 18px;
+  background: #f6f8f9;
+  border-radius: 16px;
+  margin-bottom: 24px;
+}
+
+.reservation-modal-status-text {
+  font-size: 16px;
+  color: #46535e;
+}
+
+.reservation-modal-summary-title {
+  font-size: 16px;
+  font-weight: 700;
+  color: #46535e;
+  letter-spacing: 1px;
+  margin-bottom: 12px;
+}
+
+.reservation-modal-summary-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  margin-bottom: 28px;
+}
+
+.reservation-modal-summary-item {
+  padding: 16px;
+  background: #f6f8f9;
+  border-radius: 16px;
+}
+
+.reservation-modal-summary-item--highlight {
+  background: #fff4fe;
+}
+
+.reservation-modal-summary-label {
+  font-size: 14px;
+  color: #46535e;
+  margin-bottom: 6px;
+}
+
+.reservation-modal-summary-value {
+  font-size: 18px;
+  color: #24282d;
+  font-weight: 600;
+}
+
+.reservation-modal-summary-value--highlight {
+  color: #4b073f;
+  font-weight: 700;
+}
+
+.reservation-modal-items-title {
+  font-size: 16px;
+  font-weight: 700;
+  color: #46535e;
+  letter-spacing: 1px;
+  margin-bottom: 12px;
+}
+
+.reservation-modal-item {
+  display: flex;
+  gap: 16px;
+  align-items: center;
+  padding: 16px;
+  background: #f6f8f9;
+  border-radius: 16px;
+  margin-bottom: 12px;
+  text-decoration: none;
+  color: inherit;
+  transition: background 0.2s ease;
+}
+
+.reservation-modal-item:hover {
+  background: #fff4fe;
+}
+
+.reservation-modal-item:last-child {
+  margin-bottom: 0;
+}
+
+.reservation-modal-item-img {
+  width: 90px;
+  height: 112px;
+  border-radius: 16px;
+  overflow: hidden;
+  background: #fff;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 6px;
+}
+
+.reservation-modal-item-img img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  object-position: center;
+  display: block;
+}
+
+.reservation-modal-item-details {
+  flex: 1;
+  min-width: 0;
+}
+
+.reservation-modal-item-name {
+  font-size: 18px;
+  font-weight: 600;
+  color: #24282d;
+  margin-bottom: 4px;
+}
+
+.reservation-modal-item-status {
+  font-size: 14px;
+  margin-top: 6px;
+}
+
+.reservation-modal-item-status--picked-up {
+  color: #008ad4;
+  font-weight: 600;
+}
+
+.reservation-modal-item-status--awaiting {
+  color: #4b073f;
+}
+
+.reservation-modal-item-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 16px;
+  font-weight: 600;
+  color: #4b073f;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  margin-top: 6px;
+  transition: color 0.2s ease;
+}
+
+.reservation-modal-item-link:hover {
+  color: #a92296;
+}
+
+.reservation-modal-location {
+  margin-top: 28px;
+  padding: 18px;
+  background: #f6f8f9;
+  border-radius: 16px;
+}
+
+.reservation-modal-location-title {
+  font-size: 16px;
+  font-weight: 700;
+  color: #46535e;
+  letter-spacing: 1px;
+  margin-bottom: 8px;
+}
+
+.reservation-modal-location-text {
+  font-size: 16px;
+  color: #24282d;
+  line-height: 1.6;
+}
+
+/* ── Responsive ──────────────────────────── */
+@media (max-width: 600px) {
+  .reservation-card {
+    padding: 24px;
+  }
+
+  .reservation-card-stats {
+    grid-template-columns: 1fr;
+    gap: 8px;
+  }
+
+  .reservation-card-stats > div {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .reservation-card-stat-label {
+    margin-bottom: 0;
+  }
+
+  .reservation-modal-summary-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .reservation-modal-item {
+    gap: 12px;
+    padding: 12px;
+  }
+
+  .reservation-modal-item-img {
+    width: 64px;
+    height: 80px;
+  }
+}
+/* ============================================
+   PROFILE PAGE STYLES
+   ============================================ */
+
+/* ── Vue cloak ───────────────────────────── */
+[v-cloak] {
+  display: none !important;
+}
+
+/* ── Loading ──────────────────────────────── */
+.profile-loading {
+  text-align: center;
+  padding: 80px 20px;
+}
+
+.profile-loading-spinner {
+  width: 44px;
+  height: 44px;
+  border: 3px solid #ced5da;
+  border-radius: 50%;
+  border-top-color: #4b073f;
+  animation: profileSpin 1s linear infinite;
+  margin: 0 auto 16px;
+}
+
+.profile-loading-text {
+  color: #46535e;
+  font-size: 1rem;
+  font-family: 'Urbanist', sans-serif;
+}
+
+@keyframes profileSpin {
+  to { transform: rotate(360deg); }
+}
+
+/* ── Section Header ──────────────────────── */
+.profile-section-header {
+  margin-bottom: 24px;
+}
+
+.profile-section-title {
+  font-size: 28px;
+  font-weight: 700;
+  letter-spacing: 1.5px;
+  color: #46535e;
+  font-family: 'Urbanist', sans-serif;
+}
+
+/* ── Section Card ────────────────────────── */
+.profile-card {
+  background: #fff;
+  border: 1px solid #ced5da;
+  border-radius: 20px;
+  padding: 32px;
+  margin-bottom: 20px;
+}
+
+.profile-card-title {
+  font-family: 'Urbanist', sans-serif;
+  font-weight: 700;
+  font-size: 22px;
+  color: #24282d;
+  margin: 0 0 28px 0;
+  padding: 0;
+  letter-spacing: 0.5px;
+}
+
+/* ── Form Elements ───────────────────────── */
+.profile-form-label {
+  font-family: 'Urbanist', sans-serif;
+  font-weight: 500;
+  font-size: 16px;
+  line-height: 1.4;
+  color: #46535e;
+  display: block;
+  margin-bottom: 8px;
+}
+
+.profile-form-input {
+  display: block;
+  width: 100%;
+  height: 52px;
+  padding: 12px 16px;
+  font-size: 16px;
+  line-height: 1.4;
+  color: #24282d;
+  background-color: #fff;
+  border: 1px solid #ced5da;
+  border-radius: 12px !important;
+  font-family: 'Urbanist', sans-serif;
+  transition: border-color 0.2s, box-shadow 0.2s;
+  box-sizing: border-box;
+}
+
+.profile-form-input:focus {
+  border-color: #4b073f;
+  outline: 0;
+  box-shadow: 0 0 0 3px rgba(75, 7, 63, 0.12);
+}
+
+.profile-form-input::placeholder {
+  color: #a0a8b0;
+}
+
+.profile-form-input[readonly] {
+  background-color: #f6f8f9;
+  cursor: not-allowed;
+  color: #46535e;
+}
+
+/* Override autofill background */
+.profile-form-input:-webkit-autofill,
+.profile-form-input:-webkit-autofill:hover,
+.profile-form-input:-webkit-autofill:focus,
+.profile-form-input:-webkit-autofill:active {
+  -webkit-box-shadow: 0 0 0 30px #fff4fe inset !important;
+  box-shadow: 0 0 0 30px #fff4fe inset !important;
+  -webkit-text-fill-color: #24282d !important;
+}
+
+/* Firefox autofill */
+.profile-form-input:-moz-autofill,
+.profile-form-input:-moz-autofill-preview {
+  background-color: #fff4fe !important;
+}
+
+/* Textarea */
+textarea.profile-form-input {
+  height: auto;
+  min-height: 100px;
+  resize: vertical;
+}
+
+/* Select dropdown */
+select.profile-form-input {
+  height: 52px;
+  appearance: none !important;
+  -webkit-appearance: none !important;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%2346535e' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 16px center;
+  padding-right: 44px;
+  border-radius: 12px !important;
+}
+
+/* ── Form Layout ─────────────────────────── */
+.profile-form-row {
+  display: flex;
+  gap: 16px;
+}
+
+.profile-form-col-2 {
+  flex: 1;
+}
+
+.profile-form-col-3 {
+  flex: 2;
+}
+
+.profile-form-col-3-small {
+  flex: 1;
+  max-width: 120px;
+}
+
+.profile-form-group {
+  position: relative;
+  margin-bottom: 20px;
+}
+
+.profile-form-group:last-child {
+  margin-bottom: 0;
+}
+
+.profile-form-hint {
+  color: #46535e;
+  font-size: 14px;
+  font-family: 'Urbanist', sans-serif;
+  margin-top: 6px;
+}
+
+/* ── Address Search ──────────────────────── */
+.profile-address-results {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  background: #fff;
+  border: 1px solid #ced5da;
+  border-radius: 0 0 12px 12px;
+  max-height: 200px;
+  overflow-y: auto;
+  z-index: 1000;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+  margin-top: 2px;
+}
+
+.profile-address-result-item {
+  padding: 14px 16px;
+  cursor: pointer;
+  font-size: 16px;
+  border-bottom: 1px solid #f6f8f9;
+  font-family: 'Urbanist', sans-serif;
+  color: #24282d;
+  transition: background 0.15s;
+}
+
+.profile-address-result-item:hover {
+  background-color: #fff4fe;
+}
+
+.profile-address-result-item:last-child {
+  border-bottom: none;
+}
+
+/* ── Buttons ─────────────────────────────── */
+.profile-btn-primary {
+  display: block;
+  width: 100%;
+  padding: 16px;
+  background: #4b073f;
+  color: #fff;
+  text-align: center;
+  font-family: 'Urbanist', sans-serif;
+  font-size: 16px;
+  font-weight: 600;
+  border-radius: 50px;
+  border: none;
+  cursor: pointer;
+  transition: background 0.2s ease, transform 0.2s ease;
+  margin-top: 28px;
+}
+
+.profile-btn-primary:hover:not(:disabled) {
+  background: #a92296;
+  transform: translateY(-1px);
+}
+
+.profile-btn-primary:disabled {
+  background: #ced5da;
+  cursor: not-allowed;
+  transform: none;
+}
+
+/* ── Messages ────────────────────────────── */
+.profile-msg-success {
+  background: #eff9ff;
+  border: 1px solid #b8e4ff;
+  color: #008ad4;
+  padding: 14px 18px;
+  border-radius: 12px;
+  margin-top: 20px;
+  text-align: center;
+  font-size: 16px;
+  font-weight: 600;
+  font-family: 'Urbanist', sans-serif;
+}
+
+.profile-msg-error {
+  background: #fff4fe;
+  border: 1px solid #e8c4e3;
+  color: #4b073f;
+  padding: 14px 18px;
+  border-radius: 12px;
+  margin-top: 20px;
+  text-align: center;
+  font-size: 16px;
+  font-weight: 600;
+  font-family: 'Urbanist', sans-serif;
+}
+
+/* ── Responsive ──────────────────────────── */
+@media (max-width: 600px) {
+  .profile-card {
+    padding: 24px;
+  }
+
+  .profile-form-row {
+    flex-direction: column;
+    gap: 0;
+  }
+
+  .profile-form-col-3-small {
+    max-width: 100%;
+  }
+}
+/* ============================================
+   MY MEMBERSHIP PAGE STYLES
+   ============================================ */
+
+/* ── Loading ──────────────────────────────── */
+.membership-redesigned .membership-loading {
+  text-align: center;
+  padding: 80px 20px;
+}
+
+.membership-redesigned .membership-loading-spinner {
+  width: 44px;
+  height: 44px;
+  border: 3px solid #ced5da;
+  border-radius: 50%;
+  border-top-color: #4b073f;
+  animation: membershipSpin 1s linear infinite;
+  margin: 0 auto 16px;
+}
+
+.membership-redesigned .membership-loading-text {
+  color: #46535e;
+  font-size: 1rem;
+  font-family: 'Urbanist', sans-serif;
+}
+
+@keyframes membershipSpin {
+  to { transform: rotate(360deg); }
+}
+
+/* ── Section Header ──────────────────────── */
+.membership-redesigned .membership-section-header {
+  margin-bottom: 24px;
+}
+
+.membership-redesigned .membership-section-title {
+  font-size: 28px;
+  font-weight: 700;
+  letter-spacing: 1.5px;
+  color: #46535e;
+  font-family: 'Urbanist', sans-serif;
+}
+
+/* ── Plan Card ───────────────────────────── */
+.membership-redesigned .membership-plan-card {
+  background: #fff;
+  border: 1px solid #ced5da;
+  border-radius: 20px;
+  padding: 32px;
+  margin-bottom: 20px;
+}
+
+.membership-redesigned .membership-plan-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 16px;
+  margin-bottom: 8px;
+  flex-wrap: wrap;
+}
+
+.membership-redesigned .membership-plan-name {
+  font-family: 'Urbanist', sans-serif;
+  font-weight: 700;
+  font-size: 22px;
+  color: #24282d;
+  margin: 0;
+}
+
+.membership-redesigned .membership-status-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 16px;
+  border-radius: 50px;
+  font-family: 'Urbanist', sans-serif;
+  font-size: 14px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.membership-redesigned .membership-status-badge.active {
+  background: #eff9ff;
+  color: #008ad4;
+}
+
+.membership-redesigned .membership-status-badge.inactive {
+  background: #f6f8f9;
+  color: #46535e;
+}
+
+.membership-redesigned .membership-status-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.membership-redesigned .membership-status-badge.active .membership-status-dot {
+  background: #008ad4;
+}
+
+.membership-redesigned .membership-status-badge.inactive .membership-status-dot {
+  background: #46535e;
+}
+
+.membership-redesigned .membership-member-since {
+  font-family: 'Urbanist', sans-serif;
+  font-size: 16px;
+  color: #46535e;
+  margin: 0 0 28px 0;
+}
+
+/* ── Price Display ───────────────────────── */
+.membership-redesigned .membership-price-row {
+  background: #04314d;
+  border-radius: 16px;
+  padding: 24px 28px;
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+  margin-bottom: 28px;
+}
+
+.membership-redesigned .membership-price-amount {
+  font-family: 'Urbanist', sans-serif;
+  font-size: 40px;
+  font-weight: 700;
+  color: #fff;
+  line-height: 1;
+}
+
+.membership-redesigned .membership-price-period {
+  font-family: 'Urbanist', sans-serif;
+  font-size: 16px;
+  color: rgba(255, 255, 255, 0.65);
+  font-weight: 400;
+}
+
+/* ── Features List ───────────────────────── */
+.membership-redesigned .membership-features {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+.membership-redesigned .membership-feature-item {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 16px 0;
+  border-bottom: 1px solid #f0f2f4;
+}
+
+.membership-redesigned .membership-feature-item:last-child {
+  border-bottom: none;
+  padding-bottom: 0;
+}
+
+.membership-redesigned .membership-feature-item:first-child {
+  padding-top: 0;
+}
+
+.membership-redesigned .membership-feature-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: 12px;
+  background: #fff4fe;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.membership-redesigned .membership-feature-icon svg {
+  width: 20px;
+  height: 20px;
+  color: #4b073f;
+}
+
+.membership-redesigned .membership-feature-text {
+  font-family: 'Urbanist', sans-serif;
+  font-size: 16px;
+  color: #24282d;
+  font-weight: 500;
+}
+
+/* ── Info Card ───────────────────────────── */
+.membership-redesigned .membership-info-card {
+  background: #fff4fe;
+  border: 1px solid #e8c4e3;
+  border-radius: 20px;
+  padding: 28px 32px;
+  margin-bottom: 20px;
+}
+
+.membership-redesigned .membership-info-title {
+  font-family: 'Urbanist', sans-serif;
+  font-weight: 700;
+  font-size: 18px;
+  color: #4b073f;
+  margin: 0 0 8px 0;
+}
+
+.membership-redesigned .membership-info-text {
+  font-family: 'Urbanist', sans-serif;
+  font-size: 16px;
+  color: #46535e;
+  line-height: 1.6;
+  margin: 0;
+}
+
+.membership-redesigned .membership-info-email {
+  color: #4b073f;
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.membership-redesigned .membership-info-email:hover {
+  text-decoration: underline;
+  color: #a92296;
+}
+
+/* ── Empty State ─────────────────────────── */
+.membership-redesigned .membership-empty {
+  background: #eff9ff;
+  border: 1px solid #b8e4ff;
+  border-radius: 20px;
+  padding: 60px 32px;
+  text-align: center;
+}
+
+.membership-redesigned .membership-empty-icon {
+  width: 64px;
+  height: 64px;
+  margin: 0 auto 20px;
+  color: #04314d;
+  opacity: 0.5;
+}
+
+.membership-redesigned .membership-empty-title {
+  font-family: 'Urbanist', sans-serif;
+  font-weight: 700;
+  font-size: 22px;
+  color: #24282d;
+  margin: 0 0 8px 0;
+}
+
+.membership-redesigned .membership-empty-text {
+  font-family: 'Urbanist', sans-serif;
+  font-size: 16px;
+  color: #46535e;
+  line-height: 1.6;
+  margin: 0 0 28px 0;
+  max-width: 400px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.membership-redesigned .membership-cta-btn {
+  display: inline-block;
+  padding: 16px 40px;
+  background: #04314d;
+  color: #fff;
+  text-align: center;
+  font-family: 'Urbanist', sans-serif;
+  font-size: 16px;
+  font-weight: 600;
+  border-radius: 50px;
+  border: none;
+  cursor: pointer;
+  text-decoration: none;
+  transition: background 0.2s ease, transform 0.2s ease;
+}
+
+.membership-redesigned .membership-cta-btn:hover {
+  background: #032640;
+  transform: translateY(-1px);
+  color: #fff;
+  text-decoration: none;
+}
+
+/* ── Hidden utility ──────────────────────── */
+.membership-redesigned .is-hidden {
+  display: none !important;
+}
+
+/* ── Responsive ──────────────────────────── */
+@media (max-width: 600px) {
+  .membership-redesigned .membership-plan-card,
+  .membership-redesigned .membership-info-card {
+    padding: 24px;
+  }
+
+  .membership-redesigned .membership-price-row {
+    padding: 20px 24px;
+  }
+
+  .membership-redesigned .membership-price-amount {
+    font-size: 32px;
+  }
+
+  .membership-redesigned .membership-plan-header {
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .membership-redesigned .membership-empty {
+    padding: 40px 24px;
+  }
 }

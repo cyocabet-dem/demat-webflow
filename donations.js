@@ -1,5 +1,6 @@
 // ============================================
 // DONATIONS & STORE CREDIT PAGE FUNCTIONS
+// Updated to match rentals page design system
 // ============================================
 
 window.DonationsManager = {
@@ -82,13 +83,13 @@ window.DonationsManager = {
   },
   
   formatDate(dateString) {
-    if (!dateString) return 'N/A';
+    if (!dateString) return 'n/a';
     const date = new Date(dateString);
     return date.toLocaleDateString('en-GB', { 
       day: 'numeric', 
       month: 'short', 
       year: 'numeric' 
-    });
+    }).toLowerCase();
   },
   
   formatCredits(cents) {
@@ -100,21 +101,12 @@ window.DonationsManager = {
     const balance = this._creditBalance;
     
     return `
-      <div style="background: linear-gradient(135deg, #1a1a1a 0%, #333 100%); color: #fff; padding: 32px; margin-bottom: 32px; position: relative; overflow: hidden;">
-        
-        <!-- Decorative elements -->
-        <div style="position: absolute; top: -20px; right: -20px; width: 120px; height: 120px; border: 1px solid rgba(255,255,255,0.1); border-radius: 50%;"></div>
-        <div style="position: absolute; bottom: -40px; right: 60px; width: 80px; height: 80px; border: 1px solid rgba(255,255,255,0.05); border-radius: 50%;"></div>
-        
-        <div style="position: relative; z-index: 1;">
-          <div style="font-size: 13px; text-transform: uppercase; letter-spacing: 1px; opacity: 0.8; margin-bottom: 16px;">Available Store Credit</div>
-          
-          <div style="font-size: 42px; font-weight: 600; letter-spacing: -1px; margin-bottom: 24px;">${this.formatCredits(balance)}</div>
-          
-          <div style="font-size: 13px; opacity: 0.7; line-height: 1.5;">
-            Earn credits by donating your pre-loved clothing.<br>
-            Use credits towards eligible purchases in store (online coming soon).
-          </div>
+      <div class="donations-balance-card">
+        <div class="donations-balance-label">available store credit</div>
+        <div class="donations-balance-amount">${this.formatCredits(balance)}</div>
+        <div class="donations-balance-desc">
+          earn credits by donating your pre-loved clothing.<br>
+          use credits towards eligible purchases in store and online.
         </div>
       </div>
     `;
@@ -127,52 +119,48 @@ window.DonationsManager = {
     const isComplete = !!session.ended_at;
     
     return `
-      <div class="donation-card" style="background: #fff; border: 1px solid #e5e5e5; padding: 20px; margin-bottom: 16px;">
+      <div class="donation-card">
         
         <!-- Header -->
-        <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 16px;">
+        <div class="donation-card-header">
           <div>
-            <div style="font-size: 11px; color: #999; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 4px;">Donation</div>
-            <div style="font-size: 13px; color: #333; font-family: monospace;">#${session.hash_id?.substring(0, 8) || session.id}</div>
+            <div class="donation-card-id-label">donation</div>
+            <div class="donation-card-id">#${session.hash_id?.substring(0, 8) || session.id}</div>
           </div>
           ${isComplete 
-            ? `<span style="display: inline-block; padding: 4px 10px; background: #d1fae5; color: #065f46; font-size: 11px; font-weight: 500; text-transform: uppercase; letter-spacing: 0.5px;">Complete</span>`
-            : `<span style="display: inline-block; padding: 4px 10px; background: #fef3c7; color: #92400e; font-size: 11px; font-weight: 500; text-transform: uppercase; letter-spacing: 0.5px;">Processing</span>`
+            ? `<span class="donation-badge donation-badge-complete">complete</span>`
+            : `<span class="donation-badge donation-badge-processing">processing</span>`
           }
         </div>
         
         <!-- Stats Grid -->
-        <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-bottom: 16px; padding: 12px; background: #fafafa;">
+        <div class="donation-card-stats">
           <div>
-            <div style="font-size: 10px; color: #999; text-transform: uppercase; margin-bottom: 2px;">Date</div>
-            <div style="font-size: 13px; color: #333;">${this.formatDate(session.donated_date || session.started_at)}</div>
+            <div class="donation-card-stat-label">date</div>
+            <div class="donation-card-stat-value">${this.formatDate(session.donated_date || session.started_at)}</div>
           </div>
           <div>
-            <div style="font-size: 10px; color: #999; text-transform: uppercase; margin-bottom: 2px;">Items</div>
-            <div style="font-size: 13px; color: #333;">${itemCount} item${itemCount !== 1 ? 's' : ''}</div>
+            <div class="donation-card-stat-label">items</div>
+            <div class="donation-card-stat-value">${itemCount} item${itemCount !== 1 ? 's' : ''}</div>
           </div>
           <div>
-            <div style="font-size: 10px; color: #999; text-transform: uppercase; margin-bottom: 2px;">Credits Earned</div>
-            <div style="font-size: 13px; color: #065f46; font-weight: 500;">${this.formatCredits(credits)}</div>
+            <div class="donation-card-stat-label">credits earned</div>
+            <div class="donation-card-stat-value donation-card-stat-value--credits">${this.formatCredits(credits)}</div>
           </div>
         </div>
         
         <!-- Notes Section (if present) -->
         ${notes ? `
-          <div style="margin-bottom: 16px; padding: 12px; background: #f8f5f0; border-left: 3px solid #d4a574;">
-            <div style="font-size: 10px; color: #8b7355; text-transform: uppercase; margin-bottom: 6px;">
-              Notes from Dematerialized
-            </div>
-            <div style="font-size: 13px; color: #5c4d3d; line-height: 1.5;">${this.escapeHtml(notes)}</div>
+          <div class="donation-card-notes">
+            <div class="donation-card-notes-label">notes from dematerialized</div>
+            <div class="donation-card-notes-text">${this.escapeHtml(notes)}</div>
           </div>
         ` : ''}
         
         <!-- Actions -->
-        <div style="display: flex; gap: 12px;">
-          <button onclick="DonationsManager.viewDonation(${session.id})" style="flex: 1; padding: 10px 16px; background: #000; color: #fff; border: none; font-family: 'Urbanist', sans-serif; font-size: 13px; cursor: pointer;">
-            View Details
-          </button>
-        </div>
+        <button onclick="DonationsManager.viewDonation(${session.id})" class="donation-card-btn">
+          view details
+        </button>
         
       </div>
     `;
@@ -188,103 +176,107 @@ window.DonationsManager = {
   getItemImage(item) {
     if (!item.images?.length) return '';
     
-    const frontImg = item.images.find(img => 
+    // Sort by image_key to prioritize front images
+    const sorted = [...item.images].sort((a, b) => {
+      const keyA = (a.image_key || a.image_name || '').toLowerCase();
+      const keyB = (b.image_key || b.image_name || '').toLowerCase();
+      return keyA.localeCompare(keyB);
+    });
+    
+    const frontImg = sorted.find(img => 
       img.image_type === 'front' || 
+      (img.image_key && img.image_key.toLowerCase().includes('front')) ||
       (img.image_name && img.image_name.toLowerCase().includes('front'))
     );
     
-    return frontImg?.object_url || item.images[0]?.object_url || '';
+    return frontImg?.object_url || sorted[0]?.object_url || '';
   },
   
   renderDetailModalContent(session) {
     const items = session.clothing_items || [];
     const notes = session.notes || '';
+    const isComplete = !!session.ended_at;
     
     const itemsHtml = items.length > 0 ? items.map(item => {
       const imgUrl = this.getItemImage(item);
-      const brand = item.brand?.brand_name || '';
-      const name = item.name || 'Donated Item';
-      const size = item.size?.size || item.size?.standard_size?.standard_size || '';
+      const name = (item.name || 'donated item').toLowerCase();
       const credits = this.getItemCredits(item);
       const sku = item.sku || '';
       const itemUrl = sku ? `/product?sku=${encodeURIComponent(sku)}` : '';
       
       return `
-        <a href="${itemUrl}" style="display: flex; gap: 16px; padding: 16px 0; border-bottom: 1px solid #f0f0f0; text-decoration: none; color: inherit;${itemUrl ? ' cursor: pointer;' : ' pointer-events: none;'}">
-          <div style="width: 80px; height: 107px; background: #f5f5f5; flex-shrink: 0; overflow: hidden; display: flex; align-items: center; justify-content: center; padding: 8px;">
-            ${imgUrl ? `<img src="${imgUrl}" alt="${name}" style="max-width: 100%; max-height: 100%; object-fit: contain;">` : '<div style="color: #ccc; font-size: 24px;">👕</div>'}
+        <${itemUrl ? `a href="${itemUrl}"` : 'div'} class="donation-modal-item"${!itemUrl ? ' style="cursor: default;"' : ''}>
+          <div class="donation-modal-item-img">
+            ${imgUrl 
+              ? `<img src="${imgUrl}" alt="${name}">` 
+              : '<div class="donation-modal-item-placeholder">👕</div>'}
           </div>
-          <div style="flex: 1; display: flex; flex-direction: column; gap: 4px;">
-            ${brand ? `<div style="font-size: 10px; color: #666; text-transform: uppercase; letter-spacing: 0.5px;">${brand}</div>` : ''}
-            <div style="font-size: 14px; font-weight: 500; color: #000; line-height: 1.3;">${name}</div>
-            ${size ? `<div style="font-size: 12px; color: #666;">Size: ${size}</div>` : ''}
+          <div class="donation-modal-item-details">
+            <div class="donation-modal-item-name">${name}</div>
             ${credits !== null ? `
-              <div style="font-size: 12px; color: #065f46; margin-top: auto; font-weight: 500;">
+              <div class="donation-modal-item-credits">
                 +${this.formatCredits(credits)} credit
               </div>
             ` : ''}
+            ${itemUrl ? `<span class="donation-modal-item-link">view item →</span>` : ''}
           </div>
-        </a>
+        </${itemUrl ? 'a' : 'div'}>
       `;
-    }).join('') : '<div style="padding: 20px; text-align: center; color: #666;">Item details not available</div>';
+    }).join('') : '<div style="padding: 20px; text-align: center; color: var(--gray-medium);">item details not available</div>';
     
     return `
       <!-- Status Banner -->
-      <div style="display: flex; align-items: center; gap: 12px; padding: 16px; background: #fafafa; margin-bottom: 20px;">
-        ${session.ended_at 
-          ? `<span style="display: inline-block; padding: 4px 10px; background: #d1fae5; color: #065f46; font-size: 11px; font-weight: 500; text-transform: uppercase; letter-spacing: 0.5px;">Complete</span>
-             <span style="font-size: 13px; color: #666;">Credits have been added to your account</span>`
-          : `<span style="display: inline-block; padding: 4px 10px; background: #fef3c7; color: #92400e; font-size: 11px; font-weight: 500; text-transform: uppercase; letter-spacing: 0.5px;">Processing</span>
-             <span style="font-size: 13px; color: #666;">We're reviewing your donated items</span>`
+      <div class="donation-modal-status">
+        ${isComplete 
+          ? `<span class="donation-badge donation-badge-complete">complete</span>
+             <span class="donation-modal-status-text">credits have been added to your account</span>`
+          : `<span class="donation-badge donation-badge-processing">processing</span>
+             <span class="donation-modal-status-text">we're reviewing your donated items</span>`
         }
       </div>
       
       <!-- Summary -->
-      <div style="margin-bottom: 24px;">
-        <div style="font-size: 12px; font-weight: 500; color: #000; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 12px;">Donation Summary</div>
-        <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px;">
-          <div style="padding: 12px; background: #fafafa;">
-            <div style="font-size: 10px; color: #999; text-transform: uppercase; margin-bottom: 4px;">Donation Date</div>
-            <div style="font-size: 14px; color: #333;">${this.formatDate(session.donated_date || session.started_at)}</div>
+      <div>
+        <div class="donation-modal-summary-title">donation summary</div>
+        <div class="donation-modal-summary-grid">
+          <div class="donation-modal-summary-item">
+            <div class="donation-modal-summary-label">donation date</div>
+            <div class="donation-modal-summary-value">${this.formatDate(session.donated_date || session.started_at)}</div>
           </div>
-          <div style="padding: 12px; background: #fafafa;">
-            <div style="font-size: 10px; color: #999; text-transform: uppercase; margin-bottom: 4px;">Location</div>
-            <div style="font-size: 14px; color: #333;">${session.location || 'In-store'}</div>
+          <div class="donation-modal-summary-item">
+            <div class="donation-modal-summary-label">location</div>
+            <div class="donation-modal-summary-value">${(session.location || 'in-store').toLowerCase()}</div>
           </div>
-          <div style="padding: 12px; background: #fafafa;">
-            <div style="font-size: 10px; color: #999; text-transform: uppercase; margin-bottom: 4px;">Items Accepted</div>
-            <div style="font-size: 14px; color: #333;">${session.item_count || 0} item${(session.item_count || 0) !== 1 ? 's' : ''}</div>
+          <div class="donation-modal-summary-item">
+            <div class="donation-modal-summary-label">items accepted</div>
+            <div class="donation-modal-summary-value">${session.item_count || 0} item${(session.item_count || 0) !== 1 ? 's' : ''}</div>
           </div>
-          <div style="padding: 12px; background: #d1fae5;">
-            <div style="font-size: 10px; color: #065f46; text-transform: uppercase; margin-bottom: 4px;">Total Credits</div>
-            <div style="font-size: 14px; color: #065f46; font-weight: 600;">${this.formatCredits(session.total_credits_cents)}</div>
+          <div class="donation-modal-summary-item donation-modal-summary-item--highlight">
+            <div class="donation-modal-summary-label">total credits</div>
+            <div class="donation-modal-summary-value donation-modal-summary-value--credits">${this.formatCredits(session.total_credits_cents)}</div>
           </div>
         </div>
       </div>
       
       <!-- Notes (if present) -->
       ${notes ? `
-        <div style="margin-bottom: 24px; padding: 16px; background: #f8f5f0; border-left: 3px solid #d4a574;">
-          <div style="font-size: 12px; font-weight: 500; color: #8b7355; text-transform: uppercase; margin-bottom: 8px;">
-            Notes from Dematerialized
-          </div>
-          <div style="font-size: 14px; color: #5c4d3d; line-height: 1.6;">${this.escapeHtml(notes)}</div>
+        <div class="donation-modal-notes">
+          <div class="donation-modal-notes-label">notes from dematerialized</div>
+          <div class="donation-modal-notes-text">${this.escapeHtml(notes)}</div>
         </div>
       ` : ''}
       
       <!-- Items -->
       <div>
-        <div style="font-size: 12px; font-weight: 500; color: #000; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 12px;">Donated Items</div>
-        <div style="border-top: 1px solid #f0f0f0;">
-          ${itemsHtml}
-        </div>
+        <div class="donation-modal-items-title">donated items</div>
+        ${itemsHtml}
       </div>
       
       <!-- How Credits Work -->
-      <div style="margin-top: 24px; padding: 16px; background: #f8f8f8;">
-        <div style="font-size: 12px; font-weight: 500; color: #000; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 8px;">How Store Credits Work</div>
-        <div style="font-size: 13px; color: #666; line-height: 1.6;">
-          Store credits can be used towards any material purchase at Dematerialized. Credits don't expire and can be combined with other payment methods.
+      <div class="donation-modal-info">
+        <div class="donation-modal-info-title">how store credits work</div>
+        <div class="donation-modal-info-text">
+          store credits can be used towards any material purchase at dematerialized. credits don't expire and can be combined with other payment methods.
         </div>
       </div>
     `;
@@ -297,8 +289,6 @@ window.DonationsManager = {
     const loadingEl = document.getElementById('donations-loading');
     const emptyEl = document.getElementById('donations-empty');
     const contentEl = document.getElementById('donations-content');
-    
-    console.log('🎁 Elements found:', { container: !!container, loadingEl: !!loadingEl, emptyEl: !!emptyEl, contentEl: !!contentEl });
     
     if (!container) {
       console.error('Donations container not found');
@@ -314,21 +304,16 @@ window.DonationsManager = {
     await this.fetchPricingCategories();
     const data = await this.fetchDonations();
     
-    console.log('🎁 Data received:', data);
-    console.log('🎁 Credit balance:', this._creditBalance);
-    console.log('🎁 Sessions count:', data?.sessions?.length);
-    
     // Hide loading
     if (loadingEl) loadingEl.style.display = 'none';
     
     if (!data) {
-      // Error state
       console.error('🎁 No data returned from fetchDonations');
       if (contentEl) {
         contentEl.innerHTML = `
-          <div style="text-align: center; padding: 40px 20px; background: #fef2f2;">
-            <div style="font-size: 32px; margin-bottom: 12px;">⚠️</div>
-            <p style="color: #991b1b; font-size: 14px;">Unable to load donations. Please try again later.</p>
+          <div class="donations-error">
+            <div class="donations-error-icon">⚠️</div>
+            <p class="donations-error-text">unable to load donations. please try again later.</p>
           </div>
         `;
         contentEl.style.display = 'block';
@@ -337,23 +322,18 @@ window.DonationsManager = {
     }
     
     const sessions = data.sessions || [];
-    console.log('🎁 Processing sessions:', sessions.length);
     
-    // Always show the credit balance card, even with no donations
     if (contentEl) {
       let html = this.renderCreditBalanceCard();
       
       if (sessions.length === 0) {
-        // No donations yet, but show balance and empty state
         html += `
-          <div style="text-align: center; padding: 40px 20px; background: #fafafa;">
-            <h3 style="font-size: 18px; font-weight: 500; margin: 0 0 8px 0;">No donations yet</h3>
-            <p style="font-size: 14px; color: #666; margin: 0 0 20px 0; max-width: 300px; margin-left: auto; margin-right: auto;">
-              Bring your pre-loved clothing to Dematerialized and earn store credits!
+          <div class="donations-empty">
+            <h3 class="donations-empty-title">no donations yet</h3>
+            <p class="donations-empty-text">
+              bring your pre-loved clothing to dematerialized to earn store credit
             </p>
-            <a href="/about#donations" style="display: inline-block; padding: 12px 24px; background: #000; color: #fff; text-decoration: none; font-size: 14px;">
-              Learn More
-            </a>
+            <a href="/donations" class="donations-empty-btn">learn more</a>
           </div>
         `;
       } else {
@@ -366,9 +346,9 @@ window.DonationsManager = {
         
         // Section header
         html += `
-          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
-            <div style="font-size: 14px; font-weight: 500; text-transform: uppercase; letter-spacing: 0.5px;">Your Donations</div>
-            <div style="font-size: 13px; color: #666;">${sessions.length} donation${sessions.length !== 1 ? 's' : ''}</div>
+          <div class="donations-section-header">
+            <div class="donations-section-title">your donations</div>
+            <div class="donations-section-count">${sessions.length} donation${sessions.length !== 1 ? 's' : ''}</div>
           </div>
         `;
         
@@ -378,7 +358,6 @@ window.DonationsManager = {
       
       contentEl.innerHTML = html;
       contentEl.style.display = 'block';
-      console.log('🎁 Content rendered, HTML length:', html.length);
     }
     
     console.log('🎁 Donations page rendered');
@@ -387,13 +366,10 @@ window.DonationsManager = {
   async viewDonation(sessionId) {
     console.log('🎁 View donation:', sessionId);
     
-    // Ensure pricing categories are loaded
     await this.fetchPricingCategories();
     
-    // First check cache
     let session = this._donationsCache?.find(s => s.id === sessionId);
     
-    // If found but no clothing_items detail, fetch the full session
     if (!session || !session.clothing_items || session.clothing_items.length === 0) {
       try {
         const token = await window.auth0Client.getTokenSilently();
@@ -427,7 +403,6 @@ window.DonationsManager = {
       return;
     }
     
-    // Set content
     if (modalId) {
       modalId.textContent = `#${session.hash_id?.substring(0, 8) || session.id}`;
     }
@@ -436,7 +411,6 @@ window.DonationsManager = {
       modalContent.innerHTML = this.renderDetailModalContent(session);
     }
     
-    // Show modal
     backdrop.style.display = 'block';
     modal.style.display = 'flex';
     document.body.style.overflow = 'hidden';
@@ -472,9 +446,11 @@ document.addEventListener('click', function(e) {
   }
 });
 
-// Auto-initialize on donations page
-document.addEventListener('DOMContentLoaded', function() {
-  if (document.getElementById('donations-container')) {
+// Auto-initialize
+(function() {
+  function init() {
+    if (!document.getElementById('donations-container')) return;
+    
     console.log('🎁 Donations page detected, initializing...');
     
     const initDonations = async () => {
@@ -487,17 +463,42 @@ document.addEventListener('DOMContentLoaded', function() {
       if (window.auth0Client) {
         const isAuth = await window.auth0Client.isAuthenticated();
         if (isAuth) {
+          // Check membership status first
+          try {
+            const token = await window.auth0Client.getTokenSilently();
+            const userResponse = await fetch(`${DonationsManager.API_BASE}/users/me`, {
+              headers: {
+                'Authorization': `Bearer ${token}`,
+                'Accept': 'application/json'
+              }
+            });
+
+            if (userResponse.ok) {
+              const userData = await userResponse.json();
+              
+              if (!userData.stripe_id) {
+                const loadingEl = document.getElementById('donations-loading');
+                const noMembershipEl = document.getElementById('donations-no-membership');
+                
+                if (loadingEl) loadingEl.style.display = 'none';
+                if (noMembershipEl) noMembershipEl.style.display = 'flex';
+                return;
+              }
+            }
+          } catch (err) {
+            console.error('Error checking membership:', err);
+          }
+
+          // Has membership — render donations
           DonationsManager.renderDonationsPage();
         } else {
           const container = document.getElementById('donations-container');
           if (container) {
             container.innerHTML = `
-              <div style="text-align: center; padding: 60px 20px;">
-                <h2 style="font-size: 20px; margin-bottom: 12px;">Sign in to view your donations</h2>
-                <p style="color: #666; margin-bottom: 20px;">You need to be logged in to see your donation history and store credits.</p>
-                <button onclick="openAuthModal()" style="padding: 12px 24px; background: #000; color: #fff; border: none; font-family: 'Urbanist', sans-serif; cursor: pointer;">
-                  Sign In
-                </button>
+              <div class="donations-signin">
+                <h2 class="donations-signin-title">sign in to view your donations</h2>
+                <p class="donations-signin-text">you need to be logged in to see your donation history and store credits.</p>
+                <button onclick="openAuthModal()" class="donations-signin-btn">sign in</button>
               </div>
             `;
           }
@@ -507,4 +508,10 @@ document.addEventListener('DOMContentLoaded', function() {
     
     initDonations();
   }
-});
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', init);
+  } else {
+    init();
+  }
+})();

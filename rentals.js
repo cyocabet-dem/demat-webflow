@@ -1,11 +1,54 @@
 // ============================================
-// MY RENTALS PAGE FUNCTIONS
+// MY RENTALS PAGE - WITH PURCHASE FUNCTIONALITY
+// Host on GitHub or add to Page Body Code
 // ============================================
 
 window.RentalsManager = {
   API_BASE: window.API_BASE_URL,
   _activeRentalsCache: null,
   _historyCache: null,
+  _pricingCategories: null,
+
+  // Fetch pricing categories for price lookup
+  async fetchPricingCategories() {
+    if (this._pricingCategories) return this._pricingCategories;
+    
+    try {
+      const response = await fetch(`${this.API_BASE}/clothing_items/pricing_categories`, {
+        headers: { 'Accept': 'application/json' }
+      });
+      
+      if (response.ok) {
+        this._pricingCategories = await response.json();
+        console.log('💰 Pricing categories loaded:', this._pricingCategories.length);
+      }
+    } catch (err) {
+      console.error('Error fetching pricing categories:', err);
+    }
+    
+    return this._pricingCategories;
+  },
+
+  // Get retail price for an item based on pricing category
+  getRetailPrice(clothingItem) {
+    if (!this._pricingCategories || !clothingItem?.category?.pricing_group) return null;
+    
+    const pricingGroup = clothingItem.category.pricing_group;
+    const isFastFashion = clothingItem.brand?.is_fast_fashion || false;
+    
+    const match = this._pricingCategories.find(pc => 
+      pc.display_name === pricingGroup && pc.is_fast_fashion === isFastFashion
+    );
+    
+    return match?.retail_price_cents || null;
+  },
+
+  // Calculate purchase price (50% off retail)
+  getPurchasePrice(clothingItem) {
+    const retailPrice = this.getRetailPrice(clothingItem);
+    if (!retailPrice) return null;
+    return Math.round(retailPrice * 0.5);
+  },
 
   async fetchRentals(includeHistory = false) {
     console.log('👕 Fetching rentals...', { includeHistory });
@@ -63,7 +106,12 @@ window.RentalsManager = {
       day: 'numeric',
       month: 'short',
       year: 'numeric'
-    });
+    }).toLowerCase();
+  },
+
+  formatPrice(cents) {
+    if (cents === null || cents === undefined) return '€0.00';
+    return `€${(cents / 100).toFixed(2).replace('.', ',')}`;
   },
 
   getItemImage(rental) {
@@ -84,31 +132,122 @@ window.RentalsManager = {
     }
   },
 
+  // Check if item is already in cart
+  isInCart(clothingItemId) {
+    if (!window.PurchaseCart) return false;
+    return window.PurchaseCart.hasItem(clothingItemId);
+  },
+
+  // Add rental item to purchase cart
+  addToCart(rentalId) {
+    const rental = this._activeRentalsCache?.find(r => r.id === rentalId);
+    if (!rental) {
+      console.error('Rental not found:', rentalId);
+      return;
+    }
+
+    const ci = rental.clothing_item;
+    if (!ci) {
+      console.error('No clothing item data for rental:', rentalId);
+      return;
+    }
+
+    const retailPrice = this.getRetailPrice(ci);
+    const purchasePrice = this.getPurchasePrice(ci);
+
+    if (!retailPrice) {
+      console.error('Could not determine price for item:', ci.sku);
+      alert('Unable to determine price for this item. Please try again later.');
+      return;
+    }
+
+    const cartItem = {
+      clothing_item_id: ci.id,
+      rental_id: rental.id,
+      sku: ci.sku || '',
+      name: ci.name || 'Unknown Item',
+      brand: ci.brand?.brand_name || '',
+      image_url: this.getItemImage(rental),
+      size: ci.size?.size || ci.size?.standard_size?.standard_size || '',
+      colors: ci.colors?.map(c => c.name).join(', ') || '',
+      retail_price_cents: retailPrice,
+      purchase_price_cents: purchasePrice
+    };
+
+    if (window.PurchaseCart) {
+      window.PurchaseCart.addItem(cartItem);
+      // Re-render to update button state
+      this.renderRentalsPage();
+    } else {
+      console.error('PurchaseCart not available');
+      alert('Unable to add to cart. Please refresh the page and try again.');
+    }
+  },
+
+  // Remove item from cart
+  removeFromCart(clothingItemId) {
+    if (window.PurchaseCart) {
+      window.PurchaseCart.removeItem(clothingItemId);
+      // Re-render to update button state
+      this.renderRentalsPage();
+    }
+  },
+
   renderActiveRentalCard(rental) {
     const ci = rental.clothing_item;
     const imgUrl = this.getItemImage(rental);
-    const brand = ci?.brand?.brand_name || '';
-    const name = ci?.name || 'Unknown Item';
-    const size = ci?.size?.size || ci?.size?.standard_size?.standard_size || '';
-    const colors = ci?.colors?.map(c => c.name).join(', ') || '';
+    const name = ci?.name?.toLowerCase() || 'unknown item';
     const sku = ci?.sku || '';
+    
+    // Pricing
+    const retailPrice = this.getRetailPrice(ci);
+    const purchasePrice = this.getPurchasePrice(ci);
+    const hasPrice = retailPrice && purchasePrice;
+    
+    // Cart state
+    const inCart = this.isInCart(ci?.id);
 
     return `
-      <div class="rental-card" style="display: flex; gap: 20px; margin-bottom: 24px; padding: 20px; border: 1px solid #e5e5e5;">
-        <a href="/product?sku=${encodeURIComponent(sku)}" style="width: 140px; height: 187px; background: #f5f5f5; flex-shrink: 0; overflow: hidden; display: block;">
-          ${imgUrl ? `<img src="${imgUrl}" alt="${name}" style="width: 100%; height: 100%; object-fit: cover;">` : ''}
+      <div class="rental-card">
+        <a href="/product?sku=${encodeURIComponent(sku)}" class="rental-card-image">
+          ${imgUrl ? `<img src="${imgUrl}" alt="${name}" loading="lazy">` : ''}
         </a>
-        <div style="flex: 1; display: flex; flex-direction: column; gap: 4px;">
-          ${brand ? `<div style="font-size: 11px; color: #666; text-transform: uppercase; letter-spacing: 0.5px;">${brand}</div>` : ''}
-          <div style="font-size: 14px; font-weight: 500; color: #000;">${name}</div>
-          ${colors ? `<div style="font-size: 13px; color: #666;">${colors}</div>` : ''}
-          ${size ? `<div style="font-size: 13px; color: #666;">Size: ${size}</div>` : ''}
-          <div style="font-size: 12px; color: #999; margin-top: 4px;">Rented: ${this.formatDate(rental.rental_start_date)}</div>
-          <div style="margin-top: auto; display: flex; gap: 12px; align-items: center;">
-            <a href="/product?sku=${encodeURIComponent(sku)}" style="font-size: 13px; color: #000; text-decoration: underline;">View item</a>
-            <button onclick="RentalsManager.openPurchaseModal(${rental.id})" style="padding: 8px 16px; background: #000; color: #fff; border: none; font-family: 'Urbanist', sans-serif; font-size: 12px; cursor: pointer;">
-              Purchase Item
-            </button>
+        <div class="rental-card-content">
+          <div class="rental-card-name">${name}</div>
+          <div class="rental-card-date">rented on ${this.formatDate(rental.rental_start_date)}</div>
+          
+          ${hasPrice ? `
+            <div class="rental-card-purchase-section">
+              <div class="rental-card-purchase-label">want to keep it?</div>
+              <div class="rental-card-purchase-prices">
+                <span class="price-original">${this.formatPrice(retailPrice)}</span>
+                <span class="price-discount">${this.formatPrice(purchasePrice)}</span>
+                <span class="price-badge">50% off</span>
+              </div>
+            </div>
+          ` : ''}
+          
+          <div class="rental-card-actions">
+            ${hasPrice ? `
+              ${inCart ? `
+                <button onclick="RentalsManager.removeFromCart(${ci.id})" class="rental-card-btn rental-card-btn-in-cart">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <polyline points="20 6 9 17 4 12"></polyline>
+                  </svg>
+                  in cart
+                </button>
+              ` : `
+                <button onclick="RentalsManager.addToCart(${rental.id})" class="rental-card-btn">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <circle cx="9" cy="21" r="1"/>
+                    <circle cx="20" cy="21" r="1"/>
+                    <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/>
+                  </svg>
+                  add to cart
+                </button>
+              `}
+            ` : ''}
+            <a href="/product?sku=${encodeURIComponent(sku)}" class="rental-card-link">view item</a>
           </div>
         </div>
       </div>
@@ -118,163 +257,249 @@ window.RentalsManager = {
   renderHistoryItem(rental) {
     const ci = rental.clothing_item;
     const imgUrl = this.getItemImage(rental);
-    const name = ci?.name || 'Unknown Item';
-    const returnDate = this.formatDate(rental.rental_return_date);
+    const name = ci?.name?.toLowerCase() || 'unknown item';
+    const sku = ci?.sku || '';
 
     return `
-      <div onclick="RentalsManager.openHistoryModal(${rental.id})" class="history-item" style="display: flex; align-items: center; gap: 16px; padding: 16px; border: 1px solid #e5e5e5; margin-bottom: 12px; cursor: pointer;">
-        <div style="width: 80px; height: 107px; background: #f5f5f5; flex-shrink: 0; overflow: hidden;">
-          ${imgUrl ? `<img src="${imgUrl}" alt="${name}" style="width: 100%; height: 100%; object-fit: cover;">` : ''}
+      <a href="/product?sku=${encodeURIComponent(sku)}" class="history-modal-item">
+        <div class="history-modal-item-image">
+          ${imgUrl ? `<img src="${imgUrl}" alt="${name}">` : ''}
         </div>
-        <div style="flex: 1; text-align: right;">
-          <div style="font-size: 14px; font-weight: 500; color: #000;">${returnDate}</div>
-          <div style="font-size: 13px; color: #666;">1 item</div>
+        <div class="history-modal-item-info">
+          <div class="history-modal-item-name">${name}</div>
         </div>
-        <div style="color: #999;">
-          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1">
-            <path d="m9 18 6-6-6-6"></path>
-          </svg>
+      </a>
+    `;
+  },
+
+  // ── Date Grouping for History ───
+  formatDateKey(dateString) {
+    if (!dateString) return 'unknown';
+    const date = new Date(dateString);
+    return date.toISOString().split('T')[0]; // YYYY-MM-DD
+  },
+
+  groupHistoryByDate(rentals) {
+    const groups = {};
+    rentals.forEach(r => {
+      const dateKey = this.formatDateKey(r.rental_return_date);
+      if (!groups[dateKey]) {
+        groups[dateKey] = [];
+      }
+      groups[dateKey].push(r);
+    });
+
+    // Sort groups by date descending
+    const sortedKeys = Object.keys(groups).sort((a, b) => b.localeCompare(a));
+    return sortedKeys.map(key => ({
+      dateKey: key,
+      displayDate: this.formatDate(groups[key][0].rental_return_date),
+      rentals: groups[key]
+    }));
+  },
+
+renderHistoryGroup(group) {
+    const count = group.rentals.length;
+    const maxThumbs = 3;
+    const extraCount = count - maxThumbs;
+
+    const purchasedCount = group.rentals.filter(r => 
+      r.clothing_item?.status?.toLowerCase() === 'sold'
+    ).length;
+    const returnedCount = count - purchasedCount;
+
+    // Build the date label
+    let dateLabel;
+    if (purchasedCount === count) {
+      dateLabel = `purchased on ${group.displayDate}`;
+    } else if (returnedCount === count) {
+      dateLabel = `returned on ${group.displayDate}`;
+    } else {
+      dateLabel = `${returnedCount} returned & ${purchasedCount} purchased on ${group.displayDate}`;
+    }
+
+    const itemLabel = count === 1 ? '1 item' : `${count} items`;
+
+    const thumbs = group.rentals.slice(0, maxThumbs).map((r, index) => {
+      const imgUrl = this.getItemImage(r);
+      const name = r.clothing_item?.name || 'item';
+      return `
+        <div class="history-group-thumb" style="z-index: ${maxThumbs - index}; left: ${index * 28}px;">
+          ${imgUrl ? `<img src="${imgUrl}" alt="${name}">` : ''}
+        </div>
+      `;
+    }).join('');
+
+    const moreIndicator = extraCount > 0 ? `
+      <div class="history-group-more-badge" style="left: ${(Math.min(count, maxThumbs) * 28) - 6}px;">
+        +${extraCount}
+      </div>
+    ` : '';
+
+    const imageWidth = Math.min(count, maxThumbs) * 28 + 30;
+
+    return `
+      <div class="history-group" onclick="RentalsManager.openGroupModal('${group.dateKey}')">
+        <div class="history-group-header">
+          <div class="history-group-images" style="width: ${imageWidth}px;">
+            ${thumbs}
+            ${moreIndicator}
+          </div>
+          <div class="history-group-info">
+            <div class="history-group-date">${dateLabel}</div>
+            <div class="history-group-count">${itemLabel}</div>
+          </div>
+          <div class="history-group-arrow">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+              <path d="m9 18 6-6-6-6"></path>
+            </svg>
+          </div>
         </div>
       </div>
     `;
   },
 
-  async renderRentalsPage() {
-    const container = document.getElementById('rentals-container');
-    const loadingEl = document.getElementById('rentals-loading');
-    const emptyEl = document.getElementById('rentals-empty');
-    const activeEl = document.getElementById('rentals-active');
-    const historyEl = document.getElementById('rentals-history');
+  // ── Modal: Grouped History ─────────────────
+  openGroupModal(dateKey) {
+    console.log('👕 Opening group modal for date:', dateKey);
 
-    if (!container) {
-      console.error('Rentals container not found');
-      return;
-    }
+    const rentals = (this._historyCache || []).filter(r =>
+      (r.status === 'Returned' || r.rental_return_date) && this.formatDateKey(r.rental_return_date) === dateKey
+    );
 
-    if (loadingEl) loadingEl.style.display = 'block';
-    if (emptyEl) emptyEl.style.display = 'none';
-    if (activeEl) activeEl.style.display = 'none';
-    if (historyEl) historyEl.style.display = 'none';
-
-    const [activeRentals, allRentals] = await Promise.all([
-      this.fetchRentals(false),
-      this.fetchRentals(true)
-    ]);
-
-    if (loadingEl) loadingEl.style.display = 'none';
-
-    if (activeRentals && activeRentals.length > 0) {
-      const activeList = document.getElementById('active-rentals-list');
-      if (activeList) {
-        activeList.innerHTML = activeRentals.map(r => this.renderActiveRentalCard(r)).join('');
-      }
-      if (activeEl) activeEl.style.display = 'block';
-    }
-
-    const returnedRentals = (allRentals || []).filter(r => r.status === 'Returned');
-    returnedRentals.sort((a, b) => new Date(b.rental_return_date) - new Date(a.rental_return_date));
-
-    if (returnedRentals.length > 0) {
-      const historyList = document.getElementById('history-rentals-list');
-      if (historyList) {
-        historyList.innerHTML = returnedRentals.map(r => this.renderHistoryItem(r)).join('');
-      }
-      if (historyEl) historyEl.style.display = 'block';
-    }
-
-    if ((!activeRentals || activeRentals.length === 0) && returnedRentals.length === 0) {
-      if (emptyEl) emptyEl.style.display = 'block';
-    }
-
-    console.log('👕 Rentals page rendered');
-  },
-
-  openHistoryModal(rentalId) {
-    console.log('👕 Opening history modal for rental:', rentalId);
-    
-    const rental = this._historyCache?.find(r => r.id === rentalId);
-    if (!rental) {
-      console.error('Rental not found in cache');
+    if (rentals.length === 0) {
+      console.error('No rentals found for date:', dateKey);
       return;
     }
 
     const modal = document.getElementById('rental-detail-modal');
     const backdrop = document.getElementById('rental-detail-backdrop');
     const modalContent = document.getElementById('rental-modal-content');
+    const modalTitle = document.querySelector('.rental-modal-title');
 
     if (!modal || !backdrop) {
-      console.error('Modal elements not found. Make sure the modal HTML is in your page.');
+      console.error('Modal elements not found.');
       return;
     }
 
-    const ci = rental.clothing_item;
-    const imgUrl = this.getItemImage(rental);
-    const brand = ci?.brand?.brand_name || '';
-    const name = ci?.name || 'Unknown Item';
-    const size = ci?.size?.size || ci?.size?.standard_size?.standard_size || '';
-    const colors = ci?.colors?.map(c => c.name).join(', ') || '';
-    const sku = ci?.sku || '';
+// Update modal title
+    if (modalTitle) {
+      const purchasedCount = rentals.filter(r => 
+        r.clothing_item?.status?.toLowerCase() === 'sold'
+      ).length;
+      const returnedCount = rentals.length - purchasedCount;
 
+      if (purchasedCount === rentals.length) {
+        modalTitle.textContent = `${rentals.length} item${rentals.length !== 1 ? 's' : ''} purchased`;
+      } else if (returnedCount === rentals.length) {
+        modalTitle.textContent = rentals.length === 1 
+          ? 'rental details' 
+          : `${rentals.length} items returned`;
+      } else {
+        modalTitle.textContent = `${returnedCount} returned & ${purchasedCount} purchased`;
+      }
+    }
+
+    // Render items in modal
     if (modalContent) {
       modalContent.innerHTML = `
-        <a href="/product?sku=${encodeURIComponent(sku)}" style="display: block; width: 100%; max-width: 280px; margin: 0 auto 20px; aspect-ratio: 3/4; background: #f5f5f5; overflow: hidden;">
-          ${imgUrl ? `<img src="${imgUrl}" alt="${name}" style="width: 100%; height: 100%; object-fit: cover;">` : ''}
-        </a>
-        <div style="text-align: center; margin-bottom: 20px;">
-          ${brand ? `<div style="font-size: 11px; color: #666; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 4px;">${brand}</div>` : ''}
-          <div style="font-size: 16px; font-weight: 500; color: #000;">${name}</div>
-          ${colors ? `<div style="font-size: 13px; color: #666; margin-top: 6px;">${colors}</div>` : ''}
-          ${size ? `<div style="font-size: 13px; color: #666;">Size: ${size}</div>` : ''}
+        <div class="history-modal-items">
+          ${rentals.map(r => this.renderHistoryItem(r)).join('')}
         </div>
-        <div style="background: #fafafa; padding: 14px; display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 20px;">
-          <div>
-            <div style="font-size: 10px; color: #999; text-transform: uppercase; margin-bottom: 2px;">Rented</div>
-            <div style="font-size: 13px; color: #333;">${this.formatDate(rental.rental_start_date)}</div>
-          </div>
-          <div>
-            <div style="font-size: 10px; color: #999; text-transform: uppercase; margin-bottom: 2px;">Returned</div>
-            <div style="font-size: 13px; color: #333;">${this.formatDate(rental.rental_return_date)}</div>
-          </div>
-        </div>
-        <a href="/product?sku=${encodeURIComponent(sku)}" style="display: block; width: 100%; padding: 12px; background: #000; color: #fff; text-align: center; text-decoration: none; font-family: 'Urbanist', sans-serif; font-size: 13px;">
-          View Item
-        </a>
       `;
     }
 
-    backdrop.style.display = 'block';
-    modal.style.display = 'flex';
+    // Show modal
+    modal.classList.add('rental-modal-open');
+    backdrop.classList.add('rental-modal-backdrop-open');
     document.body.style.overflow = 'hidden';
   },
 
-  closeModal() {
-    const modal = document.getElementById('rental-detail-modal');
-    const backdrop = document.getElementById('rental-detail-backdrop');
-    if (modal) modal.style.display = 'none';
-    if (backdrop) backdrop.style.display = 'none';
-    document.body.style.overflow = '';
-  },
+  async renderRentalsPage() {
+    console.log('👕 Rendering rentals page...');
 
-  openPurchaseModal(rentalId) {
-    console.log('👕 Purchase rental:', rentalId);
-    alert('Purchase flow coming soon!');
+    const loadingEl = document.getElementById('rentals-loading');
+    const emptyEl = document.getElementById('rentals-empty');
+    const activeSection = document.getElementById('rentals-active');
+    const historySection = document.getElementById('rentals-history');
+    const activeList = document.getElementById('active-rentals-list');
+    const historyList = document.getElementById('history-rentals-list');
+    const noActiveEl = document.getElementById('rentals-no-active');
+
+    // Show loading
+    if (loadingEl) loadingEl.style.display = 'flex';
+    if (emptyEl) emptyEl.style.display = 'none';
+    if (activeSection) activeSection.style.display = 'none';
+    if (historySection) historySection.style.display = 'none';
+    if (noActiveEl) noActiveEl.style.display = 'none';
+
+    // Fetch pricing categories first
+    await this.fetchPricingCategories();
+
+    // Fetch rentals with history
+    const rentals = await this.fetchRentals(true);
+
+    // Hide loading
+    if (loadingEl) loadingEl.style.display = 'none';
+
+    if (!rentals || rentals.length === 0) {
+      if (emptyEl) emptyEl.style.display = 'flex';
+      return;
+    }
+
+    // Split into active and returned
+    const activeRentals = rentals.filter(r => r.active && !r.rental_return_date);
+    const returnedRentals = rentals.filter(r => !r.active || r.rental_return_date);
+    
+    // Sort returned rentals by date descending
+    returnedRentals.sort((a, b) => new Date(b.rental_return_date) - new Date(a.rental_return_date));
+
+    // Cache for modal access
+    this._activeRentalsCache = activeRentals;
+    this._historyCache = returnedRentals;
+
+    // Always show active section if we have any rentals
+    if (activeSection) activeSection.style.display = 'block';
+
+    // Render active rentals or show "no active" message
+    if (activeRentals.length > 0 && activeList) {
+      activeList.innerHTML = activeRentals.map(r => this.renderActiveRentalCard(r)).join('');
+      if (noActiveEl) noActiveEl.style.display = 'none';
+    } else {
+      if (activeList) activeList.innerHTML = '';
+      if (noActiveEl) noActiveEl.style.display = 'flex';
+    }
+
+    // Render grouped history
+    if (returnedRentals.length > 0 && historyList && historySection) {
+      const historyGroups = this.groupHistoryByDate(returnedRentals);
+      historyList.innerHTML = historyGroups.map(g => this.renderHistoryGroup(g)).join('');
+      historySection.style.display = 'block';
+    }
+
+    // Show empty state only if NO rentals at all
+    if (activeRentals.length === 0 && returnedRentals.length === 0) {
+      if (emptyEl) emptyEl.style.display = 'flex';
+      if (activeSection) activeSection.style.display = 'none';
+    }
+
+    console.log('👕 Rentals page rendered');
   }
 };
 
-// Global close function
+// Global function for modal close (if needed)
 window.closeRentalModal = function() {
-  RentalsManager.closeModal();
+  const modal = document.getElementById('rental-detail-modal');
+  const backdrop = document.getElementById('rental-detail-backdrop');
+  if (modal) modal.classList.remove('rental-modal-open');
+  if (backdrop) backdrop.classList.remove('rental-modal-backdrop-open');
+  document.body.style.overflow = '';
 };
 
-document.addEventListener('keydown', function(e) {
-  if (e.key === 'Escape') {
-    RentalsManager.closeModal();
-  }
-});
-
+// Close on backdrop click
 document.addEventListener('click', function(e) {
   if (e.target.id === 'rental-detail-backdrop') {
-    RentalsManager.closeModal();
+    closeRentalModal();
   }
 });
 
@@ -293,17 +518,45 @@ document.addEventListener('DOMContentLoaded', function() {
       if (window.auth0Client) {
         const isAuth = await window.auth0Client.isAuthenticated();
         if (isAuth) {
+          // Check membership status first
+          try {
+            const token = await window.auth0Client.getTokenSilently();
+            const userResponse = await fetch(`${window.API_BASE_URL}/users/me`, {
+              headers: {
+                'Authorization': `Bearer ${token}`,
+                'Accept': 'application/json'
+              }
+            });
+
+            if (userResponse.ok) {
+              const userData = await userResponse.json();
+              
+              if (!userData.stripe_id) {
+                // No membership — show the no-membership state
+                const loadingEl = document.getElementById('rentals-loading');
+                const noMembershipEl = document.getElementById('rentals-no-membership');
+                const contactEl = document.getElementById('rentals-contact');
+                
+                if (loadingEl) loadingEl.style.display = 'none';
+                if (noMembershipEl) noMembershipEl.style.display = 'flex';
+                if (contactEl) contactEl.style.display = 'none';
+                return;
+              }
+            }
+          } catch (err) {
+            console.error('Error checking membership:', err);
+          }
+
+          // Has membership — render rentals as normal
           RentalsManager.renderRentalsPage();
         } else {
           const container = document.getElementById('rentals-container');
           if (container) {
             container.innerHTML = `
-              <div style="text-align: center; padding: 60px 20px;">
-                <h2 style="font-size: 20px; margin-bottom: 12px;">Sign in to view your rentals</h2>
-                <p style="color: #666; margin-bottom: 20px;">You need to be logged in to see your rentals.</p>
-                <button onclick="openAuthModal()" style="padding: 12px 24px; background: #000; color: #fff; border: none; font-family: 'Urbanist', sans-serif; cursor: pointer;">
-                  Sign In
-                </button>
+              <div class="rentals-signin">
+                <h2 class="rentals-signin-title">sign in to view your rentals</h2>
+                <p class="rentals-signin-text">you need to be logged in to see your rentals.</p>
+                <button onclick="openAuthModal()" class="rentals-signin-btn">sign in</button>
               </div>
             `;
           }

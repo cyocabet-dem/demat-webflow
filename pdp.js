@@ -182,6 +182,46 @@
     return front?.object_url || images[0]?.object_url || '';
   }
 
+
+// ============================================================
+// DONATED BY FORMATTING
+// ============================================================
+
+function formatDonatedBy(raw) {
+  console.log('[PDP] donated_by raw value:', JSON.stringify(raw));
+  let val = (raw ?? '').toString().trim();
+  if (!val) return '';
+
+ // Special case: any mention of dematerialized/demat → "curated by demat"
+  if (/demat(erialized)?/i.test(val)) {
+    return 'curated by demat';
+  }
+
+  // Strip "donated by" prefix if present
+  if (val.toLowerCase().startsWith('donated by')) {
+    val = val.substring('donated by'.length).trim();
+  }
+  if (!val) return '';
+
+  const parts = val.split(/\s+/);
+  if (parts.length < 2) return parts[0];
+
+  const firstName = parts[0];
+
+  // Find the meaningful last name part (skip "van", "de", "der", etc.)
+  let lastIdx = parts.length - 1;
+  const prefixes = ['van', 'de', 'der', 'den', 'het'];
+  for (let i = parts.length - 1; i >= 1; i--) {
+    if (!prefixes.includes(parts[i].toLowerCase())) {
+      lastIdx = i;
+      break;
+    }
+  }
+
+  const initial = parts[lastIdx].charAt(0).toUpperCase();
+  return `${firstName} ${initial}.`;
+}
+  
   // ============================================================
   // COLOR NORMALIZATION
   // ============================================================
@@ -343,6 +383,7 @@
       fabric: ((i.fabric ?? '').toString().trim()) || 'Unknown',
       care_instructions: ((i.care_instructions ?? '').toString().trim()) || 'Unknown',
       acquired_from: (i.acquired_from ?? '').toString().trim(),
+      donated_by: formatDonatedBy(i.donated_by),
       color: displayNames.join(', '),
       color_keys: canonNames,
       color_hexes: hexes,
@@ -371,6 +412,7 @@
     writeText('fabric', n.fabric);
     writeText('care_instructions', n.care_instructions);
     writeText('acquired_from', n.acquired_from);
+    writeText('donated_by', n.donated_by);
     writeText('color', n.color);
     writeText('size', n.size);
     writeText('condition', n.condition);
@@ -396,45 +438,52 @@
   }
 
   // ============================================================
-  // GALLERY
+  // GALLERY (supports multiple [data-thumbs] containers)
   // ============================================================
 
   function initGallery(n) {
     const main = $('[data-main-img]');
-    const thumbs = $('[data-thumbs]');
+    const allThumbs = $$('[data-thumbs]');
     const tpl = $('[data-template="thumb"]');
 
-    if (!main || !thumbs || !tpl) return;
+    if (!main || !allThumbs.length || !tpl) return;
 
     const imgs = (n.images || []).map(i => ({ ...i, _type: detectImageType(i) })).sort(sortImages);
 
     if (!imgs.length) {
       setVisual(main, '', n.name);
-      thumbs.style.display = 'none';
+      allThumbs.forEach(t => t.style.display = 'none');
       return;
     }
 
     const indexByUrl = new Map(imgs.map((im, i) => [im.object_url, i]));
-    $$('.thumb-clone', thumbs).forEach(el => el.remove());
-
-    const nodes = imgs.map(img => {
-      const x = tpl.cloneNode(true);
-      x.classList.remove('is-template');
-      x.removeAttribute('data-template');
-      x.classList.add('thumb-clone');
-      x.dataset.url = img.object_url;
-      setVisual(x.querySelector('[data-thumb-img]'), img.object_url, n.name);
-      x.onclick = () => show(indexByUrl.get(img.object_url));
-      thumbs.appendChild(x);
-      return x;
-    });
-
     let current = Math.max(0, imgs.findIndex(i => i._type === 'front'));
 
+    // Collect all thumb nodes across all containers for coordinated highlighting
+    const allNodes = [];
+
+    for (const thumbs of allThumbs) {
+      // Clean up any existing clones
+      $$('.thumb-clone', thumbs).forEach(el => el.remove());
+
+      const nodes = imgs.map(img => {
+        const x = tpl.cloneNode(true);
+        x.classList.remove('is-template');
+        x.removeAttribute('data-template');
+        x.classList.add('thumb-clone');
+        x.dataset.url = img.object_url;
+        setVisual(x.querySelector('[data-thumb-img]'), img.object_url, n.name);
+        x.onclick = () => show(indexByUrl.get(img.object_url));
+        thumbs.appendChild(x);
+        return x;
+      });
+
+      allNodes.push(...nodes);
+    }
+
     function highlight(url) {
-      nodes.forEach(nd => nd.classList.remove('is-active'));
-      const node = nodes.find(nd => nd.dataset.url === url);
-      if (node) node.classList.add('is-active');
+      allNodes.forEach(nd => nd.classList.remove('is-active'));
+      allNodes.filter(nd => nd.dataset.url === url).forEach(nd => nd.classList.add('is-active'));
     }
 
     function show(i) {

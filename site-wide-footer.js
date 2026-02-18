@@ -1,13 +1,8 @@
-// // Redirect staging to production (unless bypass parameter is present)
-// (function() {
-//   if (window.location.hostname.includes('webflow.io')) {
-//     const params = new URLSearchParams(window.location.search);
-//     if (!params.has('staging')) {
-//       window.location.replace('https://dematerialized.nl' + window.location.pathname + window.location.search);
-//       return;
-//     }
-//   }
-// })();
+// ============================================
+// DEMATERIALIZED - SITE-WIDE FOOTER JS
+// Updated: Multi-step onboarding modal
+// Flow: Signup → Memberships → Payment → Multi-step Onboarding
+// ============================================
 
 console.log("🎯 Filter menu script loading...");
 
@@ -87,41 +82,13 @@ function closeAuthModal() {
   console.log("✅ Auth modal closed");
 }
 
-// ===== ONBOARDING MODAL FUNCTIONS =====
-function openOnboardingModal() {
-  console.log("🎓 openOnboardingModal() CALLED!");
-  
-  const modal = document.getElementById('onboardingModal');
-  if (!modal) {
-    console.error("❌ Onboarding modal not found!");
-    return;
-  }
-  
-  modal.classList.add('is-visible');
-  document.body.classList.add('onboarding-modal-open');
-  console.log("✅ Onboarding modal opened");
-}
-
-function closeOnboardingModal() {
-  console.log("🔒 closeOnboardingModal() called");
-  
-  const modal = document.getElementById('onboardingModal');
-  if (!modal) return;
-  
-  modal.classList.remove('is-visible');
-  document.body.classList.remove('onboarding-modal-open');
-  console.log("✅ Onboarding modal closed");
-}
-
-// Make functions globally accessible
+// Make auth functions globally accessible
 window.openAuthModal = openAuthModal;
 window.closeAuthModal = closeAuthModal;
-window.openOnboardingModal = openOnboardingModal;
-window.closeOnboardingModal = closeOnboardingModal;
 
-console.log("✅ Modal functions registered on window object");
+console.log("✅ Auth modal functions registered on window object");
 
-// Wait for DOM and connect all controls
+// Wait for DOM and connect auth modal controls
 document.addEventListener('DOMContentLoaded', function() {
   console.log("🔌 Connecting modal controls...");
   
@@ -194,36 +161,17 @@ document.addEventListener('DOMContentLoaded', function() {
       });
     });
     
-    // ===== ONBOARDING MODAL CONTROLS =====
-    
-    // "I'll do this later" button
-    const onboardingLaterBtn = document.getElementById('onboarding-later-btn');
-    if (onboardingLaterBtn) {
-      onboardingLaterBtn.addEventListener('click', function(e) {
-        e.preventDefault();
-        sessionStorage.setItem('onboarding_modal_dismissed', 'true');  // ADD THIS
-        closeOnboardingModal();
-      });
-    }
-    
-    console.log("✅ All modal controls connected");
-  }, 500); // Wait for auth0Client to initialize
+    console.log("✅ Auth modal controls connected");
+  }, 500);
 });
 
-// Escape key handling for both modals
+// Escape key handling for auth modal
 document.addEventListener('keydown', function(e) {
   if (e.key === 'Escape') {
     const authModal = document.getElementById('authModal');
-    const onboardingModal = document.getElementById('onboardingModal');
-    
     if (authModal && authModal.classList.contains('is-visible')) {
       console.log("⎋ Escape pressed - closing auth modal");
       closeAuthModal();
-    }
-    
-    if (onboardingModal && onboardingModal.classList.contains('is-visible')) {
-      console.log("⎋ Escape pressed - closing onboarding modal");
-      closeOnboardingModal();
     }
   }
 });
@@ -277,16 +225,29 @@ window.testAuthModal = function() {
 
 window.testOnboardingModal = function() {
   console.log("🧪 TEST: Opening onboarding modal...");
-  openOnboardingModal();
+  if (window.openOnboardingModal) {
+    openOnboardingModal();
+  } else {
+    console.error("Onboarding modal not initialized");
+  }
 };
 
 console.log("✅ All modal scripts loaded successfully!");
 
 
-// NEW: Added by Courtney on 25/11/25
+// ============================================
+// NOTE: User status checking is handled by auth.js
+// auth.js calls checkUserStatus() which handles:
+// - Redirecting users without membership to /memberships
+// - Showing onboarding modal for users with membership but incomplete profile
+// ============================================
+
+
+// ============================================
+// AUTH UI CONTROLLER
+// ============================================
 console.log("🔐 Auth UI controller loading...");
 
-// Function to update UI based on authentication state
 function updateAuthUI(isAuthenticated) {
   console.log("🔄 Updating auth UI. Is authenticated:", isAuthenticated);
   
@@ -304,11 +265,65 @@ function updateAuthUI(isAuthenticated) {
   console.log("✅ Auth UI updated");
 }
 
-// Make it globally accessible so your auth.js can call it
 window.updateAuthUI = updateAuthUI;
 
 console.log("✅ Auth UI controller ready");
 
+
+// ============================================
+// DYNAMIC BANNER SPACING - keep container-top-padding flush with navbar
+// ============================================
+(function() {
+  function getVisibleNavbar() {
+    var desktop = document.querySelector('.navbar-desktop');
+    var mobile = document.querySelector('.top-navbar-mobile');
+    
+    if (mobile && window.getComputedStyle(mobile).display !== 'none') return mobile;
+    if (desktop && window.getComputedStyle(desktop).display !== 'none') return desktop;
+    return desktop || mobile;
+  }
+
+  function adjustBannerSpacing() {
+    var navbar = getVisibleNavbar();
+    var container = document.querySelector('.container-top-padding');
+    if (!navbar || !container) return;
+
+    var height = navbar.offsetHeight;
+    if (height > 0) {
+      container.style.paddingTop = height + 'px';
+    }
+  }
+
+  // Run multiple times to catch late-loading content
+  document.addEventListener('DOMContentLoaded', adjustBannerSpacing);
+  window.addEventListener('load', adjustBannerSpacing);
+  window.addEventListener('resize', adjustBannerSpacing);
+  setTimeout(adjustBannerSpacing, 100);
+  setTimeout(adjustBannerSpacing, 500);
+  setTimeout(adjustBannerSpacing, 1000);
+})();
+
+// ============================================
+// HIDE "JOIN NOW" FOR ACTIVE MEMBERS
+// ============================================
+(function() {
+  let checks = 0;
+  const interval = setInterval(() => {
+    checks++;
+    const user = window.currentUserData;
+    if (user) {
+      if (user.stripe_id) {
+        const joinButton = document.getElementById('join-now-container');
+        const joinNavLink = document.querySelector('.navbar-links.hidden.pink');
+        if (joinButton) joinButton.style.display = 'none';
+        if (joinNavLink) joinNavLink.style.display = 'none';
+        console.log('✅ Join elements hidden for active member');
+      }
+      clearInterval(interval);
+    }
+    if (checks > 50) clearInterval(interval);
+  }, 100);
+})();
 
 // ============================================
 // CART UTILITIES (API + sessionStorage hybrid)
@@ -322,7 +337,6 @@ window.CartManager = {
   
   // ========== INITIALIZATION ==========
   
-  // Initialize cart - call this on page load
   async init() {
     if (this._initialized) return;
     
@@ -382,7 +396,6 @@ window.CartManager = {
     }
   },
   
-  // Fetch cart from API
   async fetchAPICart() {
     const token = await this.getToken();
     if (!token) return null;
@@ -403,7 +416,6 @@ window.CartManager = {
       const data = await response.json();
       console.log('🛒 [Cart] API cart loaded:', data);
       
-      // Handle response format - adjust if needed
       return Array.isArray(data) ? data : (data.items || data.clothing_items || []);
     } catch (err) {
       console.error('🛒 [Cart] API fetch error:', err);
@@ -411,7 +423,6 @@ window.CartManager = {
     }
   },
   
-  // Add item to API
   async addToAPI(itemId) {
     const token = await this.getToken();
     if (!token) return false;
@@ -438,7 +449,6 @@ window.CartManager = {
     }
   },
   
-  // Remove item from API
   async removeFromAPI(itemId) {
     const token = await this.getToken();
     if (!token) return false;
@@ -466,13 +476,11 @@ window.CartManager = {
   
   // ========== SYNC LOGIC ==========
   
-  // Sync sessionStorage with API (merge strategy)
   async syncWithAPI() {
     if (this._syncing) return;
     this._syncing = true;
     
     try {
-      // Get both sources
       const localCart = this.getLocalCart();
       const apiCart = await this.fetchAPICart();
       
@@ -482,38 +490,33 @@ window.CartManager = {
         return;
       }
       
-      // Build merged cart
       const mergedMap = new Map();
       
-    // Add API items first (these are authoritative)
-    apiCart.forEach(item => {
-      // Extract front image from images array
-      let frontImage = '';
-      if (item.images && item.images.length > 0) {
-        const frontImg = item.images.find(img => 
-          img.image_type === 'front' || 
-          (img.image_name && img.image_name.toLowerCase().includes('front'))
-        );
-        frontImage = frontImg?.object_url || item.images[0]?.object_url || '';
-      }
-      
-      mergedMap.set(item.id, {
-        id: item.id,
-        sku: item.sku,
-        name: item.name,
-        brand: item.brand?.brand_name || item.brand || '',
-        size: item.size?.size || item.size || '',
-        image: frontImage || item.front_image || item.frontImage || item.image || '',
-        addedAt: item.started_at || new Date().toISOString()
+      apiCart.forEach(item => {
+        let frontImage = '';
+        if (item.images && item.images.length > 0) {
+          const frontImg = item.images.find(img => 
+            img.image_type === 'front' || 
+            (img.image_name && img.image_name.toLowerCase().includes('front'))
+          );
+          frontImage = frontImg?.object_url || item.images[0]?.object_url || '';
+        }
+        
+        mergedMap.set(item.id, {
+          id: item.id,
+          sku: item.sku,
+          name: item.name,
+          brand: item.brand?.brand_name || item.brand || '',
+          size: item.size?.size || item.size || '',
+          image: frontImage || item.front_image || item.frontImage || item.image || '',
+          addedAt: item.started_at || new Date().toISOString()
+        });
       });
-    });
       
-      // Find local items not in API (need to upload)
       const localOnlyItems = localCart.filter(
         localItem => !apiCart.some(apiItem => apiItem.id === localItem.id)
       );
       
-      // Upload local-only items to API (respecting max limit)
       for (const item of localOnlyItems) {
         if (mergedMap.size >= this.MAX_ITEMS) {
           console.warn('🛒 [Cart] Max items reached, skipping upload of:', item.name);
@@ -528,7 +531,6 @@ window.CartManager = {
         }
       }
       
-      // Save merged cart to sessionStorage
       const mergedCart = Array.from(mergedMap.values());
       this.saveLocalCart(mergedCart);
       
@@ -567,49 +569,40 @@ window.CartManager = {
   
   // ========== PUBLIC METHODS ==========
   
-  // Get all cart items
   getCart() {
     return this.getLocalCart();
   },
   
-  // Get cart count
   getCartCount() {
     return this.getLocalCart().length;
   },
   
-  // Check if item is in cart
   isInCart(itemId) {
     const cart = this.getLocalCart();
     return cart.some(item => item.id === itemId);
   },
   
-  // Add item to cart
   async addToCart(item) {
     const cart = this.getLocalCart();
     
-    // Check max limit
     if (cart.length >= this.MAX_ITEMS) {
-      console.warn('Cart is full (max 10 items)');
+      console.warn('Cart is full (max 5 items)');
       return { success: false, reason: 'max_items' };
     }
     
-    // Check if already in cart
     if (this.isInCart(item.id)) {
       console.warn('Item already in cart');
       return { success: false, reason: 'already_in_cart' };
     }
     
-    // If authenticated, add to API first
     const isAuth = await this.isUserAuthenticated();
     if (isAuth) {
       const apiSuccess = await this.addToAPI(item.id);
       if (!apiSuccess) {
         console.error('🛒 [Cart] Failed to add to API');
-        // Continue anyway to add to local storage
       }
     }
     
-    // Add item to local storage
     const cartItem = {
       id: item.id,
       sku: item.sku,
@@ -627,14 +620,12 @@ window.CartManager = {
     return { success: true };
   },
   
-  // Remove item from cart
   async removeFromCart(itemId) {
     let cart = this.getLocalCart();
     const initialLength = cart.length;
     cart = cart.filter(item => item.id !== itemId);
     
     if (cart.length < initialLength) {
-      // If authenticated, remove from API too
       const isAuth = await this.isUserAuthenticated();
       if (isAuth) {
         await this.removeFromAPI(itemId);
@@ -647,14 +638,12 @@ window.CartManager = {
     return false;
   },
   
-  // Clear entire cart (local only - for after reservation)
   clearCart() {
     sessionStorage.removeItem(this.STORAGE_KEY);
     this.updateCartBadge();
     console.log('✅ Cart cleared');
   },
   
-  // Update cart badge in navbar
   updateCartBadge() {
     const count = this.getCartCount();
     const badges = document.querySelectorAll('[data-cart-count]');
@@ -666,10 +655,10 @@ window.CartManager = {
   }
 };
 
-// Initialize cart when DOM is ready
 document.addEventListener('DOMContentLoaded', function() {
   CartManager.init();
 });
+
 
 // ============================================
 // USER MEMBERSHIP HELPER
@@ -677,7 +666,7 @@ document.addEventListener('DOMContentLoaded', function() {
 window.UserMembership = {
   _cache: null,
   _cacheTime: null,
-  CACHE_DURATION: 5 * 60 * 1000, // 5 minutes
+  CACHE_DURATION: 5 * 60 * 1000,
   API_BASE: window.API_BASE_URL,
   premium_name: 'Premium',
   basic_name: 'Basic',
@@ -753,8 +742,9 @@ window.UserMembership = {
   }
 };
 
+
 // ============================================
-// CART OVERLAY FUNCTIONS (updated for async API)
+// CART OVERLAY FUNCTIONS
 // ============================================
 
 async function openCartOverlay() {
@@ -767,8 +757,7 @@ async function openCartOverlay() {
     console.error('❌ Cart overlay elements not found!');
     return;
   }
-    // Add mobile footer spacer if needed
-  ensureMobileFooterSpacer();
+  
   
   backdrop.style.display = 'block';
   overlay.style.transform = 'translateX(0)';
@@ -798,6 +787,12 @@ function closeCartOverlay() {
   console.log('✅ Cart overlay closed');
 }
 
+// ============================================
+// UPDATED renderCartOverlay function
+// Replace the existing renderCartOverlay in site-wide-footer.js
+// Removes redundant inline styles - lets CSS classes handle styling
+// ============================================
+
 function renderCartOverlay() {
   console.log('🛒 renderCartOverlay() called');
   
@@ -807,12 +802,14 @@ function renderCartOverlay() {
   const footer = document.getElementById('cart-overlay-footer');
   const countText = document.getElementById('cart-overlay-count-text');
   const footerCount = document.getElementById('cart-footer-count');
+  const headerCount = document.getElementById('cart-overlay-header-count');
   
   if (!itemsContainer || !emptyState || !footer || !countText || !footerCount) {
     console.error('❌ Some cart overlay elements not found');
     return;
   }
   
+  if (headerCount) headerCount.textContent = cart.length;
   countText.textContent = `${cart.length} of 5 items`;
   footerCount.textContent = cart.length;
   
@@ -826,21 +823,93 @@ function renderCartOverlay() {
   emptyState.style.display = 'none';
   footer.style.display = 'block';
   
+  // Clean render - no inline styles, matches purchase cart layout
   itemsContainer.innerHTML = cart.map(item => `
-    <div class="cart-overlay-item" onclick="goToCartItem('${item.sku}')" style="display: flex; gap: 16px; cursor: pointer; padding-bottom: 20px; border-bottom: 1px solid #f0f0f0;">
-      <div class="cart-overlay-item-image" style="width: 80px; height: 107px; background-color: #f0f0f0; flex-shrink: 0; overflow: hidden;">
-        ${item.image ? `<img src="${item.image}" alt="${item.name}" style="width: 100%; height: 100%; object-fit: contain; padding: 6px; box-sizing: border-box;">` : ''}
+    <div class="cart-overlay-item" onclick="goToCartItem('${item.sku}')">
+      <div class="cart-overlay-item-image">
+        ${item.image ? `<img src="${item.image}" alt="${item.name}">` : ''}
       </div>
-      <div class="cart-overlay-item-details" style="flex: 1; display: flex; flex-direction: column; gap: 4px; padding-top: 4px;">
-        ${item.brand ? `<div class="cart-overlay-item-brand" style="font-family: 'Urbanist', sans-serif; font-size: 10px; color: #666; text-transform: uppercase; letter-spacing: 0.5px;">${item.brand}</div>` : ''}
-        <div class="cart-overlay-item-name" style="font-family: 'Urbanist', sans-serif; font-size: 14px; font-weight: 500; color: #000; line-height: 1.3;">${item.name}</div>
-        ${item.size ? `<div class="cart-overlay-item-size" style="font-family: 'Urbanist', sans-serif; font-size: 12px; color: #666;">Size: ${item.size}</div>` : ''}
-        <button class="cart-overlay-item-remove" onclick="removeCartOverlayItem(event, ${item.id})" style="background: none; border: none; cursor: pointer; font-family: 'Urbanist', sans-serif; font-size: 11px; color: #999; padding: 0; margin-top: auto; text-align: left; width: fit-content;">Remove</button>
+      <div class="cart-overlay-item-details">
+        <div class="cart-overlay-item-name">${item.name}</div>
       </div>
+      <button class="cart-overlay-item-remove" onclick="removeCartOverlayItem(event, ${item.id})">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round">
+          <path d="M18 6L6 18M6 6l12 12"/>
+        </svg>
+      </button>
     </div>
   `).join('');
   
   console.log('✅ Cart rendered with', cart.length, 'items');
+}
+
+// ============================================
+// ALSO UPDATE openCartOverlay - add body class
+// ============================================
+
+async function openCartOverlay() {
+  console.log('🛒 openCartOverlay() called');
+  
+  const overlay = document.getElementById('cart-overlay');
+  const backdrop = document.getElementById('cart-backdrop');
+  
+  if (!overlay || !backdrop) {
+    console.error('❌ Cart overlay elements not found!');
+    return;
+  }
+  
+  // Add class to body to hide bottom navbar
+  document.body.classList.add('cart-open');
+  
+  backdrop.classList.add('is-open');
+  overlay.classList.add('is-open');
+  document.body.style.overflow = 'hidden';
+  
+  renderCartOverlay();
+  
+  if (window.CartManager && await CartManager.isUserAuthenticated()) {
+    console.log('🛒 Syncing cart with API...');
+    await CartManager.syncWithAPI();
+    renderCartOverlay();
+  }
+  
+  console.log('✅ Cart overlay opened');
+}
+
+// ============================================
+// ALSO UPDATE closeCartOverlay - remove body class
+// ============================================
+
+function closeCartOverlay() {
+  console.log('🛒 closeCartOverlay() called');
+  
+  const overlay = document.getElementById('cart-overlay');
+  const backdrop = document.getElementById('cart-backdrop');
+  
+  // Remove class from body
+  document.body.classList.remove('cart-open');
+  
+  if (overlay) overlay.classList.remove('is-open');
+  if (backdrop) backdrop.classList.remove('is-open');
+  
+  document.body.style.overflow = '';
+  console.log('✅ Cart overlay closed');
+}
+
+function closeCartOverlay() {
+  console.log('🛒 closeCartOverlay() called');
+  
+  const overlay = document.getElementById('cart-overlay');
+  const backdrop = document.getElementById('cart-backdrop');
+  
+  // Remove class from body
+  document.body.classList.remove('cart-open');
+  
+  if (overlay) overlay.classList.remove('is-open');
+  if (backdrop) backdrop.classList.remove('is-open');
+  
+  document.body.style.overflow = '';
+  console.log('✅ Cart overlay closed');
 }
 
 function goToCartItem(sku) {
@@ -861,21 +930,20 @@ async function removeCartOverlayItem(event, itemId) {
   renderCartOverlay();
 }
 
-// general function to ensure mobile-footer-spacer in overlays / modals
 function ensureMobileFooterSpacer() {
   const overlay = document.getElementById('cart-overlay');
   if (!overlay) return;
   
-  // Check if spacer already exists
   if (overlay.querySelector('.mobile-footer-spacer')) return;
   
-  // Create and append the spacer at the end of the overlay
   const spacer = document.createElement('div');
   spacer.className = 'mobile-footer-spacer';
   overlay.appendChild(spacer);
   
   console.log('✅ Mobile footer spacer added to cart overlay');
 }
+
+
 // ============================================
 // RESERVATION MODAL FUNCTIONS
 // ============================================
@@ -893,19 +961,16 @@ function openReservationModal() {
     return;
   }
   
-  // Update item count
   const cart = CartManager.getCart();
   if (itemCount) {
     itemCount.textContent = `${cart.length} item${cart.length !== 1 ? 's' : ''} ready to reserve`;
   }
   
-  // Hide any previous errors
   if (errorEl) {
     errorEl.style.display = 'none';
     errorEl.textContent = '';
   }
   
-  // Show modal
   backdrop.style.display = 'block';
   modal.style.display = 'block';
   
@@ -932,18 +997,15 @@ async function confirmReservation() {
   
   if (!btn) return;
   
-  // Disable button and show loading
   btn.disabled = true;
   btn.textContent = 'Creating Reservation...';
   btn.style.opacity = '0.7';
   
-  // Hide previous errors
   if (errorEl) {
     errorEl.style.display = 'none';
   }
   
   try {
-    // Get auth token
     if (!window.auth0Client) {
       throw new Error('Authentication not available');
     }
@@ -952,71 +1014,61 @@ async function confirmReservation() {
     
     console.log('📤 Calling reservation API...');
     
-  // Get item IDs from cart
-  const cart = CartManager.getCart();
-  const clothingItemIds = cart.map(item => item.id);
+    const cart = CartManager.getCart();
+    const clothingItemIds = cart.map(item => item.id);
 
-  console.log('📤 Creating reservation with items:', clothingItemIds);
+    console.log('📤 Creating reservation with items:', clothingItemIds);
 
-  // Create reservation via API
-  const response = await fetch(`${window.API_BASE_URL}/private_clothing_items/reservations`, {
-    method: 'POST',
-    headers: {
-      'Authorization': `Bearer ${token}`,
-      'Content-Type': 'application/json',
-      'Accept': 'application/json'
-    },
-    body: JSON.stringify({
-      clothing_item_ids: clothingItemIds
-    })
-  });
+    const response = await fetch(`${window.API_BASE_URL}/private_clothing_items/reservations`, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json',
+        'Accept': 'application/json'
+      },
+      body: JSON.stringify({
+        clothing_item_ids: clothingItemIds
+      })
+    });
     
     if (!response.ok) {
-    const errorData = await response.json().catch(() => ({}));
-    console.error('❌ API Error Response:', errorData);
-    
-    // Handle different error formats
-    let errorMessage = `Reservation failed (${response.status})`;
-    
-    if (typeof errorData.detail === 'string') {
-      errorMessage = errorData.detail;
-    } else if (typeof errorData.detail === 'object' && errorData.detail !== null) {
-      // Handle nested error objects (e.g., { detail: { message: "..." } })
-      errorMessage = errorData.detail.message || errorData.detail.msg || JSON.stringify(errorData.detail);
-    } else if (typeof errorData.message === 'string') {
-      errorMessage = errorData.message;
-    } else if (Array.isArray(errorData.detail)) {
-      // Handle validation errors array (FastAPI format)
-      errorMessage = errorData.detail.map(e => e.msg || e.message || String(e)).join(', ');
+      const errorData = await response.json().catch(() => ({}));
+      console.error('❌ API Error Response:', errorData);
+      
+      let errorMessage = `Reservation failed (${response.status})`;
+      
+      if (typeof errorData.detail === 'string') {
+        errorMessage = errorData.detail;
+      } else if (typeof errorData.detail === 'object' && errorData.detail !== null) {
+        errorMessage = errorData.detail.message || errorData.detail.msg || JSON.stringify(errorData.detail);
+      } else if (typeof errorData.message === 'string') {
+        errorMessage = errorData.message;
+      } else if (Array.isArray(errorData.detail)) {
+        errorMessage = errorData.detail.map(e => e.msg || e.message || String(e)).join(', ');
+      }
+      
+      throw new Error(errorMessage);
     }
-    
-    throw new Error(errorMessage);
-  }
     
     const reservation = await response.json();
     console.log('✅ Reservation created:', reservation);
     
-// Clear the cart (both local and we don't need to clear API since items are now reserved)
-CartManager.clearCart();
-renderCartOverlay(); // Re-render to show empty state
+    CartManager.clearCart();
+    renderCartOverlay();
 
-// Close modals
-closeReservationModal();
-closeCartOverlay();
+    closeReservationModal();
+    closeCartOverlay();
     
-    // Show success - you could redirect to a confirmation page instead
     showReservationSuccess(reservation);
     
   } catch (err) {
     console.error('❌ Reservation error:', err);
     
-    // Show error in modal
     if (errorEl) {
       errorEl.textContent = err.message || 'Failed to create reservation. Please try again.';
       errorEl.style.display = 'block';
     }
   } finally {
-    // Re-enable button
     btn.disabled = false;
     btn.textContent = 'Confirm Reservation';
     btn.style.opacity = '1';
@@ -1067,23 +1119,21 @@ async function handleReserveClick() {
   const isAuthenticated = await window.auth0Client.isAuthenticated();
   
   if (!isAuthenticated) {
-    // User needs to log in first
     closeCartOverlay();
     openAuthModal();
     return;
   }
   
-  // User is authenticated - show reservation modal
   openReservationModal();
 }
 
-// Make functions globally accessible
 window.openCartOverlay = openCartOverlay;
 window.closeCartOverlay = closeCartOverlay;
 window.removeCartOverlayItem = removeCartOverlayItem;
 window.openReservationModal = openReservationModal;
 window.closeReservationModal = closeReservationModal;
 window.confirmReservation = confirmReservation;
+
 
 // ============================================
 // UPGRADE MODAL FUNCTIONS
@@ -1133,21 +1183,18 @@ document.addEventListener('DOMContentLoaded', function() {
 // Escape key handling
 document.addEventListener('keydown', function(e) {
   if (e.key === 'Escape') {
-    // Close upgrade modal first if open
     const upgradeModal = document.getElementById('upgrade-modal');
     if (upgradeModal && upgradeModal.style.display === 'block') {
       closeUpgradeModal();
       return;
     }
     
-    // Close reservation modal if open
     const reservationModal = document.getElementById('reservation-modal');
     if (reservationModal && reservationModal.style.display === 'block') {
       closeReservationModal();
       return;
     }
     
-    // Then check cart overlay
     const overlay = document.getElementById('cart-overlay');
     if (overlay && overlay.style.transform === 'translateX(0px)') {
       closeCartOverlay();
@@ -1178,7 +1225,7 @@ window.testReservationModal = function() {
   openReservationModal();
 };
 
-// Move cart overlay to body (keep your existing code)
+// Move cart overlay to body
 function moveCartToBody() {
   const backdrop = document.getElementById('cart-backdrop');
   const overlay = document.getElementById('cart-overlay');
@@ -1190,7 +1237,6 @@ function moveCartToBody() {
     document.body.appendChild(overlay);
   }
   
-  // Also move reservation modal
   const resBackdrop = document.getElementById('reservation-modal-backdrop');
   const resModal = document.getElementById('reservation-modal');
   
@@ -1200,17 +1246,17 @@ function moveCartToBody() {
   if (resModal && resModal.parentElement !== document.body) {
     document.body.appendChild(resModal);
   }
-  // Also move reservation detail modal
-const detailBackdrop = document.getElementById('reservation-detail-backdrop');
-const detailModal = document.getElementById('reservation-detail-modal');
+  
+  const detailBackdrop = document.getElementById('reservation-detail-backdrop');
+  const detailModal = document.getElementById('reservation-detail-modal');
 
-if (detailBackdrop && detailBackdrop.parentElement !== document.body) {
-  document.body.appendChild(detailBackdrop);
-}
-if (detailModal && detailModal.parentElement !== document.body) {
-  document.body.appendChild(detailModal);
-}
-  // Also move upgrade modal
+  if (detailBackdrop && detailBackdrop.parentElement !== document.body) {
+    document.body.appendChild(detailBackdrop);
+  }
+  if (detailModal && detailModal.parentElement !== document.body) {
+    document.body.appendChild(detailModal);
+  }
+  
   const upgradeBackdrop = document.getElementById('upgrade-modal-backdrop');
   const upgradeModal = document.getElementById('upgrade-modal');
   
@@ -1221,20 +1267,20 @@ if (detailModal && detailModal.parentElement !== document.body) {
     document.body.appendChild(upgradeModal);
   }
   
+  const successBackdrop = document.getElementById('success-modal-backdrop');
+  const successModal = document.getElementById('success-modal');
+
+  if (successBackdrop && successBackdrop.parentElement !== document.body) {
+    document.body.appendChild(successBackdrop);
+  }
+  if (successModal && successModal.parentElement !== document.body) {
+    document.body.appendChild(successModal);
+  }
+  
   if (backdrop && overlay) {
     console.log('✅ Cart overlay moved to body');
     return true;
   }
-// Also move success modal
-const successBackdrop = document.getElementById('success-modal-backdrop');
-const successModal = document.getElementById('success-modal');
-
-if (successBackdrop && successBackdrop.parentElement !== document.body) {
-  document.body.appendChild(successBackdrop);
-}
-if (successModal && successModal.parentElement !== document.body) {
-  document.body.appendChild(successModal);
-}
   return false;
 }
 
@@ -1254,7 +1300,7 @@ window.addEventListener('load', function() {
   setTimeout(moveCartToBody, 100);
 });
 
-// Backup click handler (keep your existing code)
+// Backup click handler
 window.addEventListener('load', function() {
   setTimeout(function() {
     const cartIcon = document.querySelector('[data-cart-trigger]');
@@ -1291,7 +1337,6 @@ window.addEventListener('load', function() {
   function setupCart() {
     console.log('🛒 [Site-wide] Setting up cart...');
     
-    // Move cart to body
     const backdrop = document.getElementById('cart-backdrop');
     const overlay = document.getElementById('cart-overlay');
     
@@ -1308,6 +1353,9 @@ window.addEventListener('load', function() {
   }
   
   function handleCartClick(e) {
+     // Skip purchase cart clicks - let them handle their own onclick
+    if (e.target.closest('[data-purchase-cart]')) return;
+    
     const cartTrigger = e.target.closest('[data-cart-trigger]');
     if (cartTrigger) {
       console.log('🛒 [Site-wide] Cart trigger activated!');
@@ -1315,7 +1363,6 @@ window.addEventListener('load', function() {
       e.stopPropagation();
       e.stopImmediatePropagation();
       
-      // Ensure cart is in body
       const bd = document.getElementById('cart-backdrop');
       const ov = document.getElementById('cart-overlay');
       if (bd && bd.parentElement !== document.body) document.body.appendChild(bd);
@@ -1329,11 +1376,9 @@ window.addEventListener('load', function() {
     }
   }
   
-  // Use capture phase for both click and touch
   document.addEventListener('click', handleCartClick, true);
   document.addEventListener('touchend', handleCartClick, true);
   
-  // Run setup at multiple times
   setTimeout(setupCart, 100);
   setTimeout(setupCart, 500);
   setTimeout(setupCart, 1500);
@@ -1343,122 +1388,687 @@ window.addEventListener('load', function() {
 })();
 
 
-
-// Membership signup handler
-document.addEventListener('DOMContentLoaded', function() {
-  console.log('🎫 Membership script loading...');
+// ============================================
+// MEMBERSHIP SIGNUP HANDLER
+// Uses capture phase to catch clicks before anything else
+// ============================================
+(function() {
+  console.log('🎫 Membership handler initializing (capture phase)...');
   
-  const API_BASE = window.API_BASE_URL;
-
-  const buttons = document.querySelectorAll('[data-membership]');
-  console.log('🎫 Found membership buttons:', buttons.length);
+  document.addEventListener('click', async function(e) {
+    const button = e.target.closest('[data-membership]');
     
-  buttons.forEach(button => {
-    button.addEventListener('click', async function(e) {
-      e.preventDefault();
-      console.log('🎫 Button clicked:', this.getAttribute('data-membership'));
+    if (!button) return;
+    
+    console.log('🎫 CAPTURED membership button click!');
+    e.preventDefault();
+    e.stopPropagation();
+    e.stopImmediatePropagation();
+    
+    const membershipName = button.getAttribute('data-membership');
+    console.log('🎫 Membership name:', membershipName);
+    
+    const API_BASE = window.API_BASE_URL;
+    
+    if (!window.auth0Client) {
+      console.error('🎫 Auth0 not initialized');
+      alert('Please wait a moment and try again');
+      return;
+    }
+    
+    const isAuthenticated = await window.auth0Client.isAuthenticated();
+    console.log('🎫 Is authenticated:', isAuthenticated);
+    
+    if (!isAuthenticated) {
+      console.log('🎫 Not authenticated, saving action and opening auth modal');
+      sessionStorage.setItem('postLoginAction', JSON.stringify({
+        type: 'membership_signup',
+        membershipName: membershipName
+      }));
+      openAuthModal();
+      return;
+    }
+    
+    const originalHTML = button.innerHTML;
+    button.innerHTML = 'Loading...';
+    button.style.pointerEvents = 'none';
+    button.style.opacity = '0.7';
+    
+    try {
+      const token = await window.auth0Client.getTokenSilently();
+      console.log('🎫 Got token, creating checkout session...');
       
-      if (!window.auth0Client) {
-        console.error('🎫 Auth0 not initialized yet');
-        alert('Please wait a moment and try again');
-        return;
+      const requestBody = {
+        membership_name: membershipName,
+        success_url: `${window.location.origin}/welcome-to-dematerialized`,
+        cancel_url: `${window.location.origin}/error-membership-signup`
+      };
+      console.log('🎫 Request body:', requestBody);
+      
+      const response = await fetch(`${API_BASE}/stripe/create-checkout-session`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(requestBody)
+      });
+      
+      console.log('🎫 Response status:', response.status);
+      
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        console.error('🎫 API error:', errorData);
+        throw new Error(errorData.detail || `API error: ${response.status}`);
       }
       
-      const isAuthenticated = await window.auth0Client.isAuthenticated();
+      const data = await response.json();
+      console.log('🎫 Checkout URL:', data.checkout_url);
+      window.location.href = data.checkout_url;
       
-      if (!isAuthenticated) {
-        sessionStorage.setItem('postLoginAction', JSON.stringify({
-          type: 'membership_signup',
-          membership: this.getAttribute('data-membership')
-        }));
-        openAuthModal();
-        return;
-      }
-      
-      const membershipName = this.getAttribute('data-membership');
-      
-      if (!membershipName) {
-        console.error('🎫 No membership name found');
-        return;
-      }
-      
-      const originalText = this.textContent;
-      this.textContent = 'Loading...';
-      this.style.pointerEvents = 'none';
-      
-      try {
-        const token = await window.auth0Client.getTokenSilently();
-        
-        const response = await fetch(`${API_BASE}/stripe/create-checkout-session`, {
-          method: 'POST',
-          headers: {
-            'Authorization': `Bearer ${token}`,
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify({
-            membership_name: membershipName,
-            success_url: `${window.location.origin}/welcome-to-dematerialized`,
-            cancel_url: `${window.location.origin}/error-membership-signup`
-          })
-        });
-        
-        if (!response.ok) {
-          throw new Error('Failed to create checkout session');
-        }
-        
-        const data = await response.json();
-        window.location.href = data.checkout_url;
-        
-      } catch (error) {
-        console.error('🎫 Checkout error:', error);
-        alert('Something went wrong. Please try again.');
-        this.textContent = originalText;
-        this.style.pointerEvents = 'auto';
-      }
-    });
-  });
-  // Handle post-login redirect
+    } catch (error) {
+      console.error('🎫 Checkout error:', error);
+      alert('Something went wrong: ' + error.message);
+      button.innerHTML = originalHTML;
+      button.style.pointerEvents = 'auto';
+      button.style.opacity = '1';
+    }
+  }, true);
+  
+  // Post-login handler
   async function checkPostLoginAction() {
     if (!window.auth0Client) {
       setTimeout(checkPostLoginAction, 500);
       return;
     }
-
-    // Add safe area styles for iOS
-function addSafeAreaStyles() {
-  if (document.getElementById('safe-area-styles')) return;
-  
-  const style = document.createElement('style');
-  style.id = 'safe-area-styles';
-  style.textContent = `
-    #cart-overlay {
-      padding-bottom: env(safe-area-inset-bottom, 0px);
-    }
-    #cart-overlay-footer {
-      padding-bottom: env(safe-area-inset-bottom, 0px);
-    }
-  `;
-  document.head.appendChild(style);
-  console.log('✅ Safe area styles added');
-}
-
-// Call it early
-addSafeAreaStyles();
     
-    const action = sessionStorage.getItem('postLoginAction');
-    if (action) {
-      const parsed = JSON.parse(action);
-      if (parsed.type === 'membership_signup') {
-        sessionStorage.removeItem('postLoginAction');
-        const button = document.querySelector(`[data-membership="${parsed.membership}"]`);
-        if (button) {
-          setTimeout(() => button.click(), 500);
+    try {
+      const isAuthenticated = await window.auth0Client.isAuthenticated();
+      if (!isAuthenticated) return;
+      
+      const action = sessionStorage.getItem('postLoginAction');
+      if (action) {
+        const parsed = JSON.parse(action);
+        if (parsed.type === 'membership_signup') {
+          console.log('🎫 Post-login: triggering membership signup for:', parsed.membershipName);
+          sessionStorage.removeItem('postLoginAction');
+          
+          setTimeout(() => {
+            const button = document.querySelector(`[data-membership="${parsed.membershipName}"]`);
+            if (button) {
+              console.log('🎫 Found button, clicking...');
+              button.click();
+            } else {
+              console.error('🎫 Button not found for:', parsed.membershipName);
+            }
+          }, 1500);
         }
       }
+    } catch (err) {
+      console.error('🎫 Post-login check error:', err);
     }
   }
   
-  checkPostLoginAction();
-  console.log('🎫 Membership script loaded');
-});
+  setTimeout(checkPostLoginAction, 1000);
+  
+  console.log('🎫 Membership handler ready (capture phase)');
+})();
 
+
+
+// ============================================
+// NAVBAR SCROLL HIDE/SHOW
+// ============================================
+(function() {
+  console.log('🧭 Navbar scroll handler loading...');
+  
+  let ticking = false;
+  const SCROLL_THRESHOLD = 50;
+  let navLinksHeight = 0;
+  
+  function updateNavLinks() {
+    const navLinks = document.querySelector('.div-nav-links-wrapper');
+    if (!navLinks) {
+      console.warn('🧭 .div-nav-links-wrapper not found');
+      return;
+    }
+    
+    const currentScrollY = window.scrollY;
+    
+    if (currentScrollY > SCROLL_THRESHOLD) {
+      navLinks.style.opacity = '0';
+      navLinks.style.maxHeight = '0';
+      navLinks.style.overflow = 'hidden';
+      navLinks.style.marginTop = '0';
+      navLinks.style.marginBottom = '0';
+      navLinks.style.paddingTop = '0';
+      navLinks.style.paddingBottom = '0';
+      navLinks.style.pointerEvents = 'none';
+    } else {
+      navLinks.style.opacity = '1';
+      navLinks.style.maxHeight = navLinksHeight + 'px';
+      navLinks.style.overflow = 'visible';
+      navLinks.style.marginTop = '';
+      navLinks.style.marginBottom = '';
+      navLinks.style.paddingTop = '';
+      navLinks.style.paddingBottom = '';
+      navLinks.style.pointerEvents = 'auto';
+    }
+    
+    ticking = false;
+  }
+  
+  function onScroll() {
+    if (!ticking) {
+      window.requestAnimationFrame(updateNavLinks);
+      ticking = true;
+    }
+  }
+  
+  function initNavScroll() {
+    const navLinks = document.querySelector('.div-nav-links-wrapper');
+    if (navLinks) {
+      navLinksHeight = navLinks.offsetHeight;
+      
+      navLinks.style.transition = 'opacity 0.3s ease, max-height 0.3s ease, margin 0.3s ease, padding 0.3s ease';
+      navLinks.style.maxHeight = navLinksHeight + 'px';
+      
+      console.log('✅ Navbar scroll handler initialized, height:', navLinksHeight);
+    }
+    
+    window.addEventListener('scroll', onScroll, { passive: true });
+  }
+  
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initNavScroll);
+  } else {
+    initNavScroll();
+  }
+})();
+
+
+// ============================================
+// MULTI-STEP ONBOARDING MODAL
+// 8 Steps: Welcome, Name, Contact/Address, Birthday, Sizes, Body Type, Referral, Complete
+// Data structure matches profile.js approach
+// ============================================
+(function() {
+  console.log('🎓 Multi-step onboarding initializing...');
+  
+  // Geoapify API key (same as profile page)
+  const GEOAPIFY_KEY = 'ce61be62b3c344838d731909f625cfd1';
+  
+  // State
+  let currentStep = 1;
+  const totalSteps = 8;
+  let addressDebounce = null;
+  
+  const formData = {
+    // Personal info
+    firstName: '',
+    lastName: '',
+    phoneNumber: '',
+    // Address
+    addressFull: '',  // Backup: full address from search field
+    addressStreet: '',
+    addressHouseNumber: '',
+    addressUnit: '',
+    addressZipcode: '',
+    addressCity: '',
+    // Birthday
+    dateOfBirth: '',
+    // Size profile
+    heightCm: '',
+    preferredFit: '',
+    shirtSize: '',
+    pantsSize: '',
+    shoeSize: '',
+    // Body type (attribute)
+    bodyType: '',
+    // Referral sources (attribute - stored as comma-separated)
+    referralSources: []
+  };
+  
+  // Step to progress section mapping
+  // Steps 1 = welcome, Steps 2-4 = your info, Steps 5-8 = your profile
+  const stepToProgress = {
+    1: 1,  // Welcome -> welcome
+    2: 2,  // Name -> your info
+    3: 2,  // Contact/Address -> your info
+    4: 2,  // Birthday -> your info
+    5: 3,  // Sizes -> your profile
+    6: 3,  // Body type -> your profile
+    7: 3,  // Referral -> your profile
+    8: 3   // Complete -> your profile
+  };
+  
+  // ===== MODAL FUNCTIONS =====
+  
+  window.openOnboardingModal = function() {
+    console.log('🎓 Opening onboarding modal');
+    const modal = document.getElementById('onboardingModal');
+    if (modal) {
+      modal.classList.add('is-visible');
+      document.body.classList.add('onboarding-modal-open');
+      currentStep = 1;
+      showStep(1);
+      updateProgress();
+    }
+  };
+  
+  window.closeOnboardingModal = function() {
+    console.log('🎓 Closing onboarding modal');
+    const modal = document.getElementById('onboardingModal');
+    if (modal) {
+      modal.classList.remove('is-visible');
+      document.body.classList.remove('onboarding-modal-open');
+    }
+  };
+  
+  window.showOnboardingModal = window.openOnboardingModal;
+  
+  // ===== NAVIGATION =====
+  
+  window.nextOnboardingStep = function() {
+    console.log('🎓 Next step from', currentStep);
+    
+    // Collect data from current step before advancing
+    collectStepData(currentStep);
+    
+    if (currentStep < totalSteps) {
+      currentStep++;
+      showStep(currentStep);
+      updateProgress();
+    }
+  };
+  
+  window.prevOnboardingStep = function() {
+    console.log('🎓 Previous step from', currentStep);
+    if (currentStep > 1) {
+      currentStep--;
+      showStep(currentStep);
+      updateProgress();
+    }
+  };
+  
+  window.skipOnboarding = function() {
+    console.log('🎓 Skipping onboarding');
+    sessionStorage.setItem('onboarding_modal_dismissed', 'true');
+    closeOnboardingModal();
+  };
+  
+  function showStep(step) {
+    console.log('🎓 Showing step', step);
+    
+    // Hide all steps
+    document.querySelectorAll('.onboarding-step').forEach(el => {
+      el.classList.remove('active');
+    });
+    
+    // Show current step
+    const stepEl = document.querySelector(`.onboarding-step[data-step="${step}"]`);
+    if (stepEl) {
+      stepEl.classList.add('active');
+    }
+  }
+  
+  function updateProgress() {
+    const progressSection = stepToProgress[currentStep];
+    
+    document.querySelectorAll('.onboarding-progress-step').forEach(el => {
+      const stepNum = parseInt(el.getAttribute('data-step'));
+      el.classList.remove('active', 'completed');
+      
+      if (stepNum < progressSection) {
+        el.classList.add('completed');
+      } else if (stepNum === progressSection) {
+        el.classList.add('active');
+      }
+    });
+  }
+  
+  // ===== ADDRESS AUTOCOMPLETE =====
+  
+  window.searchOnboardingAddress = async function() {
+    const input = document.getElementById('onboarding-address-search');
+    const suggestionsContainer = document.getElementById('onboarding-address-suggestions');
+    
+    if (!input || !suggestionsContainer) return;
+    
+    const query = input.value.trim();
+    
+    if (query.length < 3) {
+      suggestionsContainer.classList.remove('active');
+      suggestionsContainer.innerHTML = '';
+      return;
+    }
+    
+    clearTimeout(addressDebounce);
+    
+    addressDebounce = setTimeout(async () => {
+      try {
+        const url = `https://api.geoapify.com/v1/geocode/autocomplete?text=${encodeURIComponent(query)}&apiKey=${GEOAPIFY_KEY}&filter=countrycode:nl&limit=5`;
+        
+        const response = await fetch(url);
+        const data = await response.json();
+        
+        if (data.features && data.features.length > 0) {
+          suggestionsContainer.innerHTML = data.features.map((feature, index) => `
+            <div class="address-suggestion" onclick="selectOnboardingAddress(${index})" data-index="${index}">
+              ${feature.properties.formatted}
+            </div>
+          `).join('');
+          suggestionsContainer.classList.add('active');
+          
+          // Store features for selection
+          window._onboardingAddressResults = data.features;
+        } else {
+          suggestionsContainer.classList.remove('active');
+          suggestionsContainer.innerHTML = '';
+        }
+      } catch (error) {
+        console.error('🎓 Address search error:', error);
+      }
+    }, 300);
+  };
+  
+  window.selectOnboardingAddress = function(index) {
+    const feature = window._onboardingAddressResults?.[index];
+    if (!feature) return;
+    
+    const props = feature.properties;
+    console.log('🎓 Selected address properties:', props);
+    
+    // Update input fields
+    const searchInput = document.getElementById('onboarding-address-search');
+    const streetInput = document.getElementById('onboarding-street');
+    const houseNumberInput = document.getElementById('onboarding-house-number');
+    const zipcodeInput = document.getElementById('onboarding-zipcode');
+    const cityInput = document.getElementById('onboarding-city');
+    
+    // Set the search field to formatted address
+    if (searchInput) searchInput.value = props.formatted || '';
+    
+    // Try to get street from various possible properties
+    let street = props.street || props.road || props.name || '';
+    
+    // Try to get house number from various possible properties
+    let houseNumber = props.housenumber || props.house_number || '';
+    
+    // If we have address_line1, try to parse street and number from it
+    if ((!street || !houseNumber) && props.address_line1) {
+      const addressLine1 = props.address_line1;
+      // Dutch format is usually "Street Name 123" or "Street Name 123a"
+      const match = addressLine1.match(/^(.+?)\s+(\d+\s*\w*)$/);
+      if (match) {
+        if (!street) street = match[1];
+        if (!houseNumber) houseNumber = match[2];
+      } else if (!street) {
+        street = addressLine1;
+      }
+    }
+    
+    // If still no street/number, try parsing from formatted
+    if ((!street || !houseNumber) && props.formatted) {
+      // formatted is usually "Street Name 123, PostalCode City, Country"
+      const firstPart = props.formatted.split(',')[0];
+      if (firstPart) {
+        const match = firstPart.trim().match(/^(.+?)\s+(\d+\s*\w*)$/);
+        if (match) {
+          if (!street) street = match[1];
+          if (!houseNumber) houseNumber = match[2];
+        }
+      }
+    }
+    
+    // Set the values
+    if (streetInput) streetInput.value = street;
+    if (houseNumberInput) houseNumberInput.value = houseNumber;
+    if (zipcodeInput) zipcodeInput.value = props.postcode || '';
+    if (cityInput) cityInput.value = props.city || props.town || props.municipality || '';
+    
+    console.log('🎓 Parsed address - Street:', street, 'House:', houseNumber, 'Postcode:', props.postcode, 'City:', props.city);
+    
+    // Hide suggestions
+    const suggestionsContainer = document.getElementById('onboarding-address-suggestions');
+    if (suggestionsContainer) {
+      suggestionsContainer.classList.remove('active');
+      suggestionsContainer.innerHTML = '';
+    }
+  };
+  
+  // ===== DATA COLLECTION =====
+  
+  function collectStepData(step) {
+    switch(step) {
+      case 2: // Name only
+        formData.firstName = document.getElementById('onboarding-firstname')?.value || '';
+        formData.lastName = document.getElementById('onboarding-lastname')?.value || '';
+        console.log('🎓 Collected name:', formData.firstName, formData.lastName);
+        break;
+        
+      case 3: // Contact & Address
+        formData.phoneNumber = document.getElementById('onboarding-phone')?.value || '';
+        formData.addressFull = document.getElementById('onboarding-address-search')?.value || '';
+        formData.addressStreet = document.getElementById('onboarding-street')?.value || '';
+        formData.addressHouseNumber = document.getElementById('onboarding-house-number')?.value || '';
+        formData.addressUnit = document.getElementById('onboarding-unit')?.value || '';
+        formData.addressZipcode = document.getElementById('onboarding-zipcode')?.value || '';
+        formData.addressCity = document.getElementById('onboarding-city')?.value || '';
+        console.log('🎓 Collected contact/address:', formData.phoneNumber, formData.addressFull);
+        break;
+        
+      case 4: // Birthday
+        formData.dateOfBirth = document.getElementById('onboarding-birthday')?.value || '';
+        console.log('🎓 Collected birthday:', formData.dateOfBirth);
+        break;
+        
+      case 5: // Size profile
+        formData.heightCm = document.getElementById('onboarding-height')?.value || '';
+        formData.preferredFit = document.getElementById('onboarding-preferred-fit')?.value || '';
+        formData.shirtSize = document.getElementById('onboarding-shirt-size')?.value || '';
+        formData.pantsSize = document.getElementById('onboarding-pants-size')?.value || '';
+        formData.shoeSize = document.getElementById('onboarding-shoe-size')?.value || '';
+        console.log('🎓 Collected sizes:', formData.heightCm, formData.shirtSize);
+        break;
+        
+      case 6: // Body type
+        const selectedBodyType = document.querySelector('.body-type-option.selected');
+        formData.bodyType = selectedBodyType?.getAttribute('data-body-type') || '';
+        console.log('🎓 Collected body type:', formData.bodyType);
+        break;
+        
+      case 7: // Referral sources
+        formData.referralSources = Array.from(document.querySelectorAll('.checkbox-option input:checked'))
+          .map(el => el.value);
+        console.log('🎓 Collected referral sources:', formData.referralSources);
+        break;
+    }
+  }
+  
+  // ===== SUBMIT =====
+  
+  window.submitOnboarding = async function() {
+    console.log('🎓 Submitting onboarding data...');
+    
+    // Collect data from current step
+    collectStepData(currentStep);
+    
+    const btn = document.querySelector('.onboarding-step[data-step="7"] .onboarding-btn-primary');
+    if (btn) {
+      btn.classList.add('loading');
+      btn.disabled = true;
+    }
+    
+    try {
+      if (!window.auth0Client) {
+        throw new Error('Authentication not available');
+      }
+      
+      const token = await window.auth0Client.getTokenSilently();
+      
+      // Build attributes array (matching profile.js approach)
+      const customAttributes = [];
+      
+      if (formData.firstName) {
+        customAttributes.push({ key: 'first_name', value: formData.firstName });
+      }
+      if (formData.lastName) {
+        customAttributes.push({ key: 'last_name', value: formData.lastName });
+      }
+      if (formData.addressStreet) {
+        customAttributes.push({ key: 'address_street', value: formData.addressStreet });
+      }
+      if (formData.addressFull) {
+        customAttributes.push({ key: 'address_full', value: formData.addressFull });
+      }
+      if (formData.addressUnit) {
+        customAttributes.push({ key: 'address_unit', value: formData.addressUnit });
+      }
+      if (formData.heightCm) {
+        customAttributes.push({ key: 'height_cm', value: formData.heightCm });
+      }
+      if (formData.preferredFit) {
+        customAttributes.push({ key: 'preferred_fit', value: formData.preferredFit });
+      }
+      if (formData.shirtSize) {
+        customAttributes.push({ key: 'shirt_size', value: formData.shirtSize });
+      }
+      if (formData.pantsSize) {
+        customAttributes.push({ key: 'pants_size', value: formData.pantsSize });
+      }
+      if (formData.shoeSize) {
+        customAttributes.push({ key: 'shoe_size', value: formData.shoeSize });
+      }
+      if (formData.bodyType) {
+        customAttributes.push({ key: 'body_type', value: formData.bodyType });
+      }
+      if (formData.referralSources.length > 0) {
+        customAttributes.push({ key: 'referral_sources', value: formData.referralSources.join(',') });
+      }
+      
+      // Build the API payload (matching profile.js approach)
+      const payload = {
+        provided_information: true,
+        attributes: customAttributes
+      };
+      
+      // Direct API fields
+      if (formData.phoneNumber) {
+        payload.phone_number = formData.phoneNumber;
+      }
+      if (formData.dateOfBirth) {
+        payload.date_of_birth = formData.dateOfBirth;
+      }
+      if (formData.addressHouseNumber) {
+        payload.address_house_number = formData.addressHouseNumber;
+      }
+      if (formData.addressZipcode) {
+        payload.address_zipcode = formData.addressZipcode;
+      }
+      if (formData.addressCity) {
+        payload.address_city = formData.addressCity;
+      }
+      
+      console.log('🎓 Sending payload:', payload);
+      
+      const response = await fetch(`${window.API_BASE_URL}/users/me`, {
+        method: 'PATCH',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(payload)
+      });
+      
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        console.error('🎓 API error:', errorData);
+        // Don't block the user, just log the error and continue
+        console.warn('🎓 Profile update failed, but continuing to completion');
+      } else {
+        console.log('🎓 Profile updated successfully');
+      }
+      
+      // Move to completion step regardless
+      currentStep = 8;
+      showStep(8);
+      updateProgress();
+      
+    } catch (error) {
+      console.error('🎓 Submit error:', error);
+      // Still show completion - don't block the user
+      currentStep = 8;
+      showStep(8);
+      updateProgress();
+    } finally {
+      if (btn) {
+        btn.classList.remove('loading');
+        btn.disabled = false;
+      }
+    }
+  };
+  
+  window.completeOnboarding = function() {
+    console.log('🎓 Completing onboarding');
+    sessionStorage.setItem('onboarding_completed', 'true');
+    closeOnboardingModal();
+    
+    // Redirect to clothing page
+    window.location.href = '/clothing';
+  };
+  
+  // ===== EVENT LISTENERS =====
+  
+  function setupEventListeners() {
+    // Body type selection (single select)
+    document.addEventListener('click', function(e) {
+      const bodyTypeBtn = e.target.closest('.body-type-option');
+      if (bodyTypeBtn) {
+        document.querySelectorAll('.body-type-option').forEach(el => {
+          el.classList.remove('selected');
+        });
+        bodyTypeBtn.classList.add('selected');
+      }
+    });
+    
+    // Address search input
+    document.addEventListener('input', function(e) {
+      if (e.target.id === 'onboarding-address-search') {
+        searchOnboardingAddress();
+      }
+    });
+    
+    // Close address suggestions when clicking outside
+    document.addEventListener('click', function(e) {
+      const suggestionsContainer = document.getElementById('onboarding-address-suggestions');
+      const searchInput = document.getElementById('onboarding-address-search');
+      
+      if (suggestionsContainer && suggestionsContainer.classList.contains('active')) {
+        if (!e.target.closest('.onboarding-input-group') || 
+            (e.target !== searchInput && !e.target.classList.contains('address-suggestion'))) {
+          suggestionsContainer.classList.remove('active');
+        }
+      }
+    });
+    
+    // Escape key to close
+    document.addEventListener('keydown', function(e) {
+      if (e.key === 'Escape') {
+        const modal = document.getElementById('onboardingModal');
+        if (modal && modal.classList.contains('is-visible')) {
+          skipOnboarding();
+        }
+      }
+    });
+  }
+  
+  // Initialize when DOM is ready
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', setupEventListeners);
+  } else {
+    setupEventListeners();
+  }
+  
+  console.log('🎓 Multi-step onboarding ready');
+})();
