@@ -143,7 +143,25 @@
     <a href="/reservations" class="btn-secondary" onclick="closeSuccessModal()">view my reservations</a>
   </div>
 </div>
-
+<!-- Reservation Detail Modal -->
+<div id="reservation-detail-backdrop" class="modal-backdrop"></div>
+<div id="reservation-detail-modal" class="modal-container modal-large">
+  <div class="modal-header">
+    <div>
+      <span class="modal-label">reservation details</span>
+      <div id="detail-modal-id" class="modal-title"></div>
+    </div>
+    <button class="modal-close" onclick="closeReservationDetailModal()">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round">
+        <path d="M18 6L6 18M6 6l12 12"/>
+      </svg>
+    </button>
+  </div>
+  <div id="detail-modal-content" class="modal-body modal-scroll"></div>
+  <div class="modal-footer">
+    <button class="btn-primary" onclick="closeReservationDetailModal()">close</button>
+  </div>
+</div>
 
 <!-- ============================================ -->
 <!-- MULTI-STEP ONBOARDING MODAL -->
