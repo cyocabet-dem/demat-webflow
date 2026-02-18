@@ -1263,9 +1263,9 @@ body.onboarding-modal-open {
 }
 
 
-
 /* ============================================
-   MODAL UTILITIES
+   MODAL UTILITIES — REDESIGNED
+   Rounded 20px, pill buttons, Urbanist, pink CTA
    ============================================ */
 
 .modal-backdrop {
@@ -1275,8 +1275,9 @@ body.onboarding-modal-open {
   left: 0;
   width: 100%;
   height: 100%;
-  background: rgba(0,0,0,0.6);
+  background: rgba(0, 0, 0, 0.5);
   z-index: 10000;
+  backdrop-filter: blur(2px);
 }
 
 .modal-container {
@@ -1289,8 +1290,9 @@ body.onboarding-modal-open {
   max-width: 480px;
   background: #fff;
   z-index: 10001;
-  border-radius: 4px;
-  box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+  border-radius: 20px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.2);
+  overflow: hidden;
 }
 
 .modal-large {
@@ -1308,24 +1310,25 @@ body.onboarding-modal-open {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 20px 24px;
-  border-bottom: 1px solid #e0e0e0;
+  padding: 24px 28px;
+  border-bottom: 1px solid #ced5da;
   flex-shrink: 0;
 }
 
 .modal-title {
   font-family: 'Urbanist', sans-serif;
-  font-size: 18px;
-  font-weight: 500;
-  color: #000;
+  font-size: 22px;
+  font-weight: 600;
+  color: #24282d;
 }
 
 .modal-label {
   font-family: 'Urbanist', sans-serif;
-  font-size: 10px;
-  color: #999;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
+  font-size: 16px;
+  color: #46535e;
+  text-transform: lowercase;
+  letter-spacing: normal;
+  font-weight: 600;
 }
 
 .modal-close {
@@ -1336,10 +1339,16 @@ body.onboarding-modal-open {
   display: flex;
   align-items: center;
   justify-content: center;
+  color: #46535e;
+  transition: color 0.2s ease;
+}
+
+.modal-close:hover {
+  color: #24282d;
 }
 
 .modal-body {
-  padding: 24px;
+  padding: 28px;
   font-family: 'Urbanist', sans-serif;
 }
 
@@ -1353,48 +1362,52 @@ body.onboarding-modal-open {
 }
 
 .modal-footer {
-  padding: 16px 24px 24px;
+  padding: 20px 28px 28px;
   display: flex;
   flex-direction: column;
   gap: 12px;
 }
 
 .modal-heading {
-  font-size: 20px;
-  font-weight: 500;
-  color: #000;
+  font-family: 'Urbanist', sans-serif;
+  font-size: 24px;
+  font-weight: 700;
+  color: #24282d;
   margin: 0 0 12px 0;
 }
 
 .modal-text {
-  font-size: 14px;
-  color: #666;
+  font-family: 'Urbanist', sans-serif;
+  font-size: 16px;
+  color: #46535e;
   line-height: 1.6;
   margin: 0 0 24px 0;
 }
 
 .modal-subtext {
-  font-size: 13px;
-  color: #888;
+  font-family: 'Urbanist', sans-serif;
+  font-size: 16px;
+  color: #46535e;
   line-height: 1.5;
   margin: 0;
 }
 
 .modal-error {
   display: none;
-  padding: 12px 16px;
-  background: #fee2e2;
-  border: 1px solid #fca5a5;
-  border-radius: 4px;
+  padding: 14px 18px;
+  background: #fff4fe;
+  border: 1px solid #e8c4e3;
+  border-radius: 12px;
   margin-bottom: 16px;
-  font-size: 13px;
-  color: #991b1b;
+  font-size: 16px;
+  color: #4b073f;
+  font-family: 'Urbanist', sans-serif;
 }
 
 .modal-icon {
   width: 64px;
   height: 64px;
-  background: #f8f8f8;
+  background: #fff4fe;
   border-radius: 50%;
   display: flex;
   align-items: center;
@@ -1413,141 +1426,199 @@ body.onboarding-modal-open {
   margin: 0 auto 24px;
 }
 
-/* Buttons */
+/* ── Buttons — PINK ──────────────────────── */
 .btn-primary {
   width: 100%;
   padding: 16px 20px;
   background: #a92296;
-  color: #f6f8f9;
+  color: #fff;
   border: none;
+  border-radius: 50px;
   font-family: 'Urbanist', sans-serif;
   font-size: 16px;
-  font-weight: 400;
+  font-weight: 600;
   cursor: pointer;
   text-decoration: none;
   text-align: center;
   display: block;
   box-sizing: border-box;
+  transition: background 0.2s ease, transform 0.2s ease;
 }
 
 .btn-primary:hover {
   background: #4b073f;
+  transform: translateY(-1px);
 }
 
 .btn-secondary {
   width: 100%;
-  padding: 12px 20px;
+  padding: 14px 20px;
   background: transparent;
-  color: #666;
-  border: 1px solid #ddd;
+  color: #46535e;
+  border: 1px solid #ced5da;
+  border-radius: 50px;
   font-family: 'Urbanist', sans-serif;
-  font-size: 13px;
-  font-weight: 400;
+  font-size: 16px;
+  font-weight: 500;
   cursor: pointer;
   text-decoration: none;
   text-align: center;
   display: block;
   box-sizing: border-box;
+  transition: all 0.2s ease;
 }
 
 .btn-secondary:hover {
-  background: #f5f5f5;
+  background: #f6f8f9;
+  border-color: #46535e;
 }
 
-/* Reservation specific */
+/* ── Reservation Confirmation Modal ──────── */
 .reservation-item-count-box {
   display: flex;
   align-items: center;
-  gap: 12px;
-  margin-bottom: 20px;
-  padding: 16px;
-  background: #f8f8f8;
-  border-radius: 4px;
+  gap: 14px;
+  margin-bottom: 24px;
+  padding: 18px;
+  background: #f6f8f9;
+  border-radius: 16px;
+}
+
+.reservation-item-count-box svg {
+  flex-shrink: 0;
+  color: #24282d;
 }
 
 .reservation-item-count-box span {
-  font-size: 15px;
-  color: #000;
-}
-
-.reservation-policy h4 {
-  font-size: 14px;
+  font-family: 'Urbanist', sans-serif;
+  font-size: 16px;
   font-weight: 600;
-  color: #000;
-  margin: 0 0 12px 0;
+  color: #24282d;
 }
 
 .reservation-policy {
   margin-bottom: 24px;
 }
 
+.reservation-policy h4 {
+  font-family: 'Urbanist', sans-serif;
+  font-size: 16px;
+  font-weight: 700;
+  color: #24282d;
+  margin: 0 0 16px 0;
+}
+
 .policy-item {
   display: flex;
-  gap: 10px;
-  margin-bottom: 12px;
-  font-size: 13px;
-  color: #444;
-  line-height: 1.5;
+  gap: 12px;
+  margin-bottom: 16px;
+  font-family: 'Urbanist', sans-serif;
+  font-size: 16px;
+  color: #46535e;
+  line-height: 1.6;
+}
+
+.policy-item:last-child {
+  margin-bottom: 0;
 }
 
 .policy-item svg {
   flex-shrink: 0;
-  margin-top: 2px;
+  margin-top: 3px;
+  color: #4b073f;
 }
 
+.policy-item strong {
+  color: #24282d;
+}
+
+/* ── Reservation Success Modal ───────────── */
 .reservation-id-box {
-  background: #f8f8f8;
-  padding: 14px 16px;
-  border-radius: 4px;
+  background: #f6f8f9;
+  padding: 18px 20px;
+  border-radius: 16px;
   margin-bottom: 24px;
 }
 
 .reservation-id-label {
-  font-size: 11px;
-  color: #999;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-  margin-bottom: 4px;
+  font-family: 'Urbanist', sans-serif;
+  font-size: 14px;
+  color: #46535e;
+  font-weight: 600;
+  letter-spacing: 1px;
+  margin-bottom: 8px;
 }
 
 .reservation-id-value {
-  font-size: 13px;
-  color: #000;
+  font-size: 14px;
+  color: #24282d;
   font-family: monospace;
   word-break: break-all;
+  line-height: 1.5;
 }
 
-/* Benefits box */
+/* ── Premium Upgrade Modal ───────────────── */
 .benefits-box {
-  background: #f8f8f8;
-  padding: 16px;
-  border-radius: 4px;
+  background: #f6f8f9;
+  padding: 20px;
+  border-radius: 16px;
   margin-bottom: 24px;
   text-align: left;
 }
 
 .benefits-title {
-  font-size: 13px;
-  font-weight: 500;
-  color: #000;
-  margin-bottom: 8px;
+  font-family: 'Urbanist', sans-serif;
+  font-size: 16px;
+  font-weight: 600;
+  color: #24282d;
+  margin-bottom: 10px;
 }
 
 .benefits-list {
   margin: 0;
   padding-left: 20px;
-  font-size: 13px;
-  color: #444;
-  line-height: 1.8;
+  font-family: 'Urbanist', sans-serif;
+  font-size: 16px;
+  color: #46535e;
+  line-height: 2;
 }
 
 .link-text-html {
-  color: #000;
+  color: #4b073f;
   text-decoration: underline;
+  text-underline-offset: 3px;
+  font-weight: 500;
 }
 
 .link-text-html:hover {
-  color: #333;
+  color: #a92296;
+}
+
+/* ── Mobile ──────────────────────────────── */
+@media (max-width: 479px) {
+  .modal-container {
+    width: 95%;
+  }
+
+  .modal-header {
+    padding: 20px 24px;
+  }
+
+  .modal-body {
+    padding: 24px;
+  }
+
+  .modal-footer {
+    padding: 16px 24px 24px;
+  }
+
+  .modal-heading {
+    font-size: 22px;
+  }
+
+  .policy-item {
+    font-size: 15px;
+  }
 }
 /* ============================================
    ACCOUNT SIDE NAVIGATION
