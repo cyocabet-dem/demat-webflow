@@ -766,6 +766,9 @@ window.UserMembership = {
 // CART OVERLAY FUNCTIONS
 // ============================================
 
+// Track cart flow type globally so renderCartOverlay can use it
+let _cartFlowType = null; // null = unknown/not logged in, 'local', or 'shipping'
+
 async function openCartOverlay() {
   console.log('🛒 openCartOverlay() called');
   
@@ -784,11 +787,19 @@ async function openCartOverlay() {
   overlay.classList.add('is-open');
   document.body.style.overflow = 'hidden';
   
+  // Reset flow type until we know
+  _cartFlowType = null;
   renderCartOverlay();
   
   if (window.CartManager && await CartManager.isUserAuthenticated()) {
     console.log('🛒 Syncing cart with API...');
     await CartManager.syncWithAPI();
+    
+    // Determine membership type for cart language
+    const isShipping = await UserMembership.isShippingMember();
+    _cartFlowType = isShipping ? 'shipping' : 'local';
+    console.log('🛒 Cart flow type:', _cartFlowType);
+    
     renderCartOverlay();
   }
   
@@ -803,6 +814,9 @@ function closeCartOverlay() {
   
   // Remove class from body
   document.body.classList.remove('cart-open');
+  
+  // Reset cart flow type
+  _cartFlowType = null;
   
   if (overlay) overlay.classList.remove('is-open');
   if (backdrop) backdrop.classList.remove('is-open');
@@ -832,8 +846,23 @@ function renderCartOverlay() {
   }
   
   if (headerCount) headerCount.textContent = cart.length;
-  countText.textContent = `${cart.length} of 5 items`;
   footerCount.textContent = cart.length;
+  
+  // Update subtitle based on membership type and cart state
+  if (cart.length === 0 && !_cartFlowType) {
+    // Empty cart + not logged in or no membership: hide subtitle entirely
+    countText.style.display = 'none';
+  } else {
+    countText.style.display = '';
+    if (_cartFlowType === 'shipping') {
+      countText.textContent = `${cart.length} of 5 items — select items for your shipment`;
+    } else if (_cartFlowType === 'local') {
+      countText.textContent = `${cart.length} of 5 items — reserve items to try on in store`;
+    } else {
+      // Not logged in but has items (guest browsing), keep it generic
+      countText.textContent = `${cart.length} of 5 items`;
+    }
+  }
   
   if (cart.length === 0) {
     emptyState.style.display = 'block';
@@ -941,7 +970,7 @@ async function openReservationModal() {
       modalTitle.textContent = 'confirm your rental';
     }
     if (confirmBtn) {
-      confirmBtn.textContent = 'Confirm Rental';
+      confirmBtn.textContent = 'confirm rental';
     }
     
     // Add shipping note if not already present
@@ -956,6 +985,21 @@ async function openReservationModal() {
     shippingNote.textContent = 'these items will be shipped to your address on file.';
     shippingNote.style.display = 'block';
     
+    // Update "before you confirm" policy items for shipping flow
+    const policyItems = modal.querySelectorAll('.policy-item');
+    if (policyItems.length >= 1) {
+      const firstText = policyItems[0].querySelector('p, span, div:not(svg)');
+      if (firstText && firstText.tagName !== 'SVG') {
+        firstText.textContent = 'we\'ll notify you by email when your items have been shipped, along with a tracking code. items typically arrive within 1-3 business days.';
+      }
+    }
+    if (policyItems.length >= 2) {
+      const secondText = policyItems[1].querySelector('p, span, div:not(svg)');
+      if (secondText && secondText.tagName !== 'SVG') {
+        secondText.innerHTML = '<a href="/contact-us" class="link-text-html">contact us</a> if you have any questions or would like to make a change to your order.';
+      }
+    }
+    
   } else {
     // Reservation flow language (default)
     if (itemCount) {
@@ -965,12 +1009,27 @@ async function openReservationModal() {
       modalTitle.textContent = 'confirm reservation';
     }
     if (confirmBtn) {
-      confirmBtn.textContent = 'Confirm Reservation';
+      confirmBtn.textContent = 'confirm reservation';
     }
     
     // Hide shipping note if present
     const shippingNote = modal.querySelector('.shipping-note');
     if (shippingNote) shippingNote.style.display = 'none';
+    
+    // Restore original policy items for reservation flow
+    const policyItems = modal.querySelectorAll('.policy-item');
+    if (policyItems.length >= 1) {
+      const firstText = policyItems[0].querySelector('p, span, div:not(svg)');
+      if (firstText && firstText.tagName !== 'SVG') {
+        firstText.textContent = 'we\'ll notify you by email when your items are ready for pickup at our store, typically within one business day';
+      }
+    }
+    if (policyItems.length >= 2) {
+      const secondText = policyItems[1].querySelector('p, span, div:not(svg)');
+      if (secondText && secondText.tagName !== 'SVG') {
+        secondText.innerHTML = '<a href="/contact-us" class="link-text-html">contact us</a> as soon as possible if you are unable to make it to your reservation. please note that a €5 cancellation / no-show fee may apply. see our <a href="/cancellation-policy" class="link-text-html">cancellation policy</a>.';
+      }
+    }
   }
   
   if (errorEl) {
@@ -1008,7 +1067,7 @@ async function confirmReservation() {
   const actionLabel = isRental ? 'Rental' : 'Reservation';
   
   btn.disabled = true;
-  btn.textContent = isRental ? 'Creating Rental...' : 'Creating Reservation...';
+  btn.textContent = isRental ? 'creating rental...' : 'creating reservation...';
   btn.style.opacity = '0.7';
   
   if (errorEl) {
@@ -1158,7 +1217,7 @@ async function confirmReservation() {
     }
   } finally {
     btn.disabled = false;
-    btn.textContent = isRental ? 'Confirm Rental' : 'Confirm Reservation';
+    btn.textContent = isRental ? 'confirm rental' : 'confirm reservation';
     btn.style.opacity = '1';
   }
 }
