@@ -959,7 +959,7 @@ function ensureMobileFooterSpacer() {
 // RESERVATION / RENTAL MODAL FUNCTIONS
 // Adapts language and API endpoint based on membership type:
 // - Local members: "reserve" → POST /private_clothing_items/reservations
-// - Shipping members: "confirm rental" → POST /admin_clothing_items/rentals
+// - Shipping members: "confirm rental" → POST /private_clothing_items/reservations (workaround until dedicated rental endpoint exists)
 // ============================================
 
 // Track current flow type for the modal
@@ -1113,78 +1113,46 @@ async function confirmReservation() {
     let result;
     
     if (isRental) {
-      // RENTAL FLOW: Create one rental per item (API accepts single clothing_item_id)
-      const rentalEndpoint = `${window.API_BASE_URL}/admin_clothing_items/rentals`;
-      const results = [];
-      const errors = [];
+      // SHIPPING MEMBER WORKAROUND: Use reservations endpoint for now
+      // TODO: Switch to dedicated rental endpoint once Edward builds POST /private_clothing_items/rentals
+      const clothingItemIds = cart.map(item => item.id);
+      const endpoint = `${window.API_BASE_URL}/private_clothing_items/reservations`;
       
-      // Fetch user data to get their ID for the rental
-      const userData = await UserMembership.fetch();
-      if (!userData || !userData.id) {
-        throw new Error('Could not retrieve your user information. Please try again.');
-      }
-      const userId = userData.id;
-      console.log(`📤 Creating ${cart.length} rental(s) for user ${userId} at ${rentalEndpoint}`);
+      console.log(`📤 Creating reservation (shipping workaround) with items:`, clothingItemIds);
+
+      const response = await fetch(endpoint, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+          'Accept': 'application/json'
+        },
+        body: JSON.stringify({
+          clothing_item_ids: clothingItemIds
+        })
+      });
       
-      for (const item of cart) {
-        try {
-          console.log(`📤 Creating rental for item ${item.id} (${item.name})...`);
-          
-          const response = await fetch(rentalEndpoint, {
-            method: 'POST',
-            headers: {
-              'Authorization': `Bearer ${token}`,
-              'Content-Type': 'application/json',
-              'Accept': 'application/json'
-            },
-            body: JSON.stringify({
-              clothing_item_id: item.id,
-              user_id: userId,
-              rental_start_date: new Date().toISOString(),
-              notes: 'Created via shipping membership rental'
-            })
-          });
-          
-          if (!response.ok) {
-            const errorData = await response.json().catch(() => ({}));
-            console.error(`❌ Rental failed for item ${item.id}:`, errorData);
-            
-            let errorMessage = `Failed for "${item.name}"`;
-            if (typeof errorData.detail === 'string') {
-              errorMessage = errorData.detail;
-            } else if (typeof errorData.message === 'string') {
-              errorMessage = errorData.message;
-            } else if (Array.isArray(errorData.detail)) {
-              errorMessage = errorData.detail.map(e => e.msg || e.message || String(e)).join(', ');
-            }
-            
-            errors.push(errorMessage);
-            continue;
-          }
-          
-          const rentalResult = await response.json();
-          console.log(`✅ Rental created for item ${item.id}:`, rentalResult);
-          results.push(rentalResult);
-          
-        } catch (itemErr) {
-          console.error(`❌ Rental error for item ${item.id}:`, itemErr);
-          errors.push(`Failed for "${item.name}": ${itemErr.message}`);
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        console.error('❌ Shipment API Error Response:', errorData);
+        
+        let errorMessage = `Shipment failed (${response.status})`;
+        
+        if (typeof errorData.detail === 'string') {
+          errorMessage = errorData.detail;
+        } else if (typeof errorData.detail === 'object' && errorData.detail !== null) {
+          errorMessage = errorData.detail.message || errorData.detail.msg || JSON.stringify(errorData.detail);
+        } else if (typeof errorData.message === 'string') {
+          errorMessage = errorData.message;
+        } else if (Array.isArray(errorData.detail)) {
+          errorMessage = errorData.detail.map(e => e.msg || e.message || String(e)).join(', ');
         }
+        
+        throw new Error(errorMessage);
       }
       
-      // If all items failed, throw an error
-      if (results.length === 0 && errors.length > 0) {
-        throw new Error(errors.join('; '));
-      }
-      
-      // If some failed, log but continue with the ones that succeeded
-      if (errors.length > 0) {
-        console.warn(`⚠️ ${errors.length} rental(s) failed, ${results.length} succeeded`);
-      }
-      
-      // Use first result for success display
-      result = results[0];
-      result._rentalCount = results.length;
+      result = await response.json();
+      console.log('✅ Reservation created (shipping workaround):', result);
       
     } else {
       // RESERVATION FLOW: Single call with all item IDs (existing behavior)
