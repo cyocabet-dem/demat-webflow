@@ -1246,7 +1246,7 @@ function showReservationSuccess(result, isRental) {
     if (subtext) subtext.textContent = 'happy borrowing!';
     if (viewLink) {
       viewLink.textContent = 'view my rentals';
-      viewLink.setAttribute('href', '/rentals');
+      viewLink.setAttribute('href', '/my-rentals');
     }
   } else {
     if (successTitle) successTitle.textContent = 'reservation confirmed!';
