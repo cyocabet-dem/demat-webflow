@@ -671,6 +671,12 @@ window.UserMembership = {
   premium_name: 'Premium',
   basic_name: 'Basic',
   
+  // Shipping membership names
+  SHIPPING_MEMBERSHIPS: [
+    '5 items, 1 shipment per month',
+    '5 items per shipment, 2 shipments per month'
+  ],
+  
   async fetch() {
     if (this._cache && this._cacheTime && (Date.now() - this._cacheTime < this.CACHE_DURATION)) {
       console.log('👤 Using cached membership data');
@@ -730,9 +736,22 @@ window.UserMembership = {
     return membershipName === this.basic_name;
   },
   
+  async isShippingMember() {
+    const membershipName = await this.getMembershipName();
+    const isShipping = this.SHIPPING_MEMBERSHIPS.includes(membershipName);
+    console.log('📦 Is shipping member:', isShipping, '(membership:', membershipName, ')');
+    return isShipping;
+  },
+  
+  async isLocalMember() {
+    const membershipName = await this.getMembershipName();
+    if (!membershipName) return false;
+    return !this.SHIPPING_MEMBERSHIPS.includes(membershipName);
+  },
+  
   async canReserveOnline() {
     console.log("👤 Checking if user can reserve online...");
-    console.log("His membership is premium:", await this.isPremium())
+    console.log("His membership is premium:", await this.isPremium());
     return await this.isPremium();
   },
   
@@ -758,9 +777,11 @@ async function openCartOverlay() {
     return;
   }
   
+  // Add class to body to hide bottom navbar
+  document.body.classList.add('cart-open');
   
-  backdrop.style.display = 'block';
-  overlay.style.transform = 'translateX(0)';
+  backdrop.classList.add('is-open');
+  overlay.classList.add('is-open');
   document.body.style.overflow = 'hidden';
   
   renderCartOverlay();
@@ -780,17 +801,18 @@ function closeCartOverlay() {
   const overlay = document.getElementById('cart-overlay');
   const backdrop = document.getElementById('cart-backdrop');
   
-  if (overlay) overlay.style.transform = 'translateX(100%)';
-  if (backdrop) backdrop.style.display = 'none';
+  // Remove class from body
+  document.body.classList.remove('cart-open');
+  
+  if (overlay) overlay.classList.remove('is-open');
+  if (backdrop) backdrop.classList.remove('is-open');
   
   document.body.style.overflow = '';
   console.log('✅ Cart overlay closed');
 }
 
 // ============================================
-// UPDATED renderCartOverlay function
-// Replace the existing renderCartOverlay in site-wide-footer.js
-// Removes redundant inline styles - lets CSS classes handle styling
+// renderCartOverlay
 // ============================================
 
 function renderCartOverlay() {
@@ -843,74 +865,6 @@ function renderCartOverlay() {
   console.log('✅ Cart rendered with', cart.length, 'items');
 }
 
-// ============================================
-// ALSO UPDATE openCartOverlay - add body class
-// ============================================
-
-async function openCartOverlay() {
-  console.log('🛒 openCartOverlay() called');
-  
-  const overlay = document.getElementById('cart-overlay');
-  const backdrop = document.getElementById('cart-backdrop');
-  
-  if (!overlay || !backdrop) {
-    console.error('❌ Cart overlay elements not found!');
-    return;
-  }
-  
-  // Add class to body to hide bottom navbar
-  document.body.classList.add('cart-open');
-  
-  backdrop.classList.add('is-open');
-  overlay.classList.add('is-open');
-  document.body.style.overflow = 'hidden';
-  
-  renderCartOverlay();
-  
-  if (window.CartManager && await CartManager.isUserAuthenticated()) {
-    console.log('🛒 Syncing cart with API...');
-    await CartManager.syncWithAPI();
-    renderCartOverlay();
-  }
-  
-  console.log('✅ Cart overlay opened');
-}
-
-// ============================================
-// ALSO UPDATE closeCartOverlay - remove body class
-// ============================================
-
-function closeCartOverlay() {
-  console.log('🛒 closeCartOverlay() called');
-  
-  const overlay = document.getElementById('cart-overlay');
-  const backdrop = document.getElementById('cart-backdrop');
-  
-  // Remove class from body
-  document.body.classList.remove('cart-open');
-  
-  if (overlay) overlay.classList.remove('is-open');
-  if (backdrop) backdrop.classList.remove('is-open');
-  
-  document.body.style.overflow = '';
-  console.log('✅ Cart overlay closed');
-}
-
-function closeCartOverlay() {
-  console.log('🛒 closeCartOverlay() called');
-  
-  const overlay = document.getElementById('cart-overlay');
-  const backdrop = document.getElementById('cart-backdrop');
-  
-  // Remove class from body
-  document.body.classList.remove('cart-open');
-  
-  if (overlay) overlay.classList.remove('is-open');
-  if (backdrop) backdrop.classList.remove('is-open');
-  
-  document.body.style.overflow = '';
-  console.log('✅ Cart overlay closed');
-}
 
 function goToCartItem(sku) {
   closeCartOverlay();
@@ -945,11 +899,17 @@ function ensureMobileFooterSpacer() {
 
 
 // ============================================
-// RESERVATION MODAL FUNCTIONS
+// RESERVATION / RENTAL MODAL FUNCTIONS
+// Adapts language and API endpoint based on membership type:
+// - Local members: "reserve" → POST /private_clothing_items/reservations
+// - Shipping members: "confirm rental" → POST /admin_clothing_items/rentals
 // ============================================
 
-function openReservationModal() {
-  console.log('📋 Opening reservation modal');
+// Track current flow type for the modal
+let _currentFlowType = 'reservation'; // 'reservation' or 'rental'
+
+async function openReservationModal() {
+  console.log('📋 Opening reservation/rental modal');
   
   const modal = document.getElementById('reservation-modal');
   const backdrop = document.getElementById('reservation-modal-backdrop');
@@ -962,8 +922,55 @@ function openReservationModal() {
   }
   
   const cart = CartManager.getCart();
-  if (itemCount) {
-    itemCount.textContent = `${cart.length} item${cart.length !== 1 ? 's' : ''} ready to reserve`;
+  
+  // Determine flow type based on membership
+  const isShipping = await UserMembership.isShippingMember();
+  _currentFlowType = isShipping ? 'rental' : 'reservation';
+  console.log('📋 Flow type:', _currentFlowType);
+  
+  // Update modal text based on flow type
+  const modalTitle = modal.querySelector('.reservation-modal-title, h2, h3');
+  const confirmBtn = document.getElementById('confirm-reservation-btn');
+  
+  if (isShipping) {
+    // Rental flow language
+    if (itemCount) {
+      itemCount.textContent = `${cart.length} item${cart.length !== 1 ? 's' : ''} selected for your shipment`;
+    }
+    if (modalTitle) {
+      modalTitle.textContent = 'confirm your rental';
+    }
+    if (confirmBtn) {
+      confirmBtn.textContent = 'Confirm Rental';
+    }
+    
+    // Add shipping note if not already present
+    let shippingNote = modal.querySelector('.shipping-note');
+    if (!shippingNote) {
+      shippingNote = document.createElement('p');
+      shippingNote.className = 'shipping-note';
+      shippingNote.style.cssText = 'font-size: 14px; color: #46535e; margin-top: 8px; font-family: Urbanist, sans-serif;';
+      const insertTarget = itemCount?.parentElement || modal.querySelector('.reservation-modal-body');
+      if (insertTarget) insertTarget.appendChild(shippingNote);
+    }
+    shippingNote.textContent = 'these items will be shipped to your address on file.';
+    shippingNote.style.display = 'block';
+    
+  } else {
+    // Reservation flow language (default)
+    if (itemCount) {
+      itemCount.textContent = `${cart.length} item${cart.length !== 1 ? 's' : ''} ready to reserve`;
+    }
+    if (modalTitle) {
+      modalTitle.textContent = 'confirm reservation';
+    }
+    if (confirmBtn) {
+      confirmBtn.textContent = 'Confirm Reservation';
+    }
+    
+    // Hide shipping note if present
+    const shippingNote = modal.querySelector('.shipping-note');
+    if (shippingNote) shippingNote.style.display = 'none';
   }
   
   if (errorEl) {
@@ -974,11 +981,11 @@ function openReservationModal() {
   backdrop.style.display = 'block';
   modal.style.display = 'block';
   
-  console.log('✅ Reservation modal opened');
+  console.log('✅ Modal opened in', _currentFlowType, 'mode');
 }
 
 function closeReservationModal() {
-  console.log('📋 Closing reservation modal');
+  console.log('📋 Closing reservation/rental modal');
   
   const modal = document.getElementById('reservation-modal');
   const backdrop = document.getElementById('reservation-modal-backdrop');
@@ -986,19 +993,22 @@ function closeReservationModal() {
   if (modal) modal.style.display = 'none';
   if (backdrop) backdrop.style.display = 'none';
   
-  console.log('✅ Reservation modal closed');
+  console.log('✅ Reservation/rental modal closed');
 }
 
 async function confirmReservation() {
-  console.log('📋 Confirming reservation...');
+  console.log('📋 Confirming', _currentFlowType, '...');
   
   const btn = document.getElementById('confirm-reservation-btn');
   const errorEl = document.getElementById('reservation-error');
   
   if (!btn) return;
   
+  const isRental = _currentFlowType === 'rental';
+  const actionLabel = isRental ? 'Rental' : 'Reservation';
+  
   btn.disabled = true;
-  btn.textContent = 'Creating Reservation...';
+  btn.textContent = isRental ? 'Creating Rental...' : 'Creating Reservation...';
   btn.style.opacity = '0.7';
   
   if (errorEl) {
@@ -1011,47 +1021,125 @@ async function confirmReservation() {
     }
     
     const token = await window.auth0Client.getTokenSilently();
-    
-    console.log('📤 Calling reservation API...');
-    
     const cart = CartManager.getCart();
-    const clothingItemIds = cart.map(item => item.id);
-
-    console.log('📤 Creating reservation with items:', clothingItemIds);
-
-    const response = await fetch(`${window.API_BASE_URL}/private_clothing_items/reservations`, {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${token}`,
-        'Content-Type': 'application/json',
-        'Accept': 'application/json'
-      },
-      body: JSON.stringify({
-        clothing_item_ids: clothingItemIds
-      })
-    });
     
-    if (!response.ok) {
-      const errorData = await response.json().catch(() => ({}));
-      console.error('❌ API Error Response:', errorData);
+    let result;
+    
+    if (isRental) {
+      // RENTAL FLOW: Create one rental per item (API accepts single clothing_item_id)
+      const rentalEndpoint = `${window.API_BASE_URL}/admin_clothing_items/rentals`;
+      const results = [];
+      const errors = [];
       
-      let errorMessage = `Reservation failed (${response.status})`;
+      // Fetch user data to get their ID for the rental
+      const userData = await UserMembership.fetch();
+      if (!userData || !userData.id) {
+        throw new Error('Could not retrieve your user information. Please try again.');
+      }
+      const userId = userData.id;
+      console.log(`📤 Creating ${cart.length} rental(s) for user ${userId} at ${rentalEndpoint}`);
       
-      if (typeof errorData.detail === 'string') {
-        errorMessage = errorData.detail;
-      } else if (typeof errorData.detail === 'object' && errorData.detail !== null) {
-        errorMessage = errorData.detail.message || errorData.detail.msg || JSON.stringify(errorData.detail);
-      } else if (typeof errorData.message === 'string') {
-        errorMessage = errorData.message;
-      } else if (Array.isArray(errorData.detail)) {
-        errorMessage = errorData.detail.map(e => e.msg || e.message || String(e)).join(', ');
+      for (const item of cart) {
+        try {
+          console.log(`📤 Creating rental for item ${item.id} (${item.name})...`);
+          
+          const response = await fetch(rentalEndpoint, {
+            method: 'POST',
+            headers: {
+              'Authorization': `Bearer ${token}`,
+              'Content-Type': 'application/json',
+              'Accept': 'application/json'
+            },
+            body: JSON.stringify({
+              clothing_item_id: item.id,
+              user_id: userId,
+              rental_start_date: new Date().toISOString(),
+              notes: 'Created via shipping membership rental'
+            })
+          });
+          
+          if (!response.ok) {
+            const errorData = await response.json().catch(() => ({}));
+            console.error(`❌ Rental failed for item ${item.id}:`, errorData);
+            
+            let errorMessage = `Failed for "${item.name}"`;
+            if (typeof errorData.detail === 'string') {
+              errorMessage = errorData.detail;
+            } else if (typeof errorData.message === 'string') {
+              errorMessage = errorData.message;
+            } else if (Array.isArray(errorData.detail)) {
+              errorMessage = errorData.detail.map(e => e.msg || e.message || String(e)).join(', ');
+            }
+            
+            errors.push(errorMessage);
+            continue;
+          }
+          
+          const rentalResult = await response.json();
+          console.log(`✅ Rental created for item ${item.id}:`, rentalResult);
+          results.push(rentalResult);
+          
+        } catch (itemErr) {
+          console.error(`❌ Rental error for item ${item.id}:`, itemErr);
+          errors.push(`Failed for "${item.name}": ${itemErr.message}`);
+        }
       }
       
-      throw new Error(errorMessage);
+      // If all items failed, throw an error
+      if (results.length === 0 && errors.length > 0) {
+        throw new Error(errors.join('; '));
+      }
+      
+      // If some failed, log but continue with the ones that succeeded
+      if (errors.length > 0) {
+        console.warn(`⚠️ ${errors.length} rental(s) failed, ${results.length} succeeded`);
+      }
+      
+      // Use first result for success display
+      result = results[0];
+      result._rentalCount = results.length;
+      
+    } else {
+      // RESERVATION FLOW: Single call with all item IDs (existing behavior)
+      const clothingItemIds = cart.map(item => item.id);
+      const endpoint = `${window.API_BASE_URL}/private_clothing_items/reservations`;
+      
+      console.log(`📤 Creating reservation with items:`, clothingItemIds);
+
+      const response = await fetch(endpoint, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+          'Accept': 'application/json'
+        },
+        body: JSON.stringify({
+          clothing_item_ids: clothingItemIds
+        })
+      });
+      
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        console.error('❌ Reservation API Error Response:', errorData);
+        
+        let errorMessage = `Reservation failed (${response.status})`;
+        
+        if (typeof errorData.detail === 'string') {
+          errorMessage = errorData.detail;
+        } else if (typeof errorData.detail === 'object' && errorData.detail !== null) {
+          errorMessage = errorData.detail.message || errorData.detail.msg || JSON.stringify(errorData.detail);
+        } else if (typeof errorData.message === 'string') {
+          errorMessage = errorData.message;
+        } else if (Array.isArray(errorData.detail)) {
+          errorMessage = errorData.detail.map(e => e.msg || e.message || String(e)).join(', ');
+        }
+        
+        throw new Error(errorMessage);
+      }
+      
+      result = await response.json();
+      console.log('✅ Reservation created:', result);
     }
-    
-    const reservation = await response.json();
-    console.log('✅ Reservation created:', reservation);
     
     CartManager.clearCart();
     renderCartOverlay();
@@ -1059,24 +1147,24 @@ async function confirmReservation() {
     closeReservationModal();
     closeCartOverlay();
     
-    showReservationSuccess(reservation);
+    showReservationSuccess(result, isRental);
     
   } catch (err) {
-    console.error('❌ Reservation error:', err);
+    console.error(`❌ ${actionLabel} error:`, err);
     
     if (errorEl) {
-      errorEl.textContent = err.message || 'Failed to create reservation. Please try again.';
+      errorEl.textContent = err.message || `Failed to create ${_currentFlowType}. Please try again.`;
       errorEl.style.display = 'block';
     }
   } finally {
     btn.disabled = false;
-    btn.textContent = 'Confirm Reservation';
+    btn.textContent = isRental ? 'Confirm Rental' : 'Confirm Reservation';
     btn.style.opacity = '1';
   }
 }
 
-function showReservationSuccess(reservation) {
-  console.log('🎉 Showing success modal');
+function showReservationSuccess(result, isRental) {
+  console.log('🎉 Showing success modal, isRental:', isRental);
   
   const modal = document.getElementById('success-modal');
   const backdrop = document.getElementById('success-modal-backdrop');
@@ -1084,12 +1172,25 @@ function showReservationSuccess(reservation) {
   
   if (!modal || !backdrop) {
     console.warn('Success modal not found, using alert fallback');
-    alert(`Reservation confirmed! ID: ${reservation.hash_id || reservation.id}`);
+    const label = isRental ? 'Rental' : 'Reservation';
+    alert(`${label} confirmed!`);
     return;
   }
   
+  // Update success modal text based on flow type
+  const successTitle = modal.querySelector('.success-modal-title, h2, h3');
+  const successMessage = modal.querySelector('.success-modal-message, p');
+  
+  if (isRental) {
+    if (successTitle) successTitle.textContent = 'rental confirmed!';
+    if (successMessage) successMessage.textContent = 'your items are being prepared. you\'ll receive an email with a tracking code as soon as we\'ve shipped them.';
+  } else {
+    if (successTitle) successTitle.textContent = 'reservation confirmed!';
+    if (successMessage) successMessage.textContent = 'you\'ll receive an email when your items are ready and waiting for you at our showroom.';
+  }
+  
   if (reservationIdEl) {
-    reservationIdEl.textContent = reservation.hash_id || reservation.id;
+    reservationIdEl.textContent = result.hash_id || result.id;
   }
   
   backdrop.style.display = 'block';
@@ -1109,7 +1210,7 @@ function closeSuccessModal() {
 window.closeSuccessModal = closeSuccessModal;
 
 async function handleReserveClick() {
-  console.log('🛒 Reserve button clicked');
+  console.log('🛒 Reserve/Rental button clicked');
   
   if (!window.auth0Client) {
     console.error('Auth0 not initialized');
