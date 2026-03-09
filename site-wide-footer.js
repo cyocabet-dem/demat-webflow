@@ -836,31 +836,59 @@ function renderCartOverlay() {
   const itemsContainer = document.getElementById('cart-overlay-items');
   const emptyState = document.getElementById('cart-overlay-empty');
   const footer = document.getElementById('cart-overlay-footer');
-  const countText = document.getElementById('cart-overlay-count-text');
-  const footerCount = document.getElementById('cart-footer-count');
   const headerCount = document.getElementById('cart-overlay-header-count');
+  const subtitleDiv = document.querySelector('.cart-overlay-subtitle');
+  const footerCountDiv = document.querySelector('.cart-overlay-count');
+  const reserveBtn = document.getElementById('cart-reserve-btn');
   
-  if (!itemsContainer || !emptyState || !footer || !countText || !footerCount) {
-    console.error('❌ Some cart overlay elements not found');
+  if (!itemsContainer || !emptyState || !footer) {
+    console.error('❌ Core cart overlay elements not found');
     return;
   }
   
   if (headerCount) headerCount.textContent = cart.length;
-  footerCount.textContent = cart.length;
   
-  // Update subtitle based on membership type and cart state
-  if (cart.length === 0 && !_cartFlowType) {
-    // Empty cart + not logged in or no membership: hide subtitle entirely
-    countText.style.display = 'none';
-  } else {
-    countText.style.display = '';
-    if (_cartFlowType === 'shipping') {
-      countText.textContent = `${cart.length} of 5 items — select items for your shipment`;
-    } else if (_cartFlowType === 'local') {
-      countText.textContent = `${cart.length} of 5 items — reserve items to try on in store`;
+  // Update subtitle
+  if (subtitleDiv) {
+    if (cart.length === 0 && !_cartFlowType) {
+      subtitleDiv.style.display = 'none';
     } else {
-      // Not logged in but has items (guest browsing), keep it generic
-      countText.textContent = `${cart.length} of 5 items`;
+      subtitleDiv.style.display = '';
+      if (_cartFlowType === 'shipping') {
+        subtitleDiv.innerHTML = `<span id="cart-overlay-count-text">${cart.length} of 5 items</span> — select items for your shipment`;
+      } else if (_cartFlowType === 'local') {
+        subtitleDiv.innerHTML = `<span id="cart-overlay-count-text">${cart.length} of 5 items</span> — reserve items to try on in store`;
+      } else {
+        subtitleDiv.innerHTML = `<span id="cart-overlay-count-text">${cart.length} of 5 items</span>`;
+      }
+    }
+  }
+  
+  // Update footer button text
+  if (reserveBtn) {
+    if (_cartFlowType === 'shipping') {
+      reserveBtn.textContent = 'borrow these items';
+    } else {
+      reserveBtn.textContent = 'reserve these items';
+    }
+  }
+  
+  // Update footer count text
+  if (footerCountDiv) {
+    if (_cartFlowType === 'shipping') {
+      footerCountDiv.innerHTML = `<span id="cart-footer-count">${cart.length}</span> item${cart.length !== 1 ? 's' : ''} selected for shipment`;
+    } else {
+      footerCountDiv.innerHTML = `<span id="cart-footer-count">${cart.length}</span> item${cart.length !== 1 ? 's' : ''} ready to reserve`;
+    }
+  }
+  
+  // Update empty state text
+  const emptyText = emptyState.querySelector('p');
+  if (emptyText) {
+    if (_cartFlowType === 'shipping') {
+      emptyText.textContent = 'browse our collection and add items to borrow';
+    } else {
+      emptyText.textContent = 'browse our collection and add items to reserve';
     }
   }
   
@@ -958,7 +986,7 @@ async function openReservationModal() {
   console.log('📋 Flow type:', _currentFlowType);
   
   // Update modal text based on flow type
-  const modalTitle = modal.querySelector('.reservation-modal-title, h2, h3');
+  const modalTitle = modal.querySelector('.modal-title, .reservation-modal-title, h2, h3');
   const confirmBtn = document.getElementById('confirm-reservation-btn');
   
   if (isShipping) {
@@ -967,7 +995,7 @@ async function openReservationModal() {
       itemCount.textContent = `${cart.length} item${cart.length !== 1 ? 's' : ''} selected for your shipment`;
     }
     if (modalTitle) {
-      modalTitle.textContent = 'confirm your rental';
+      modalTitle.textContent = 'confirm your shipment';
     }
     if (confirmBtn) {
       confirmBtn.textContent = 'confirm rental';
@@ -1237,15 +1265,30 @@ function showReservationSuccess(result, isRental) {
   }
   
   // Update success modal text based on flow type
-  const successTitle = modal.querySelector('.success-modal-title, h2, h3');
-  const successMessage = modal.querySelector('.success-modal-message, p');
+  const successTitle = modal.querySelector('.modal-heading, h2, h3');
+  const successMessage = modal.querySelector('.modal-text');
+  const idLabel = modal.querySelector('.reservation-id-label');
+  const subtext = modal.querySelector('.modal-subtext');
+  const viewLink = modal.querySelector('.modal-footer .btn-secondary');
   
   if (isRental) {
-    if (successTitle) successTitle.textContent = 'rental confirmed!';
+    if (successTitle) successTitle.textContent = 'shipment confirmed!';
     if (successMessage) successMessage.textContent = 'your items are being prepared. you\'ll receive an email with a tracking code as soon as we\'ve shipped them.';
+    if (idLabel) idLabel.textContent = 'shipment id';
+    if (subtext) subtext.textContent = 'happy borrowing!';
+    if (viewLink) {
+      viewLink.textContent = 'view my rentals';
+      viewLink.setAttribute('href', '/rentals');
+    }
   } else {
     if (successTitle) successTitle.textContent = 'reservation confirmed!';
     if (successMessage) successMessage.textContent = 'you\'ll receive an email when your items are ready and waiting for you at our showroom.';
+    if (idLabel) idLabel.textContent = 'reservation id';
+    if (subtext) subtext.textContent = 'see you soon!';
+    if (viewLink) {
+      viewLink.textContent = 'view my reservations';
+      viewLink.setAttribute('href', '/reservations');
+    }
   }
   
   if (reservationIdEl) {
