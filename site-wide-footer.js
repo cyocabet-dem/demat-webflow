@@ -671,6 +671,12 @@ window.UserMembership = {
   premium_name: 'Premium',
   basic_name: 'Basic',
   
+  // Shipping membership names
+  SHIPPING_MEMBERSHIPS: [
+    '5 items, 1 shipment per month',
+    '5 items per shipment, 2 shipments per month'
+  ],
+  
   async fetch() {
     if (this._cache && this._cacheTime && (Date.now() - this._cacheTime < this.CACHE_DURATION)) {
       console.log('👤 Using cached membership data');
@@ -730,9 +736,22 @@ window.UserMembership = {
     return membershipName === this.basic_name;
   },
   
+  async isShippingMember() {
+    const membershipName = await this.getMembershipName();
+    const isShipping = this.SHIPPING_MEMBERSHIPS.includes(membershipName);
+    console.log('📦 Is shipping member:', isShipping, '(membership:', membershipName, ')');
+    return isShipping;
+  },
+  
+  async isLocalMember() {
+    const membershipName = await this.getMembershipName();
+    if (!membershipName) return false;
+    return !this.SHIPPING_MEMBERSHIPS.includes(membershipName);
+  },
+  
   async canReserveOnline() {
     console.log("👤 Checking if user can reserve online...");
-    console.log("His membership is premium:", await this.isPremium())
+    console.log("His membership is premium:", await this.isPremium());
     return await this.isPremium();
   },
   
@@ -747,105 +766,8 @@ window.UserMembership = {
 // CART OVERLAY FUNCTIONS
 // ============================================
 
-async function openCartOverlay() {
-  console.log('🛒 openCartOverlay() called');
-  
-  const overlay = document.getElementById('cart-overlay');
-  const backdrop = document.getElementById('cart-backdrop');
-  
-  if (!overlay || !backdrop) {
-    console.error('❌ Cart overlay elements not found!');
-    return;
-  }
-  
-  
-  backdrop.style.display = 'block';
-  overlay.style.transform = 'translateX(0)';
-  document.body.style.overflow = 'hidden';
-  
-  renderCartOverlay();
-  
-  if (window.CartManager && await CartManager.isUserAuthenticated()) {
-    console.log('🛒 Syncing cart with API...');
-    await CartManager.syncWithAPI();
-    renderCartOverlay();
-  }
-  
-  console.log('✅ Cart overlay opened');
-}
-
-function closeCartOverlay() {
-  console.log('🛒 closeCartOverlay() called');
-  
-  const overlay = document.getElementById('cart-overlay');
-  const backdrop = document.getElementById('cart-backdrop');
-  
-  if (overlay) overlay.style.transform = 'translateX(100%)';
-  if (backdrop) backdrop.style.display = 'none';
-  
-  document.body.style.overflow = '';
-  console.log('✅ Cart overlay closed');
-}
-
-// ============================================
-// UPDATED renderCartOverlay function
-// Replace the existing renderCartOverlay in site-wide-footer.js
-// Removes redundant inline styles - lets CSS classes handle styling
-// ============================================
-
-function renderCartOverlay() {
-  console.log('🛒 renderCartOverlay() called');
-  
-  const cart = CartManager.getCart();
-  const itemsContainer = document.getElementById('cart-overlay-items');
-  const emptyState = document.getElementById('cart-overlay-empty');
-  const footer = document.getElementById('cart-overlay-footer');
-  const countText = document.getElementById('cart-overlay-count-text');
-  const footerCount = document.getElementById('cart-footer-count');
-  const headerCount = document.getElementById('cart-overlay-header-count');
-  
-  if (!itemsContainer || !emptyState || !footer || !countText || !footerCount) {
-    console.error('❌ Some cart overlay elements not found');
-    return;
-  }
-  
-  if (headerCount) headerCount.textContent = cart.length;
-  countText.textContent = `${cart.length} of 5 items`;
-  footerCount.textContent = cart.length;
-  
-  if (cart.length === 0) {
-    emptyState.style.display = 'block';
-    itemsContainer.innerHTML = '';
-    footer.style.display = 'none';
-    return;
-  }
-  
-  emptyState.style.display = 'none';
-  footer.style.display = 'block';
-  
-  // Clean render - no inline styles, matches purchase cart layout
-  itemsContainer.innerHTML = cart.map(item => `
-    <div class="cart-overlay-item" onclick="goToCartItem('${item.sku}')">
-      <div class="cart-overlay-item-image">
-        ${item.image ? `<img src="${item.image}" alt="${item.name}">` : ''}
-      </div>
-      <div class="cart-overlay-item-details">
-        <div class="cart-overlay-item-name">${item.name}</div>
-      </div>
-      <button class="cart-overlay-item-remove" onclick="removeCartOverlayItem(event, ${item.id})">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round">
-          <path d="M18 6L6 18M6 6l12 12"/>
-        </svg>
-      </button>
-    </div>
-  `).join('');
-  
-  console.log('✅ Cart rendered with', cart.length, 'items');
-}
-
-// ============================================
-// ALSO UPDATE openCartOverlay - add body class
-// ============================================
+// Track cart flow type globally so renderCartOverlay can use it
+let _cartFlowType = null; // null = unknown/not logged in, 'local', or 'shipping'
 
 async function openCartOverlay() {
   console.log('🛒 openCartOverlay() called');
@@ -865,21 +787,25 @@ async function openCartOverlay() {
   overlay.classList.add('is-open');
   document.body.style.overflow = 'hidden';
   
+  // Reset flow type until we know
+  _cartFlowType = null;
   renderCartOverlay();
   
   if (window.CartManager && await CartManager.isUserAuthenticated()) {
     console.log('🛒 Syncing cart with API...');
     await CartManager.syncWithAPI();
+    
+    // Determine membership type for cart language
+    const isShipping = await UserMembership.isShippingMember();
+    _cartFlowType = isShipping ? 'shipping' : 'local';
+    console.log('🛒 Cart flow type:', _cartFlowType);
+    
     renderCartOverlay();
   }
   
   console.log('✅ Cart overlay opened');
 }
 
-// ============================================
-// ALSO UPDATE closeCartOverlay - remove body class
-// ============================================
-
 function closeCartOverlay() {
   console.log('🛒 closeCartOverlay() called');
   
@@ -889,6 +815,9 @@ function closeCartOverlay() {
   // Remove class from body
   document.body.classList.remove('cart-open');
   
+  // Reset cart flow type
+  _cartFlowType = null;
+  
   if (overlay) overlay.classList.remove('is-open');
   if (backdrop) backdrop.classList.remove('is-open');
   
@@ -896,21 +825,103 @@ function closeCartOverlay() {
   console.log('✅ Cart overlay closed');
 }
 
-function closeCartOverlay() {
-  console.log('🛒 closeCartOverlay() called');
+// ============================================
+// renderCartOverlay
+// ============================================
+
+function renderCartOverlay() {
+  console.log('🛒 renderCartOverlay() called');
   
-  const overlay = document.getElementById('cart-overlay');
-  const backdrop = document.getElementById('cart-backdrop');
+  const cart = CartManager.getCart();
+  const itemsContainer = document.getElementById('cart-overlay-items');
+  const emptyState = document.getElementById('cart-overlay-empty');
+  const footer = document.getElementById('cart-overlay-footer');
+  const headerCount = document.getElementById('cart-overlay-header-count');
+  const subtitleDiv = document.querySelector('.cart-overlay-subtitle');
+  const footerCountDiv = document.querySelector('.cart-overlay-count');
+  const reserveBtn = document.getElementById('cart-reserve-btn');
   
-  // Remove class from body
-  document.body.classList.remove('cart-open');
+  if (!itemsContainer || !emptyState || !footer) {
+    console.error('❌ Core cart overlay elements not found');
+    return;
+  }
   
-  if (overlay) overlay.classList.remove('is-open');
-  if (backdrop) backdrop.classList.remove('is-open');
+  if (headerCount) headerCount.textContent = cart.length;
   
-  document.body.style.overflow = '';
-  console.log('✅ Cart overlay closed');
+  // Update subtitle
+  if (subtitleDiv) {
+    if (cart.length === 0 && !_cartFlowType) {
+      subtitleDiv.style.display = 'none';
+    } else {
+      subtitleDiv.style.display = '';
+      if (_cartFlowType === 'shipping') {
+        subtitleDiv.innerHTML = `<span id="cart-overlay-count-text">${cart.length} of 5 items</span> — select items for your shipment`;
+      } else if (_cartFlowType === 'local') {
+        subtitleDiv.innerHTML = `<span id="cart-overlay-count-text">${cart.length} of 5 items</span> — reserve items to try on in store`;
+      } else {
+        subtitleDiv.innerHTML = `<span id="cart-overlay-count-text">${cart.length} of 5 items</span>`;
+      }
+    }
+  }
+  
+  // Update footer button text
+  if (reserveBtn) {
+    if (_cartFlowType === 'shipping') {
+      reserveBtn.textContent = 'borrow these items';
+    } else {
+      reserveBtn.textContent = 'reserve these items';
+    }
+  }
+  
+  // Update footer count text
+  if (footerCountDiv) {
+    if (_cartFlowType === 'shipping') {
+      footerCountDiv.innerHTML = `<span id="cart-footer-count">${cart.length}</span> item${cart.length !== 1 ? 's' : ''} selected for shipment`;
+    } else {
+      footerCountDiv.innerHTML = `<span id="cart-footer-count">${cart.length}</span> item${cart.length !== 1 ? 's' : ''} ready to reserve`;
+    }
+  }
+  
+  // Update empty state text
+  const emptyText = emptyState.querySelector('p');
+  if (emptyText) {
+    if (_cartFlowType === 'shipping') {
+      emptyText.textContent = 'browse our collection and add items to borrow';
+    } else {
+      emptyText.textContent = 'browse our collection and add items to reserve';
+    }
+  }
+  
+  if (cart.length === 0) {
+    emptyState.style.display = 'block';
+    itemsContainer.innerHTML = '';
+    footer.style.display = 'none';
+    return;
+  }
+  
+  emptyState.style.display = 'none';
+  footer.style.display = 'block';
+  
+  // Clean render - no inline styles, matches purchase cart layout
+  itemsContainer.innerHTML = cart.map(item => `
+    <div class="cart-overlay-item" onclick="goToCartItem('${item.sku}')">
+      <div class="cart-overlay-item-image">
+        ${item.image ? `<img src="${item.image}" alt="${item.name}">` : ''}
+      </div>
+      <div class="cart-overlay-item-details">
+        <div class="cart-overlay-item-name">${item.name.toLowerCase()}</div>
+      </div>
+      <button class="cart-overlay-item-remove" onclick="removeCartOverlayItem(event, ${item.id})">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round">
+          <path d="M18 6L6 18M6 6l12 12"/>
+        </svg>
+      </button>
+    </div>
+  `).join('');
+  
+  console.log('✅ Cart rendered with', cart.length, 'items');
 }
+
 
 function goToCartItem(sku) {
   closeCartOverlay();
@@ -945,11 +956,17 @@ function ensureMobileFooterSpacer() {
 
 
 // ============================================
-// RESERVATION MODAL FUNCTIONS
+// RESERVATION / RENTAL MODAL FUNCTIONS
+// Adapts language and API endpoint based on membership type:
+// - Local members: "reserve" → POST /private_clothing_items/reservations
+// - Shipping members: "confirm rental" → POST /private_clothing_items/reservations (workaround until dedicated rental endpoint exists)
 // ============================================
 
-function openReservationModal() {
-  console.log('📋 Opening reservation modal');
+// Track current flow type for the modal
+let _currentFlowType = 'reservation'; // 'reservation' or 'rental'
+
+async function openReservationModal() {
+  console.log('📋 Opening reservation/rental modal');
   
   const modal = document.getElementById('reservation-modal');
   const backdrop = document.getElementById('reservation-modal-backdrop');
@@ -962,8 +979,85 @@ function openReservationModal() {
   }
   
   const cart = CartManager.getCart();
-  if (itemCount) {
-    itemCount.textContent = `${cart.length} item${cart.length !== 1 ? 's' : ''} ready to reserve`;
+  
+  // Determine flow type based on membership
+  const isShipping = await UserMembership.isShippingMember();
+  _currentFlowType = isShipping ? 'rental' : 'reservation';
+  console.log('📋 Flow type:', _currentFlowType);
+  
+  // Update modal text based on flow type
+  const modalTitle = modal.querySelector('.modal-title, .reservation-modal-title, h2, h3');
+  const confirmBtn = document.getElementById('confirm-reservation-btn');
+  
+  if (isShipping) {
+    // Rental flow language
+    if (itemCount) {
+      itemCount.textContent = `${cart.length} item${cart.length !== 1 ? 's' : ''} selected for your shipment`;
+    }
+    if (modalTitle) {
+      modalTitle.textContent = 'confirm your shipment';
+    }
+    if (confirmBtn) {
+      confirmBtn.textContent = 'confirm rental';
+    }
+    
+    // Add shipping note if not already present
+    let shippingNote = modal.querySelector('.shipping-note');
+    if (!shippingNote) {
+      shippingNote = document.createElement('p');
+      shippingNote.className = 'shipping-note';
+      shippingNote.style.cssText = 'font-size: 14px; color: #46535e; margin-top: 8px; font-family: Urbanist, sans-serif;';
+      const insertTarget = itemCount?.parentElement || modal.querySelector('.reservation-modal-body');
+      if (insertTarget) insertTarget.appendChild(shippingNote);
+    }
+    shippingNote.textContent = 'these items will be shipped to your address on file.';
+    shippingNote.style.display = 'block';
+    
+    // Update "before you confirm" policy items for shipping flow
+    const policyItems = modal.querySelectorAll('.policy-item');
+    if (policyItems.length >= 1) {
+      const firstText = policyItems[0].querySelector('p, span, div:not(svg)');
+      if (firstText && firstText.tagName !== 'SVG') {
+        firstText.textContent = 'we\'ll notify you by email when your items have been shipped, along with a tracking code. items typically arrive within 1-3 business days.';
+      }
+    }
+    if (policyItems.length >= 2) {
+      const secondText = policyItems[1].querySelector('p, span, div:not(svg)');
+      if (secondText && secondText.tagName !== 'SVG') {
+        secondText.innerHTML = '<a href="/contact-us" class="link-text-html">contact us</a> if you have any questions or would like to make a change to your order.';
+      }
+    }
+    
+  } else {
+    // Reservation flow language (default)
+    if (itemCount) {
+      itemCount.textContent = `${cart.length} item${cart.length !== 1 ? 's' : ''} ready to reserve`;
+    }
+    if (modalTitle) {
+      modalTitle.textContent = 'confirm reservation';
+    }
+    if (confirmBtn) {
+      confirmBtn.textContent = 'confirm reservation';
+    }
+    
+    // Hide shipping note if present
+    const shippingNote = modal.querySelector('.shipping-note');
+    if (shippingNote) shippingNote.style.display = 'none';
+    
+    // Restore original policy items for reservation flow
+    const policyItems = modal.querySelectorAll('.policy-item');
+    if (policyItems.length >= 1) {
+      const firstText = policyItems[0].querySelector('p, span, div:not(svg)');
+      if (firstText && firstText.tagName !== 'SVG') {
+        firstText.textContent = 'we\'ll notify you by email when your items are ready for pickup at our store, typically within one business day';
+      }
+    }
+    if (policyItems.length >= 2) {
+      const secondText = policyItems[1].querySelector('p, span, div:not(svg)');
+      if (secondText && secondText.tagName !== 'SVG') {
+        secondText.innerHTML = '<a href="/contact-us" class="link-text-html">contact us</a> as soon as possible if you are unable to make it to your reservation. please note that a €5 cancellation / no-show fee may apply. see our <a href="/cancellation-policy" class="link-text-html">cancellation policy</a>.';
+      }
+    }
   }
   
   if (errorEl) {
@@ -974,11 +1068,11 @@ function openReservationModal() {
   backdrop.style.display = 'block';
   modal.style.display = 'block';
   
-  console.log('✅ Reservation modal opened');
+  console.log('✅ Modal opened in', _currentFlowType, 'mode');
 }
 
 function closeReservationModal() {
-  console.log('📋 Closing reservation modal');
+  console.log('📋 Closing reservation/rental modal');
   
   const modal = document.getElementById('reservation-modal');
   const backdrop = document.getElementById('reservation-modal-backdrop');
@@ -986,19 +1080,22 @@ function closeReservationModal() {
   if (modal) modal.style.display = 'none';
   if (backdrop) backdrop.style.display = 'none';
   
-  console.log('✅ Reservation modal closed');
+  console.log('✅ Reservation/rental modal closed');
 }
 
 async function confirmReservation() {
-  console.log('📋 Confirming reservation...');
+  console.log('📋 Confirming', _currentFlowType, '...');
   
   const btn = document.getElementById('confirm-reservation-btn');
   const errorEl = document.getElementById('reservation-error');
   
   if (!btn) return;
   
+  const isRental = _currentFlowType === 'rental';
+  const actionLabel = isRental ? 'Rental' : 'Reservation';
+  
   btn.disabled = true;
-  btn.textContent = 'Creating Reservation...';
+  btn.textContent = isRental ? 'creating rental...' : 'creating reservation...';
   btn.style.opacity = '0.7';
   
   if (errorEl) {
@@ -1011,47 +1108,93 @@ async function confirmReservation() {
     }
     
     const token = await window.auth0Client.getTokenSilently();
-    
-    console.log('📤 Calling reservation API...');
-    
     const cart = CartManager.getCart();
-    const clothingItemIds = cart.map(item => item.id);
-
-    console.log('📤 Creating reservation with items:', clothingItemIds);
-
-    const response = await fetch(`${window.API_BASE_URL}/private_clothing_items/reservations`, {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${token}`,
-        'Content-Type': 'application/json',
-        'Accept': 'application/json'
-      },
-      body: JSON.stringify({
-        clothing_item_ids: clothingItemIds
-      })
-    });
     
-    if (!response.ok) {
-      const errorData = await response.json().catch(() => ({}));
-      console.error('❌ API Error Response:', errorData);
+    let result;
+    
+    if (isRental) {
+      // SHIPPING MEMBER WORKAROUND: Use reservations endpoint for now
+      // TODO: Switch to dedicated rental endpoint once Edward builds POST /private_clothing_items/rentals
+      const clothingItemIds = cart.map(item => item.id);
+      const endpoint = `${window.API_BASE_URL}/private_clothing_items/reservations`;
       
-      let errorMessage = `Reservation failed (${response.status})`;
+      console.log(`📤 Creating reservation (shipping workaround) with items:`, clothingItemIds);
+
+      const response = await fetch(endpoint, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+          'Accept': 'application/json'
+        },
+        body: JSON.stringify({
+          clothing_item_ids: clothingItemIds
+        })
+      });
       
-      if (typeof errorData.detail === 'string') {
-        errorMessage = errorData.detail;
-      } else if (typeof errorData.detail === 'object' && errorData.detail !== null) {
-        errorMessage = errorData.detail.message || errorData.detail.msg || JSON.stringify(errorData.detail);
-      } else if (typeof errorData.message === 'string') {
-        errorMessage = errorData.message;
-      } else if (Array.isArray(errorData.detail)) {
-        errorMessage = errorData.detail.map(e => e.msg || e.message || String(e)).join(', ');
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        console.error('❌ Shipment API Error Response:', errorData);
+        
+        let errorMessage = `Shipment failed (${response.status})`;
+        
+        if (typeof errorData.detail === 'string') {
+          errorMessage = errorData.detail;
+        } else if (typeof errorData.detail === 'object' && errorData.detail !== null) {
+          errorMessage = errorData.detail.message || errorData.detail.msg || JSON.stringify(errorData.detail);
+        } else if (typeof errorData.message === 'string') {
+          errorMessage = errorData.message;
+        } else if (Array.isArray(errorData.detail)) {
+          errorMessage = errorData.detail.map(e => e.msg || e.message || String(e)).join(', ');
+        }
+        
+        throw new Error(errorMessage);
       }
       
-      throw new Error(errorMessage);
+      result = await response.json();
+      console.log('✅ Reservation created (shipping workaround):', result);
+      
+    } else {
+      // RESERVATION FLOW: Single call with all item IDs (existing behavior)
+      const clothingItemIds = cart.map(item => item.id);
+      const endpoint = `${window.API_BASE_URL}/private_clothing_items/reservations`;
+      
+      console.log(`📤 Creating reservation with items:`, clothingItemIds);
+
+      const response = await fetch(endpoint, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+          'Accept': 'application/json'
+        },
+        body: JSON.stringify({
+          clothing_item_ids: clothingItemIds
+        })
+      });
+      
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        console.error('❌ Reservation API Error Response:', errorData);
+        
+        let errorMessage = `Reservation failed (${response.status})`;
+        
+        if (typeof errorData.detail === 'string') {
+          errorMessage = errorData.detail;
+        } else if (typeof errorData.detail === 'object' && errorData.detail !== null) {
+          errorMessage = errorData.detail.message || errorData.detail.msg || JSON.stringify(errorData.detail);
+        } else if (typeof errorData.message === 'string') {
+          errorMessage = errorData.message;
+        } else if (Array.isArray(errorData.detail)) {
+          errorMessage = errorData.detail.map(e => e.msg || e.message || String(e)).join(', ');
+        }
+        
+        throw new Error(errorMessage);
+      }
+      
+      result = await response.json();
+      console.log('✅ Reservation created:', result);
     }
-    
-    const reservation = await response.json();
-    console.log('✅ Reservation created:', reservation);
     
     CartManager.clearCart();
     renderCartOverlay();
@@ -1059,24 +1202,24 @@ async function confirmReservation() {
     closeReservationModal();
     closeCartOverlay();
     
-    showReservationSuccess(reservation);
+    showReservationSuccess(result, isRental);
     
   } catch (err) {
-    console.error('❌ Reservation error:', err);
+    console.error(`❌ ${actionLabel} error:`, err);
     
     if (errorEl) {
-      errorEl.textContent = err.message || 'Failed to create reservation. Please try again.';
+      errorEl.textContent = err.message || `Failed to create ${_currentFlowType}. Please try again.`;
       errorEl.style.display = 'block';
     }
   } finally {
     btn.disabled = false;
-    btn.textContent = 'Confirm Reservation';
+    btn.textContent = isRental ? 'confirm rental' : 'confirm reservation';
     btn.style.opacity = '1';
   }
 }
 
-function showReservationSuccess(reservation) {
-  console.log('🎉 Showing success modal');
+function showReservationSuccess(result, isRental) {
+  console.log('🎉 Showing success modal, isRental:', isRental);
   
   const modal = document.getElementById('success-modal');
   const backdrop = document.getElementById('success-modal-backdrop');
@@ -1084,12 +1227,40 @@ function showReservationSuccess(reservation) {
   
   if (!modal || !backdrop) {
     console.warn('Success modal not found, using alert fallback');
-    alert(`Reservation confirmed! ID: ${reservation.hash_id || reservation.id}`);
+    const label = isRental ? 'Rental' : 'Reservation';
+    alert(`${label} confirmed!`);
     return;
   }
   
+  // Update success modal text based on flow type
+  const successTitle = modal.querySelector('.modal-heading, h2, h3');
+  const successMessage = modal.querySelector('.modal-text');
+  const idLabel = modal.querySelector('.reservation-id-label');
+  const subtext = modal.querySelector('.modal-subtext');
+  const viewLink = modal.querySelector('.modal-footer .btn-secondary');
+  
+  if (isRental) {
+    if (successTitle) successTitle.textContent = 'shipment confirmed!';
+    if (successMessage) successMessage.textContent = 'your items are being prepared. you\'ll receive an email with a tracking code as soon as we\'ve shipped them.';
+    if (idLabel) idLabel.textContent = 'shipment id';
+    if (subtext) subtext.textContent = 'happy borrowing!';
+    if (viewLink) {
+      viewLink.textContent = 'view my rentals';
+      viewLink.setAttribute('href', '/my-rentals');
+    }
+  } else {
+    if (successTitle) successTitle.textContent = 'reservation confirmed!';
+    if (successMessage) successMessage.textContent = 'you\'ll receive an email when your items are ready and waiting for you at our showroom.';
+    if (idLabel) idLabel.textContent = 'reservation id';
+    if (subtext) subtext.textContent = 'see you soon!';
+    if (viewLink) {
+      viewLink.textContent = 'view my reservations';
+      viewLink.setAttribute('href', '/reservations');
+    }
+  }
+  
   if (reservationIdEl) {
-    reservationIdEl.textContent = reservation.hash_id || reservation.id;
+    reservationIdEl.textContent = result.hash_id || result.id;
   }
   
   backdrop.style.display = 'block';
@@ -1109,7 +1280,7 @@ function closeSuccessModal() {
 window.closeSuccessModal = closeSuccessModal;
 
 async function handleReserveClick() {
-  console.log('🛒 Reserve button clicked');
+  console.log('🛒 Reserve/Rental button clicked');
   
   if (!window.auth0Client) {
     console.error('Auth0 not initialized');
