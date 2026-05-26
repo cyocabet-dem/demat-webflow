@@ -1445,7 +1445,9 @@ window.addEventListener('load', function() {
       openAuthModal();
       return;
     }
-    
+
+    if (!isPostLoginReplay) pushCheckoutClick();
+
     const originalHTML = button.innerHTML;
     button.innerHTML = 'Loading...';
     button.style.pointerEvents = 'none';
@@ -1481,7 +1483,6 @@ window.addEventListener('load', function() {
       
       const data = await response.json();
       console.log('🎫 Checkout URL:', data.checkout_url);
-      if (!isPostLoginReplay) pushCheckoutClick();
       window.location.href = data.checkout_url;
       
     } catch (error) {
