@@ -1407,20 +1407,37 @@ window.addEventListener('load', function() {
     
     const membershipName = button.getAttribute('data-membership');
     console.log('🎫 Membership name:', membershipName);
-    
+
+    // Dedupe: when the post-login replay re-clicks the button, the real user
+    // click already pushed to dataLayer before the auth modal opened.
+    const isPostLoginReplay = button.dataset.gtmPostLoginReplay === '1';
+    if (isPostLoginReplay) {
+      delete button.dataset.gtmPostLoginReplay;
+    }
+
+    const pushCheckoutClick = () => {
+      window.dataLayer = window.dataLayer || [];
+      window.dataLayer.push({
+        event: 'membership_checkout_click',
+        membership_name: membershipName,
+        membership_price: parseFloat(button.getAttribute('data-price'))
+      });
+    };
+
     const API_BASE = window.API_BASE_URL;
-    
+
     if (!window.auth0Client) {
       console.error('🎫 Auth0 not initialized');
       alert('Please wait a moment and try again');
       return;
     }
-    
+
     const isAuthenticated = await window.auth0Client.isAuthenticated();
     console.log('🎫 Is authenticated:', isAuthenticated);
-    
+
     if (!isAuthenticated) {
       console.log('🎫 Not authenticated, saving action and opening auth modal');
+      if (!isPostLoginReplay) pushCheckoutClick();
       sessionStorage.setItem('postLoginAction', JSON.stringify({
         type: 'membership_signup',
         membershipName: membershipName
@@ -1464,6 +1481,7 @@ window.addEventListener('load', function() {
       
       const data = await response.json();
       console.log('🎫 Checkout URL:', data.checkout_url);
+      if (!isPostLoginReplay) pushCheckoutClick();
       window.location.href = data.checkout_url;
       
     } catch (error) {
@@ -1497,6 +1515,7 @@ window.addEventListener('load', function() {
             const button = document.querySelector(`[data-membership="${parsed.membershipName}"]`);
             if (button) {
               console.log('🎫 Found button, clicking...');
+              button.dataset.gtmPostLoginReplay = '1';
               button.click();
             } else {
               console.error('🎫 Button not found for:', parsed.membershipName);
