@@ -209,7 +209,7 @@ function initProfileApp() {
           this.loading = false;
           
         } catch (error) {
-          console.error('❌ [Profile] Error loading data:', error);
+          console.error('[Profile] Error loading data:', error);
           this.errorMessages.personal = 'Failed to load profile data. Please refresh the page.';
           this.loading = false;
         }
@@ -259,7 +259,7 @@ function initProfileApp() {
         setTimeout(() => this.successMessages.personal = '', 3000);
         
     } catch (error) {
-        console.error('❌ [Profile] Error:', error);
+        console.error('[Profile] Error:', error);
         this.errorMessages.personal = error.message;
     } finally {
         this.submitting.personal = false;
@@ -306,7 +306,7 @@ function initProfileApp() {
     setTimeout(() => this.successMessages.address = '', 3000);
     
   } catch (error) {
-    console.error('❌ [Profile] Error:', error);
+    console.error('[Profile] Error:', error);
     this.errorMessages.address = error.message;
   } finally {
     this.submitting.address = false;
@@ -358,7 +358,7 @@ async updateSizeProfile() {
     setTimeout(() => this.successMessages.size = '', 3000);
     
   } catch (error) {
-    console.error('❌ [Profile] Error:', error);
+    console.error('[Profile] Error:', error);
     this.errorMessages.size = error.message;
   } finally {
     this.submitting.size = false;

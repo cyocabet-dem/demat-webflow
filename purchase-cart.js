@@ -307,10 +307,10 @@ updateCartBadge() {
         const data = await response.json();
         return data.credit_balance_cents || 0;
       } else {
-        console.error('👛 Failed to fetch credits:', response.status);
+        console.error('Failed to fetch credits:', response.status);
       }
     } catch (err) {
-      console.error('👛 Error fetching credit balance:', err);
+      console.error('Error fetching credit balance:', err);
     }
     return 0;
   },
@@ -453,7 +453,7 @@ updateCartBadge() {
 
       if (!orderResponse.ok) {
         const errorText = await orderResponse.text();
-        console.error('🛒 Order creation error response:', errorText);
+        console.error('Order creation error response:', errorText);
         let errorDetail = 'Failed to create order';
         try {
           const errorData = JSON.parse(errorText);
@@ -497,13 +497,13 @@ updateCartBadge() {
 
       if (!checkoutResponse.ok) {
         const errorText = await checkoutResponse.text();
-        console.error('🛒 Checkout error response (raw):', errorText);
+        console.error('Checkout error response (raw):', errorText);
         let errorDetail = 'Failed to create checkout session';
         try {
           const errorData = JSON.parse(errorText);
-          console.error('🛒 Parsed error data:', errorData);
-          console.error('🛒 Error detail type:', typeof errorData.detail);
-          console.error('🛒 Error detail value:', errorData.detail);
+          console.error('Parsed error data:', errorData);
+          console.error('Error detail type:', typeof errorData.detail);
+          console.error('Error detail value:', errorData.detail);
           
           // Handle various error formats
           if (typeof errorData.detail === 'string') {
@@ -522,9 +522,9 @@ updateCartBadge() {
           } else if (errorData.error) {
             errorDetail = typeof errorData.error === 'string' ? errorData.error : JSON.stringify(errorData.error);
           }
-          console.error('🛒 Final error message:', errorDetail);
+          console.error('Final error message:', errorDetail);
         } catch (e) {
-          console.error('🛒 Could not parse error response as JSON');
+          console.error('Could not parse error response as JSON');
           errorDetail = errorText || 'Failed to create checkout session';
         }
         throw new Error(String(errorDetail));
@@ -540,7 +540,7 @@ updateCartBadge() {
       if (redirectUrl) {
         window.location.href = redirectUrl;
       } else {
-        console.error('🛒 No checkout URL in response. Full response:', checkoutData);
+        console.error('No checkout URL in response. Full response:', checkoutData);
         throw new Error('No checkout URL received');
       }
 
