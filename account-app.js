@@ -16,7 +16,7 @@
       } else if (attempts < 100) {
         setTimeout(check, 50);
       } else {
-        console.error('📱 [Account] Dependencies not loaded');
+        console.error('[Account] Dependencies not loaded');
       }
     };
     check();
@@ -180,7 +180,7 @@
             ]);
             
           } catch (err) {
-            console.error('📱 [Account] Auth check failed:', err);
+            console.error('[Account] Auth check failed:', err);
             window.location.href = '/';
           }
         },
@@ -231,7 +231,7 @@
             }
             
           } catch (err) {
-            console.error('📱 [Account] Profile load error:', err);
+            console.error('[Account] Profile load error:', err);
             this.profile.error.personal = 'Failed to load profile data';
           } finally {
             this.loading.profile = false;
@@ -261,7 +261,7 @@
               this.profile.showAddressResults = false;
             }
           } catch (err) {
-            console.error('📱 [Account] Address search error:', err);
+            console.error('[Account] Address search error:', err);
           }
         },
         
@@ -454,7 +454,7 @@
             }
             
           } catch (err) {
-            console.error('📱 [Account] Rentals load error:', err);
+            console.error('[Account] Rentals load error:', err);
           } finally {
             this.loading.rentals = false;
           }
@@ -502,7 +502,7 @@
             }
             
           } catch (err) {
-            console.error('📱 [Account] Reservations load error:', err);
+            console.error('[Account] Reservations load error:', err);
           } finally {
             this.loading.reservations = false;
           }
@@ -575,7 +575,7 @@
             }
             
           } catch (err) {
-            console.error('📱 [Account] Membership load error:', err);
+            console.error('[Account] Membership load error:', err);
           } finally {
             this.loading.membership = false;
           }
