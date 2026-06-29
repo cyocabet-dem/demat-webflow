@@ -19,7 +19,6 @@ window.DonationsManager = {
       
       if (response.ok) {
         this._pricingCategories = await response.json();
-        console.log('🎁 Pricing categories loaded:', this._pricingCategories.length);
       }
     } catch (err) {
       console.error('Error fetching pricing categories:', err);
@@ -42,7 +41,6 @@ window.DonationsManager = {
   },
   
   async fetchDonations() {
-    console.log('🎁 Fetching donations...');
     
     if (!window.auth0Client) {
       console.error('Auth0 not initialized');
@@ -52,7 +50,6 @@ window.DonationsManager = {
     try {
       const isAuthenticated = await window.auth0Client.isAuthenticated();
       if (!isAuthenticated) {
-        console.log('User not authenticated');
         return null;
       }
       
@@ -71,7 +68,6 @@ window.DonationsManager = {
       }
       
       const data = await response.json();
-      console.log('🎁 Donations loaded:', data.sessions?.length || 0);
       this._donationsCache = data.sessions || [];
       this._creditBalance = data.credit_balance_cents || 0;
       return data;
@@ -283,7 +279,6 @@ window.DonationsManager = {
   },
   
   async renderDonationsPage() {
-    console.log('🎁 renderDonationsPage called');
     
     const container = document.getElementById('donations-container');
     const loadingEl = document.getElementById('donations-loading');
@@ -360,11 +355,9 @@ window.DonationsManager = {
       contentEl.style.display = 'block';
     }
     
-    console.log('🎁 Donations page rendered');
   },
   
   async viewDonation(sessionId) {
-    console.log('🎁 View donation:', sessionId);
     
     await this.fetchPricingCategories();
     
@@ -451,7 +444,6 @@ document.addEventListener('click', function(e) {
   function init() {
     if (!document.getElementById('donations-container')) return;
     
-    console.log('🎁 Donations page detected, initializing...');
     
     const initDonations = async () => {
       let attempts = 0;

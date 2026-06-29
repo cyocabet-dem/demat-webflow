@@ -16,7 +16,6 @@ window.PurchasesManager = {
 
   // Fetch orders from API
   async fetchOrders() {
-    console.log('🛍️ Fetching orders...');
 
     if (!window.auth0Client) {
       console.error('Auth0 not initialized');
@@ -26,7 +25,6 @@ window.PurchasesManager = {
     try {
       const isAuthenticated = await window.auth0Client.isAuthenticated();
       if (!isAuthenticated) {
-        console.log('User not authenticated');
         return null;
       }
 
@@ -46,7 +44,6 @@ window.PurchasesManager = {
       }
 
       const orders = await response.json();
-      console.log('🛍️ Orders loaded:', orders.length);
       this._ordersCache = orders;
       return orders;
 
@@ -146,7 +143,6 @@ window.PurchasesManager = {
 
   // ── Modal: Order Detail ────────────────────
   openOrderModal(orderId) {
-    console.log('🛍️ Opening order modal for:', orderId);
 
     const orders = this._ordersCache || [];
     const order = orders.find(o => {
@@ -327,7 +323,6 @@ window.PurchasesManager = {
 
   // ── Render the purchases page ──────────────
   async renderPurchasesPage() {
-    console.log('🛍️ Rendering purchases page...');
 
     const loadingEl = document.getElementById('purchases-loading');
     const signinEl = document.getElementById('purchases-signin');
@@ -344,7 +339,6 @@ window.PurchasesManager = {
 
       // Check authentication
       if (!window.auth0Client) {
-        console.log('Waiting for Auth0...');
         if (loadingEl) loadingEl.style.display = 'none';
         if (signinEl) signinEl.style.display = 'flex';
         return;
@@ -365,9 +359,7 @@ window.PurchasesManager = {
       }
 
       // Fetch orders
-      console.log('🛍️ Fetching orders...');
       const allOrders = await this.fetchOrders();
-      console.log('🛍️ Orders fetched:', allOrders);
 
       // Filter to only show paid/completed orders
       const orders = (allOrders || []).filter(order => {
@@ -375,13 +367,11 @@ window.PurchasesManager = {
         const status = (order.status || '').toLowerCase();
         return paymentStatus === 'paid' || status === 'completed';
       });
-      console.log('🛍️ Paid orders:', orders.length);
 
       // Hide loading
       if (loadingEl) loadingEl.style.display = 'none';
 
       if (!orders || orders.length === 0) {
-        console.log('🛍️ No orders found, showing empty state');
         if (emptyEl) emptyEl.style.display = 'flex';
         return;
       }
@@ -390,13 +380,11 @@ window.PurchasesManager = {
       orders.sort((a, b) => new Date(b.order_date) - new Date(a.order_date));
 
       // Render compact order cards
-      console.log('🛍️ Rendering', orders.length, 'orders...');
       if (listEl) {
         listEl.innerHTML = orders.map(order => this.renderOrderCard(order)).join('');
       }
 
       if (contentEl) contentEl.style.display = 'block';
-      console.log('🛍️ Purchases page rendered');
 
     } catch (err) {
       console.error('🛍️ Error rendering purchases page:', err);
@@ -423,11 +411,9 @@ document.addEventListener('keydown', (e) => {
 // Initialize on page load
 function initPurchasesPage() {
   if (!document.getElementById('purchases-container')) {
-    console.log('🛍️ Not on purchases page, skipping init');
     return;
   }
 
-  console.log('🛍️ Purchases page detected, initializing...');
 
   const initPurchases = async () => {
     let attempts = 0;
@@ -437,10 +423,8 @@ function initPurchasesPage() {
     }
 
     if (window.auth0Client) {
-      console.log('🛍️ Auth0 client found, checking authentication...');
       try {
         const isAuth = await window.auth0Client.isAuthenticated();
-        console.log('🛍️ Is authenticated:', isAuth);
         if (isAuth) {
           // Check membership status first
           try {
@@ -487,7 +471,6 @@ function initPurchasesPage() {
         if (emptyEl) emptyEl.style.display = 'flex';
       }
     } else {
-      console.log('🛍️ Auth0 client not found after 50 attempts');
       const loadingEl = document.getElementById('purchases-loading');
       const signinEl = document.getElementById('purchases-signin');
       if (loadingEl) loadingEl.style.display = 'none';

@@ -14,7 +14,6 @@ window.PurchaseCart = {
     if (saved) {
       try {
         this._items = JSON.parse(saved);
-        console.log('🛒 Cart loaded:', this._items.length, 'items');
       } catch (e) {
         this._items = [];
       }
@@ -36,12 +35,10 @@ window.PurchaseCart = {
   // Add item to cart
   addItem(item) {
     if (this.hasItem(item.clothing_item_id)) {
-      console.log('🛒 Item already in cart:', item.name);
       return;
     }
     this._items.push(item);
     this.save();
-    console.log('🛒 Added to cart:', item.name);
     this.showAddedToast(item.name);
   },
 
@@ -49,9 +46,8 @@ window.PurchaseCart = {
   removeItem(clothingItemId) {
     const index = this._items.findIndex(item => item.clothing_item_id === clothingItemId);
     if (index > -1) {
-      const removed = this._items.splice(index, 1)[0];
+      this._items.splice(index, 1);
       this.save();
-      console.log('🛒 Removed from cart:', removed.name);
     }
   },
 
@@ -59,7 +55,6 @@ window.PurchaseCart = {
   clear() {
     this._items = [];
     this.save();
-    console.log('🛒 Cart cleared');
   },
 
   // Get cart items
@@ -287,20 +282,17 @@ updateCartBadge() {
   async fetchCreditBalance() {
     try {
       if (!window.auth0Client) {
-        console.log('👛 No auth0Client');
         return 0;
       }
       
       const isAuthenticated = await window.auth0Client.isAuthenticated();
       if (!isAuthenticated) {
-        console.log('👛 Not authenticated');
         return 0;
       }
       
       const token = await window.auth0Client.getTokenSilently();
       const apiBase = this.getApiBase();
       const url = `${apiBase}/private_clothing_items/donation_session/`;
-      console.log('👛 Fetching credits from:', url);
       
       // Credit balance comes from the donation sessions endpoint
       const response = await fetch(url, {
@@ -310,11 +302,9 @@ updateCartBadge() {
         }
       });
       
-      console.log('👛 Response status:', response.status);
       
       if (response.ok) {
         const data = await response.json();
-        console.log('👛 Credit balance cents:', data.credit_balance_cents);
         return data.credit_balance_cents || 0;
       } else {
         console.error('👛 Failed to fetch credits:', response.status);
@@ -422,6 +412,12 @@ updateCartBadge() {
       submitBtn.innerHTML = '<span class="checkout-spinner"></span> processing...';
     }
 
+    const errorEl = document.getElementById('checkout-error-msg');
+    if (errorEl) {
+      errorEl.style.display = 'none';
+      errorEl.textContent = '';
+    }
+
     try {
       if (!window.auth0Client) {
         throw new Error('Authentication required');
@@ -441,7 +437,6 @@ updateCartBadge() {
       }
 
       // Step 1: Create the order
-      console.log('🛒 Creating order...');
       const orderResponse = await fetch(`${apiBase}/private_clothing_items/orders`, {
         method: 'POST',
         headers: {
@@ -470,8 +465,6 @@ updateCartBadge() {
       }
 
       const order = await orderResponse.json();
-      console.log('🛒 Order created:', order);
-      console.log('🛒 Order ID for checkout:', order.id);
 
       // Check if fully paid by credits
       if (order.total_amount_in_cents === 0 || order.payment_status === 'paid') {
@@ -483,7 +476,6 @@ updateCartBadge() {
       }
 
       // Step 2: Need to pay remaining balance via Stripe
-      console.log('🛒 Creating Stripe checkout session...');
       
       // Build success and cancel URLs
       const currentUrl = window.location.origin;
@@ -539,8 +531,6 @@ updateCartBadge() {
       }
 
       const checkoutData = await checkoutResponse.json();
-      console.log('🛒 Checkout session created:', checkoutData);
-      console.log('🛒 Checkout URL:', checkoutData.checkout_url);
 
       // Clear cart before redirecting
       this.clear();
@@ -570,7 +560,6 @@ updateCartBadge() {
         errorMessage = error.detail;
       }
 
-      const errorEl = document.getElementById('checkout-error-msg');
       if (errorEl) {
         errorEl.textContent = errorMessage;
         errorEl.style.display = 'block';

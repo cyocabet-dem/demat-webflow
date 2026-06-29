@@ -3,7 +3,6 @@
 // ============================================
 
 (function() {
-  console.log('📦 Loading components...');
 
   const componentsHTML = `
 <!-- Cart Overlay Backdrop -->
@@ -500,7 +499,6 @@
 
   // Inject into body
   document.body.insertAdjacentHTML('beforeend', componentsHTML);
-  console.log('✅ Components injected');
 })();
 
 
@@ -513,7 +511,6 @@
 (function() {
   // Skip if already defined (e.g. by homepage inline script)
   if (window.WishlistManager) {
-    console.log('💖 [Wishlist] WishlistManager already defined, skipping');
     return;
   }
 
@@ -526,7 +523,6 @@
 
     async init() {
       if (this._initialized) return;
-      console.log('💖 [Wishlist] Initializing...');
 
       this._loadLocal();
 
@@ -541,7 +537,6 @@
         try {
           const isAuthenticated = await window.auth0Client.isAuthenticated();
           if (isAuthenticated) {
-            console.log('💖 [Wishlist] User authenticated, syncing with API...');
             await this.syncWithAPI();
           }
         } catch (err) {
@@ -550,7 +545,6 @@
       }
 
       this._initialized = true;
-      console.log('💖 [Wishlist] Initialized with', this._wishlistIds.size, 'items');
     },
 
     _loadLocal() {
@@ -625,7 +619,6 @@
           this._wishlistIds = new Set(apiIds);
           this._saveLocal();
           this.updateAllUI();
-          console.log('💖 [Wishlist] Synced with API:', this._wishlistIds.size, 'items');
         }
       } catch (err) {
         console.error('💖 [Wishlist] Sync error:', err);
@@ -640,7 +633,6 @@
 
     async addToWishlist(itemId) {
       const id = Number(itemId);
-      console.log('💖 [Wishlist] Adding:', id);
 
       // Optimistic local update
       this._wishlistIds.add(id);
@@ -666,7 +658,6 @@
             return false;
           }
 
-          console.log('✅ [Wishlist] Added to API:', id);
         } catch (err) {
           console.error('💖 [Wishlist] API add error:', err);
           this._wishlistIds.delete(id);
@@ -681,7 +672,6 @@
 
     async removeFromWishlist(itemId) {
       const id = Number(itemId);
-      console.log('💖 [Wishlist] Removing:', id);
 
       // Optimistic local update
       this._wishlistIds.delete(id);
@@ -707,7 +697,6 @@
             return false;
           }
 
-          console.log('✅ [Wishlist] Removed from API:', id);
         } catch (err) {
           console.error('💖 [Wishlist] API remove error:', err);
           this._wishlistIds.add(id);
@@ -817,7 +806,6 @@
         if (window.auth0Client) {
           const isAuthenticated = await window.auth0Client.isAuthenticated();
           if (!isAuthenticated) {
-            console.log('💖 [Wishlist] Not authenticated, prompting login...');
             try {
               await window.auth0Client.loginWithPopup();
               const nowAuthenticated = await window.auth0Client.isAuthenticated();
@@ -856,5 +844,4 @@
   // Kick off auto-init after a short delay to let auth.js load
   setTimeout(autoInit, 200);
 
-  console.log('💖 [Wishlist] WishlistManager + updateWishlistIcons registered');
 })();

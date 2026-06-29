@@ -20,7 +20,6 @@ window.RentalsManager = {
       
       if (response.ok) {
         this._pricingCategories = await response.json();
-        console.log('💰 Pricing categories loaded:', this._pricingCategories.length);
       }
     } catch (err) {
       console.error('Error fetching pricing categories:', err);
@@ -51,7 +50,6 @@ window.RentalsManager = {
   },
 
   async fetchRentals(includeHistory = false) {
-    console.log('👕 Fetching rentals...', { includeHistory });
 
     if (!window.auth0Client) {
       console.error('Auth0 not initialized');
@@ -61,7 +59,6 @@ window.RentalsManager = {
     try {
       const isAuthenticated = await window.auth0Client.isAuthenticated();
       if (!isAuthenticated) {
-        console.log('User not authenticated');
         return null;
       }
 
@@ -83,7 +80,6 @@ window.RentalsManager = {
       }
 
       const rentals = await response.json();
-      console.log('👕 Rentals loaded:', rentals);
       
       if (includeHistory) {
         this._historyCache = rentals;
@@ -361,7 +357,6 @@ renderHistoryGroup(group) {
 
   // ── Modal: Grouped History ─────────────────
   openGroupModal(dateKey) {
-    console.log('👕 Opening group modal for date:', dateKey);
 
     const rentals = (this._historyCache || []).filter(r =>
       (r.status === 'Returned' || r.rental_return_date) && this.formatDateKey(r.rental_return_date) === dateKey
@@ -416,7 +411,6 @@ renderHistoryGroup(group) {
   },
 
   async renderRentalsPage() {
-    console.log('👕 Rendering rentals page...');
 
     const loadingEl = document.getElementById('rentals-loading');
     const emptyEl = document.getElementById('rentals-empty');
@@ -483,7 +477,6 @@ renderHistoryGroup(group) {
       if (activeSection) activeSection.style.display = 'none';
     }
 
-    console.log('👕 Rentals page rendered');
   }
 };
 
@@ -506,7 +499,6 @@ document.addEventListener('click', function(e) {
 // Auto-initialize
 document.addEventListener('DOMContentLoaded', function() {
   if (document.getElementById('rentals-container')) {
-    console.log('👕 Rentals page detected');
 
     const initRentals = async () => {
       let attempts = 0;
