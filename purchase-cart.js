@@ -390,6 +390,7 @@ updateCartBadge() {
         </div>
         
         <div class="checkout-modal-footer">
+          <p id="checkout-error-msg" class="checkout-error-msg" style="display:none;"></p>
           <p class="checkout-info">${finalTotal > 0 ? "by clicking 'complete purchase' you will be redirected to our payment provider." : 'your credits cover this purchase!'}</p>
           <button onclick="PurchaseCart.processCheckout()" class="checkout-submit-btn" id="checkout-submit-btn">
             complete purchase
@@ -555,19 +556,26 @@ updateCartBadge() {
 
     } catch (error) {
       console.error('Checkout error:', error);
-      
+
       // Extract error message properly
       let errorMessage = 'Something went wrong. Please try again.';
       if (typeof error === 'string') {
         errorMessage = error;
       } else if (error?.message) {
-        errorMessage = error.message;
+        const msg = error.message;
+        errorMessage = (msg === 'Failed to fetch' || msg === 'NetworkError when attempting to fetch resource.')
+          ? 'Connection error — please check your internet and try again.'
+          : msg;
       } else if (error?.detail) {
         errorMessage = error.detail;
       }
-      
-      alert(errorMessage);
-      
+
+      const errorEl = document.getElementById('checkout-error-msg');
+      if (errorEl) {
+        errorEl.textContent = errorMessage;
+        errorEl.style.display = 'block';
+      }
+
       if (submitBtn) {
         submitBtn.disabled = false;
         submitBtn.innerHTML = 'complete purchase';
@@ -1019,6 +1027,16 @@ updateCartBadge() {
         padding: 20px 24px;
         border-top: 1px solid var(--cart-gray-light);
         background: var(--cart-gray-bg);
+      }
+      .checkout-error-msg {
+        font-size: 14px;
+        color: #c0392b;
+        background: #fdf0ef;
+        border: 1px solid #f5c6c2;
+        border-radius: 6px;
+        padding: 10px 14px;
+        margin: 0 0 12px 0;
+        text-align: center;
       }
       .checkout-info {
         font-size: 14px;
