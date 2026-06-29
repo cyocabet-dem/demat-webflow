@@ -188,7 +188,6 @@
 // ============================================================
 
 function formatDonatedBy(raw) {
-  console.log('[PDP] donated_by raw value:', JSON.stringify(raw));
   let val = (raw ?? '').toString().trim();
   if (!val) return '';
 
@@ -635,10 +634,7 @@ function formatDonatedBy(raw) {
     // Get catalog (from cache or fetch once)
     let catalog = getCachedCatalog();
     if (!catalog?.length) {
-      console.log('[PDP] No cache, fetching catalog...');
       catalog = await fetchAndCacheCatalog();
-    } else {
-      console.log('[PDP] Using cached catalog for related');
     }
 
     if (!catalog.length) {
@@ -1026,7 +1022,6 @@ function formatDonatedBy(raw) {
       await initWishlist();
       await initCart();
 
-      console.log('[PDP] Initialized ✓');
 
     } catch (e) {
       console.error('[PDP] Init failed:', e);

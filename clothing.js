@@ -236,7 +236,6 @@ if (!document.getElementById('filter-panel')) {
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       const data = await res.json();
       apiSubcategories = (data.subcategories || data || []).filter(s => s.active !== false);
-      console.log(`[Catalog] Loaded ${apiSubcategories.length} subcategories from API`);
     } catch (err) {
       console.warn('[Catalog] Could not fetch subcategories:', err);
       apiSubcategories = [];
@@ -282,7 +281,6 @@ if (!document.getElementById('filter-panel')) {
         return a.localeCompare(b);
       });
       
-      console.log(`[Catalog] Loaded ${sizesData.length} sizes, ${standardSizeOrder.length} profiles`);
     } catch (err) {
       console.warn('[Catalog] Could not fetch sizes:', err);
     }
@@ -407,19 +405,15 @@ if (!document.getElementById('filter-panel')) {
     const url = query 
       ? `${CATALOG_URL}?q=${encodeURIComponent(query)}&limit=500`
       : CATALOG_URL;
-    console.log('[Catalog] Fetching:', url);
     const res = await fetch(url, { headers: { 'Accept': 'application/json' } });
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
     const data = await res.json();
-    console.log(`[Catalog] Loaded ${data.total_items} items${query ? ` for "${query}"` : ''}`);
     return data;
   }
   
   async function initCatalog() {
     catalogData = loadCatalog();
-    if (catalogData) {
-      console.log('[Catalog] Using cached data');
-    } else {
+    if (!catalogData) {
       catalogData = await fetchCatalog();
       saveCatalog(catalogData);
     }
@@ -1010,7 +1004,6 @@ if (!document.getElementById('filter-panel')) {
     renderFilterChips(filters);
     updateURL(filters, page);
     
-    console.log(`[Catalog] Rendered ${filteredItems.length} items (page ${page})${searchQuery ? ` [search: "${searchQuery}"]` : ''}`);
   }
   
   // ============================================================
@@ -1397,7 +1390,6 @@ if (!document.getElementById('filter-panel')) {
       render(1);
     }
     
-    console.log('[Catalog] Ready');
     
   } catch (err) {
     console.error('[Catalog] Init failed:', err);

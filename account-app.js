@@ -2,7 +2,6 @@
 // ACCOUNT PAGE - UNIFIED VUE APP
 // ============================================
 
-console.log('📱 [Account] Loading unified account app...');
 
 (function() {
   const API_BASE = window.API_BASE_URL;
@@ -26,11 +25,9 @@ console.log('📱 [Account] Loading unified account app...');
   function initAccountApp() {
     const container = document.getElementById('account-app');
     if (!container) {
-      console.log('📱 [Account] No #account-app found, skipping init');
       return;
     }
 
-    console.log('📱 [Account] Initializing Vue app...');
     
     const { createApp } = Vue;
 
@@ -131,7 +128,6 @@ console.log('📱 [Account] Loading unified account app...');
       },
 
       async mounted() {
-        console.log('📱 [Account] Vue app mounted');
         
         // Handle hash routing
         this.handleHashChange();
@@ -171,7 +167,6 @@ console.log('📱 [Account] Loading unified account app...');
             this.isAuthenticated = await window.auth0Client.isAuthenticated();
             
             if (!this.isAuthenticated) {
-              console.log('📱 [Account] Not authenticated, redirecting...');
               window.location.href = '/';
               return;
             }
@@ -609,7 +604,6 @@ console.log('📱 [Account] Loading unified account app...');
     });
 
     app.mount('#account-app');
-    console.log('📱 [Account] Vue app mounted successfully');
   }
 
   // Initialize when ready

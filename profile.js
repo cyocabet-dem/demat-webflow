@@ -2,7 +2,6 @@
 // PROFILE PAGE - VUE APP
 // ============================================
 
-console.log('👤 [Profile] Script loading...');
 
 // Auth Protection
 (function checkAuth() {
@@ -78,7 +77,6 @@ function initProfileApp() {
     },
     
     async mounted() {
-      console.log('✅ [Profile] Vue app mounted');
       document.addEventListener('click', this.handleClickOutside);
       await this.loadUserData();
     },
@@ -370,7 +368,6 @@ async updateSizeProfile() {
     }
   }).mount('#vue-profile-app');
   
-  console.log('✅ [Profile] Vue app initialized');
 }
 
 initProfileApp();

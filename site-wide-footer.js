@@ -4,7 +4,6 @@
 // Flow: Signup → Memberships → Payment → Multi-step Onboarding
 // ============================================
 
-console.log("🎯 Filter menu script loading...");
 
 (function() {
   const hostname = window.location.hostname;
@@ -15,60 +14,43 @@ console.log("🎯 Filter menu script loading...");
     ? 'https://api.dematerialized.nl'
     : 'https://test-api.dematerialized.nl';
   
-  console.log('is_production', isProduction);
-  console.log('hostname', hostname);
-  console.log('api base url', window.API_BASE_URL);
-  console.log(`[${isProduction ? 'PROD' : 'DEV'}] API: ${window.API_BASE_URL}`);
 })();
 
 
 document.addEventListener("DOMContentLoaded", function () {
-  console.log("✅ DOM loaded - Initializing filter menu");
   const body = document.body;
   const openers = document.querySelectorAll("[data-filter-open]");
   const closers = document.querySelectorAll("[data-filter-close]");
-  console.log("Found filter openers:", openers.length);
-  console.log("Found filter closers:", closers.length);
   
   const open = () => {
-    console.log("🔓 Opening filter");
     body.classList.add("filter-open");
   };
   const close = () => {
-    console.log("🔒 Closing filter");
     body.classList.remove("filter-open");
   };
   
   openers.forEach(el => el.addEventListener("click", open));
   closers.forEach(el => el.addEventListener("click", close));
-  console.log("✅ Filter menu initialized");
 });
 
 // Modal Control Scripts
-console.log("🚀 Modal scripts loading...");
 
 // ===== AUTH MODAL FUNCTIONS =====
 function openAuthModal() {
-  console.log("🔥 openAuthModal() CALLED!");
   
   const modal = document.getElementById('authModal');
-  console.log("Modal found:", !!modal);
   
   if (!modal) {
     console.error("❌ CRITICAL ERROR: Modal element with id 'authModal' NOT FOUND!");
-    console.log("All elements with IDs:", Array.from(document.querySelectorAll('[id]')).map(el => el.id));
     return;
   }
   
   modal.classList.add('is-visible');
   document.body.classList.add('auth-modal-open');
   
-  console.log("✅ Modal should now be VISIBLE!");
-  console.log("Modal display style:", window.getComputedStyle(modal).display);
 }
 
 function closeAuthModal() {
-  console.log("🔒 closeAuthModal() called");
   
   const modal = document.getElementById('authModal');
   if (!modal) {
@@ -79,18 +61,15 @@ function closeAuthModal() {
   modal.classList.remove('is-visible');
   document.body.classList.remove('auth-modal-open');
   
-  console.log("✅ Auth modal closed");
 }
 
 // Make auth functions globally accessible
 window.openAuthModal = openAuthModal;
 window.closeAuthModal = closeAuthModal;
 
-console.log("✅ Auth modal functions registered on window object");
 
 // Wait for DOM and connect auth modal controls
 document.addEventListener('DOMContentLoaded', function() {
-  console.log("🔌 Connecting modal controls...");
   
   setTimeout(function() {
     // ===== AUTH MODAL CONTROLS =====
@@ -99,7 +78,6 @@ document.addEventListener('DOMContentLoaded', function() {
     const authCloseBtn = document.getElementById('close-modal-btn');
     if (authCloseBtn) {
       authCloseBtn.addEventListener('click', function(e) {
-        console.log("❌ Close button clicked");
         e.preventDefault();
         closeAuthModal();
       });
@@ -110,7 +88,6 @@ document.addEventListener('DOMContentLoaded', function() {
     if (authModal) {
       authModal.addEventListener('click', function(e) {
         if (e.target.id === 'authModal') {
-          console.log("👆 Clicked overlay - closing auth modal");
           closeAuthModal();
         }
       });
@@ -118,13 +95,10 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Connect navbar login buttons (not the modal buttons)
     const navLoginButtons = document.querySelectorAll('[data-auth-action="login"]:not(#modal-login-btn)');
-    console.log("Found navbar login buttons:", navLoginButtons.length);
     
     navLoginButtons.forEach((btn, i) => {
-      console.log(`Connecting navbar button ${i + 1}:`, btn.textContent.trim());
       
       btn.addEventListener('click', function(e) {
-        console.log("🖱️ Navbar login button clicked!");
         e.preventDefault();
         openAuthModal();
       });
@@ -132,13 +106,10 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Connect SIGNUP buttons
     const signupButtons = document.querySelectorAll('[data-auth-action="signup"]');
-    console.log("Found signup buttons:", signupButtons.length);
     
     signupButtons.forEach((btn, i) => {
-      console.log(`Connecting signup button ${i + 1}:`, btn.textContent.trim());
       
       btn.addEventListener('click', async function(e) {
-        console.log("🖱️ Signup button clicked!");
         e.preventDefault();
         
         if (!window.auth0Client) {
@@ -147,7 +118,6 @@ document.addEventListener('DOMContentLoaded', function() {
           return;
         }
         
-        console.log("🔐 Redirecting to Auth0 signup...");
         try {
           await window.auth0Client.loginWithRedirect({
             authorizationParams: {
@@ -161,7 +131,6 @@ document.addEventListener('DOMContentLoaded', function() {
       });
     });
     
-    console.log("✅ Auth modal controls connected");
   }, 500);
 });
 
@@ -170,7 +139,6 @@ document.addEventListener('keydown', function(e) {
   if (e.key === 'Escape') {
     const authModal = document.getElementById('authModal');
     if (authModal && authModal.classList.contains('is-visible')) {
-      console.log("⎋ Escape pressed - closing auth modal");
       closeAuthModal();
     }
   }
@@ -178,62 +146,34 @@ document.addEventListener('keydown', function(e) {
 
 // Debug helper - check everything after page loads
 window.addEventListener('load', function() {
-  console.log("═══════════════════════════════════");
-  console.log("📄 PAGE FULLY LOADED - RUNNING DIAGNOSTICS");
-  console.log("═══════════════════════════════════");
   
   // Check auth modal
   const authModal = document.getElementById('authModal');
-  console.log("1️⃣ Auth modal element exists:", !!authModal);
   
-  if (authModal) {
-    console.log("   Auth modal computed display:", window.getComputedStyle(authModal).display);
-    console.log("   Auth modal computed z-index:", window.getComputedStyle(authModal).zIndex);
-  } else {
+  if (!authModal) {
     console.error("   ❌ AUTH MODAL NOT FOUND - Make sure your Webflow component with id='authModal' exists!");
   }
   
   // Check onboarding modal
   const onboardingModal = document.getElementById('onboardingModal');
-  console.log("2️⃣ Onboarding modal element exists:", !!onboardingModal);
   
-  if (onboardingModal) {
-    console.log("   Onboarding modal computed display:", window.getComputedStyle(onboardingModal).display);
-    console.log("   Onboarding modal computed z-index:", window.getComputedStyle(onboardingModal).zIndex);
-  } else {
+  if (!onboardingModal) {
     console.warn("   ⚠️ ONBOARDING MODAL NOT FOUND - You need to add this as a Webflow component!");
   }
-  
-  // Check for login buttons
-  const onclickButtons = document.querySelectorAll('[onclick*="openAuthModal"]');
-  const dataAttrButtons = document.querySelectorAll('[data-auth-action="login"]');
-  
-  console.log("3️⃣ Login buttons found:");
-  console.log("   With onclick='openAuthModal()':", onclickButtons.length);
-  console.log("   With data-auth-action='login':", dataAttrButtons.length);
-  
-  console.log("═══════════════════════════════════");
-  console.log("💡 TIP: Type testAuthModal() or testOnboardingModal() to test");
-  console.log("═══════════════════════════════════");
 });
 
 // Test functions you can call from console
 window.testAuthModal = function() {
-  console.log("🧪 TEST: Opening auth modal...");
   openAuthModal();
 };
 
 window.testOnboardingModal = function() {
-  console.log("🧪 TEST: Opening onboarding modal...");
   if (window.openOnboardingModal) {
     openOnboardingModal();
   } else {
     console.error("Onboarding modal not initialized");
   }
 };
-
-console.log("✅ All modal scripts loaded successfully!");
-
 
 // ============================================
 // NOTE: User status checking is handled by auth.js
@@ -246,10 +186,8 @@ console.log("✅ All modal scripts loaded successfully!");
 // ============================================
 // AUTH UI CONTROLLER
 // ============================================
-console.log("🔐 Auth UI controller loading...");
 
 function updateAuthUI(isAuthenticated) {
-  console.log("🔄 Updating auth UI. Is authenticated:", isAuthenticated);
   
   // Hide all auth-dependent elements first
   document.querySelectorAll('[data-auth]').forEach(el => {
@@ -262,13 +200,9 @@ function updateAuthUI(isAuthenticated) {
     el.style.display = 'block';
   });
   
-  console.log("✅ Auth UI updated");
 }
 
 window.updateAuthUI = updateAuthUI;
-
-console.log("✅ Auth UI controller ready");
-
 
 // ============================================
 // DYNAMIC BANNER SPACING - keep container-top-padding flush with navbar
@@ -317,7 +251,6 @@ console.log("✅ Auth UI controller ready");
         const joinNavLink = document.querySelector('.navbar-links.hidden.pink');
         if (joinButton) joinButton.style.display = 'none';
         if (joinNavLink) joinNavLink.style.display = 'none';
-        console.log('✅ Join elements hidden for active member');
       }
       clearInterval(interval);
     }
@@ -340,7 +273,6 @@ window.CartManager = {
   async init() {
     if (this._initialized) return;
     
-    console.log('🛒 [Cart] Initializing...');
     
     // Wait for auth0Client
     let attempts = 0;
@@ -350,7 +282,6 @@ window.CartManager = {
     }
     
     if (!window.auth0Client) {
-      console.log('🛒 [Cart] Auth not available, using sessionStorage only');
       this._initialized = true;
       this.updateCartBadge();
       return;
@@ -360,10 +291,7 @@ window.CartManager = {
       const isAuthenticated = await window.auth0Client.isAuthenticated();
       
       if (isAuthenticated) {
-        console.log('🛒 [Cart] User authenticated, syncing with API...');
         await this.syncWithAPI();
-      } else {
-        console.log('🛒 [Cart] User not authenticated, using sessionStorage');
       }
     } catch (err) {
       console.error('🛒 [Cart] Init error:', err);
@@ -414,7 +342,6 @@ window.CartManager = {
       }
       
       const data = await response.json();
-      console.log('🛒 [Cart] API cart loaded:', data);
       
       return Array.isArray(data) ? data : (data.items || data.clothing_items || []);
     } catch (err) {
@@ -441,7 +368,6 @@ window.CartManager = {
         return false;
       }
       
-      console.log('✅ [Cart] Added to API:', itemId);
       return true;
     } catch (err) {
       console.error('🛒 [Cart] API add error:', err);
@@ -466,7 +392,6 @@ window.CartManager = {
         return false;
       }
       
-      console.log('✅ [Cart] Removed from API:', itemId);
       return true;
     } catch (err) {
       console.error('🛒 [Cart] API remove error:', err);
@@ -485,7 +410,6 @@ window.CartManager = {
       const apiCart = await this.fetchAPICart();
       
       if (apiCart === null) {
-        console.log('🛒 [Cart] Could not fetch API cart, keeping local');
         this._syncing = false;
         return;
       }
@@ -523,7 +447,6 @@ window.CartManager = {
           break;
         }
         
-        console.log('🛒 [Cart] Uploading local item to API:', item.name);
         const success = await this.addToAPI(item.id);
         
         if (success) {
@@ -534,7 +457,6 @@ window.CartManager = {
       const mergedCart = Array.from(mergedMap.values());
       this.saveLocalCart(mergedCart);
       
-      console.log('✅ [Cart] Sync complete. Items:', mergedCart.length);
       
     } catch (err) {
       console.error('🛒 [Cart] Sync error:', err);
@@ -616,7 +538,6 @@ window.CartManager = {
     cart.push(cartItem);
     this.saveLocalCart(cart);
     
-    console.log('✅ Added to cart:', item.name);
     return { success: true };
   },
   
@@ -632,7 +553,6 @@ window.CartManager = {
       }
       
       this.saveLocalCart(cart);
-      console.log('✅ Removed from cart:', itemId);
       return true;
     }
     return false;
@@ -641,7 +561,6 @@ window.CartManager = {
   clearCart() {
     sessionStorage.removeItem(this.STORAGE_KEY);
     this.updateCartBadge();
-    console.log('✅ Cart cleared');
   },
   
   updateCartBadge() {
@@ -679,7 +598,6 @@ window.UserMembership = {
   
   async fetch() {
     if (this._cache && this._cacheTime && (Date.now() - this._cacheTime < this.CACHE_DURATION)) {
-      console.log('👤 Using cached membership data');
       return this._cache;
     }
     
@@ -704,7 +622,6 @@ window.UserMembership = {
       }
       
       const userData = await response.json();
-      console.log('👤 User data fetched:', userData);
       
       this._cache = userData;
       this._cacheTime = Date.now();
@@ -739,7 +656,6 @@ window.UserMembership = {
   async isShippingMember() {
     const membershipName = await this.getMembershipName();
     const isShipping = this.SHIPPING_MEMBERSHIPS.includes(membershipName);
-    console.log('📦 Is shipping member:', isShipping, '(membership:', membershipName, ')');
     return isShipping;
   },
   
@@ -750,8 +666,6 @@ window.UserMembership = {
   },
   
   async canReserveOnline() {
-    console.log("👤 Checking if user can reserve online...");
-    console.log("His membership is premium:", await this.isPremium());
     return await this.isPremium();
   },
   
@@ -770,7 +684,6 @@ window.UserMembership = {
 let _cartFlowType = null; // null = unknown/not logged in, 'local', or 'shipping'
 
 async function openCartOverlay() {
-  console.log('🛒 openCartOverlay() called');
   
   const overlay = document.getElementById('cart-overlay');
   const backdrop = document.getElementById('cart-backdrop');
@@ -792,22 +705,18 @@ async function openCartOverlay() {
   renderCartOverlay();
   
   if (window.CartManager && await CartManager.isUserAuthenticated()) {
-    console.log('🛒 Syncing cart with API...');
     await CartManager.syncWithAPI();
     
     // Determine membership type for cart language
     const isShipping = await UserMembership.isShippingMember();
     _cartFlowType = isShipping ? 'shipping' : 'local';
-    console.log('🛒 Cart flow type:', _cartFlowType);
     
     renderCartOverlay();
   }
   
-  console.log('✅ Cart overlay opened');
 }
 
 function closeCartOverlay() {
-  console.log('🛒 closeCartOverlay() called');
   
   const overlay = document.getElementById('cart-overlay');
   const backdrop = document.getElementById('cart-backdrop');
@@ -822,7 +731,6 @@ function closeCartOverlay() {
   if (backdrop) backdrop.classList.remove('is-open');
   
   document.body.style.overflow = '';
-  console.log('✅ Cart overlay closed');
 }
 
 // ============================================
@@ -830,7 +738,6 @@ function closeCartOverlay() {
 // ============================================
 
 function renderCartOverlay() {
-  console.log('🛒 renderCartOverlay() called');
   
   const cart = CartManager.getCart();
   const itemsContainer = document.getElementById('cart-overlay-items');
@@ -919,7 +826,6 @@ function renderCartOverlay() {
     </div>
   `).join('');
   
-  console.log('✅ Cart rendered with', cart.length, 'items');
 }
 
 
@@ -951,7 +857,6 @@ function ensureMobileFooterSpacer() {
   spacer.className = 'mobile-footer-spacer';
   overlay.appendChild(spacer);
   
-  console.log('✅ Mobile footer spacer added to cart overlay');
 }
 
 
@@ -966,7 +871,6 @@ function ensureMobileFooterSpacer() {
 let _currentFlowType = 'reservation'; // 'reservation' or 'rental'
 
 async function openReservationModal() {
-  console.log('📋 Opening reservation/rental modal');
   
   const modal = document.getElementById('reservation-modal');
   const backdrop = document.getElementById('reservation-modal-backdrop');
@@ -983,7 +887,6 @@ async function openReservationModal() {
   // Determine flow type based on membership
   const isShipping = await UserMembership.isShippingMember();
   _currentFlowType = isShipping ? 'rental' : 'reservation';
-  console.log('📋 Flow type:', _currentFlowType);
   
   // Update modal text based on flow type
   const modalTitle = modal.querySelector('.modal-title, .reservation-modal-title, h2, h3');
@@ -1068,11 +971,9 @@ async function openReservationModal() {
   backdrop.style.display = 'block';
   modal.style.display = 'block';
   
-  console.log('✅ Modal opened in', _currentFlowType, 'mode');
 }
 
 function closeReservationModal() {
-  console.log('📋 Closing reservation/rental modal');
   
   const modal = document.getElementById('reservation-modal');
   const backdrop = document.getElementById('reservation-modal-backdrop');
@@ -1080,11 +981,9 @@ function closeReservationModal() {
   if (modal) modal.style.display = 'none';
   if (backdrop) backdrop.style.display = 'none';
   
-  console.log('✅ Reservation/rental modal closed');
 }
 
 async function confirmReservation() {
-  console.log('📋 Confirming', _currentFlowType, '...');
   
   const btn = document.getElementById('confirm-reservation-btn');
   const errorEl = document.getElementById('reservation-error');
@@ -1118,7 +1017,6 @@ async function confirmReservation() {
       const clothingItemIds = cart.map(item => item.id);
       const endpoint = `${window.API_BASE_URL}/private_clothing_items/reservations`;
       
-      console.log(`📤 Creating reservation (shipping workaround) with items:`, clothingItemIds);
 
       const response = await fetch(endpoint, {
         method: 'POST',
@@ -1152,14 +1050,12 @@ async function confirmReservation() {
       }
       
       result = await response.json();
-      console.log('✅ Reservation created (shipping workaround):', result);
       
     } else {
       // RESERVATION FLOW: Single call with all item IDs (existing behavior)
       const clothingItemIds = cart.map(item => item.id);
       const endpoint = `${window.API_BASE_URL}/private_clothing_items/reservations`;
       
-      console.log(`📤 Creating reservation with items:`, clothingItemIds);
 
       const response = await fetch(endpoint, {
         method: 'POST',
@@ -1193,7 +1089,6 @@ async function confirmReservation() {
       }
       
       result = await response.json();
-      console.log('✅ Reservation created:', result);
     }
     
     CartManager.clearCart();
@@ -1219,7 +1114,6 @@ async function confirmReservation() {
 }
 
 function showReservationSuccess(result, isRental) {
-  console.log('🎉 Showing success modal, isRental:', isRental);
   
   const modal = document.getElementById('success-modal');
   const backdrop = document.getElementById('success-modal-backdrop');
@@ -1268,7 +1162,6 @@ function showReservationSuccess(result, isRental) {
 }
 
 function closeSuccessModal() {
-  console.log('🎉 Closing success modal');
   
   const modal = document.getElementById('success-modal');
   const backdrop = document.getElementById('success-modal-backdrop');
@@ -1280,7 +1173,6 @@ function closeSuccessModal() {
 window.closeSuccessModal = closeSuccessModal;
 
 async function handleReserveClick() {
-  console.log('🛒 Reserve/Rental button clicked');
   
   if (!window.auth0Client) {
     console.error('Auth0 not initialized');
@@ -1311,7 +1203,6 @@ window.confirmReservation = confirmReservation;
 // ============================================
 
 function openUpgradeModal() {
-  console.log('⭐ Opening upgrade modal');
   
   const modal = document.getElementById('upgrade-modal');
   const backdrop = document.getElementById('upgrade-modal-backdrop');
@@ -1326,7 +1217,6 @@ function openUpgradeModal() {
 }
 
 function closeUpgradeModal() {
-  console.log('⭐ Closing upgrade modal');
   
   const modal = document.getElementById('upgrade-modal');
   const backdrop = document.getElementById('upgrade-modal-backdrop');
@@ -1347,7 +1237,6 @@ document.addEventListener('DOMContentLoaded', function() {
       e.stopPropagation();
       openCartOverlay();
     });
-    console.log('✅ Cart click handler attached');
   }
 });
 
@@ -1387,12 +1276,10 @@ document.addEventListener('click', function(e) {
 });
 
 window.testCart = function() {
-  console.log('🧪 Testing cart overlay...');
   openCartOverlay();
 };
 
 window.testReservationModal = function() {
-  console.log('🧪 Testing reservation modal...');
   openReservationModal();
 };
 
@@ -1449,7 +1336,6 @@ function moveCartToBody() {
   }
   
   if (backdrop && overlay) {
-    console.log('✅ Cart overlay moved to body');
     return true;
   }
   return false;
@@ -1480,7 +1366,6 @@ window.addEventListener('load', function() {
       cartIcon.parentNode.replaceChild(newCartIcon, cartIcon);
       
       newCartIcon.addEventListener('click', function(e) {
-        console.log('🛒 Cart icon clicked (backup handler)');
         e.preventDefault();
         e.stopPropagation();
         
@@ -1495,7 +1380,6 @@ window.addEventListener('load', function() {
         
         openCartOverlay();
       });
-      console.log('✅ Backup cart click handler attached');
     }
   }, 1500);
 });
@@ -1503,24 +1387,19 @@ window.addEventListener('load', function() {
 
 // Cart handler - using capture phase for all pages
 (function() {
-  console.log('🛒 [Site-wide] Cart script starting...');
   
   function setupCart() {
-    console.log('🛒 [Site-wide] Setting up cart...');
     
     const backdrop = document.getElementById('cart-backdrop');
     const overlay = document.getElementById('cart-overlay');
     
     if (backdrop && backdrop.parentElement !== document.body) {
       document.body.appendChild(backdrop);
-      console.log('🛒 [Site-wide] Backdrop moved to body');
     }
     if (overlay && overlay.parentElement !== document.body) {
       document.body.appendChild(overlay);
-      console.log('🛒 [Site-wide] Overlay moved to body');
     }
     
-    console.log('🛒 [Site-wide] Cart setup complete');
   }
   
   function handleCartClick(e) {
@@ -1529,7 +1408,6 @@ window.addEventListener('load', function() {
     
     const cartTrigger = e.target.closest('[data-cart-trigger]');
     if (cartTrigger) {
-      console.log('🛒 [Site-wide] Cart trigger activated!');
       e.preventDefault();
       e.stopPropagation();
       e.stopImmediatePropagation();
@@ -1564,20 +1442,17 @@ window.addEventListener('load', function() {
 // Uses capture phase to catch clicks before anything else
 // ============================================
 (function() {
-  console.log('🎫 Membership handler initializing (capture phase)...');
   
   document.addEventListener('click', async function(e) {
     const button = e.target.closest('[data-membership]');
     
     if (!button) return;
     
-    console.log('🎫 CAPTURED membership button click!');
     e.preventDefault();
     e.stopPropagation();
     e.stopImmediatePropagation();
     
     const membershipName = button.getAttribute('data-membership');
-    console.log('🎫 Membership name:', membershipName);
 
     // Dedupe: when the post-login replay re-clicks the button, the real user
     // click already pushed to dataLayer before the auth modal opened.
@@ -1604,10 +1479,8 @@ window.addEventListener('load', function() {
     }
 
     const isAuthenticated = await window.auth0Client.isAuthenticated();
-    console.log('🎫 Is authenticated:', isAuthenticated);
 
     if (!isAuthenticated) {
-      console.log('🎫 Not authenticated, saving action and opening auth modal');
       if (!isPostLoginReplay) pushCheckoutClick();
       sessionStorage.setItem('postLoginAction', JSON.stringify({
         type: 'membership_signup',
@@ -1626,14 +1499,12 @@ window.addEventListener('load', function() {
     
     try {
       const token = await window.auth0Client.getTokenSilently();
-      console.log('🎫 Got token, creating checkout session...');
       
       const requestBody = {
         membership_name: membershipName,
         success_url: `${window.location.origin}/welcome-to-dematerialized`,
         cancel_url: `${window.location.origin}/error-membership-signup`
       };
-      console.log('🎫 Request body:', requestBody);
       
       const response = await fetch(`${API_BASE}/stripe/create-checkout-session`, {
         method: 'POST',
@@ -1644,7 +1515,6 @@ window.addEventListener('load', function() {
         body: JSON.stringify(requestBody)
       });
       
-      console.log('🎫 Response status:', response.status);
       
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
@@ -1653,7 +1523,6 @@ window.addEventListener('load', function() {
       }
       
       const data = await response.json();
-      console.log('🎫 Checkout URL:', data.checkout_url);
       window.location.href = data.checkout_url;
       
     } catch (error) {
@@ -1680,13 +1549,11 @@ window.addEventListener('load', function() {
       if (action) {
         const parsed = JSON.parse(action);
         if (parsed.type === 'membership_signup') {
-          console.log('🎫 Post-login: triggering membership signup for:', parsed.membershipName);
           sessionStorage.removeItem('postLoginAction');
           
           setTimeout(() => {
             const button = document.querySelector(`[data-membership="${parsed.membershipName}"]`);
             if (button) {
-              console.log('🎫 Found button, clicking...');
               button.dataset.gtmPostLoginReplay = '1';
               button.click();
             } else {
@@ -1702,16 +1569,12 @@ window.addEventListener('load', function() {
   
   setTimeout(checkPostLoginAction, 1000);
   
-  console.log('🎫 Membership handler ready (capture phase)');
 })();
-
-
 
 // ============================================
 // NAVBAR SCROLL HIDE/SHOW
 // ============================================
 (function() {
-  console.log('🧭 Navbar scroll handler loading...');
   
   let ticking = false;
   const SCROLL_THRESHOLD = 50;
@@ -1764,7 +1627,6 @@ window.addEventListener('load', function() {
       navLinks.style.transition = 'opacity 0.3s ease, max-height 0.3s ease, margin 0.3s ease, padding 0.3s ease';
       navLinks.style.maxHeight = navLinksHeight + 'px';
       
-      console.log('✅ Navbar scroll handler initialized, height:', navLinksHeight);
     }
     
     window.addEventListener('scroll', onScroll, { passive: true });
@@ -1784,7 +1646,6 @@ window.addEventListener('load', function() {
 // Data structure matches profile.js approach
 // ============================================
 (function() {
-  console.log('🎓 Multi-step onboarding initializing...');
   
   // Geoapify API key (same as profile page)
   const GEOAPIFY_KEY = 'ce61be62b3c344838d731909f625cfd1';
@@ -1836,7 +1697,6 @@ window.addEventListener('load', function() {
   // ===== MODAL FUNCTIONS =====
   
   window.openOnboardingModal = function() {
-    console.log('🎓 Opening onboarding modal');
     const modal = document.getElementById('onboardingModal');
     if (modal) {
       modal.classList.add('is-visible');
@@ -1848,7 +1708,6 @@ window.addEventListener('load', function() {
   };
   
   window.closeOnboardingModal = function() {
-    console.log('🎓 Closing onboarding modal');
     const modal = document.getElementById('onboardingModal');
     if (modal) {
       modal.classList.remove('is-visible');
@@ -1861,7 +1720,6 @@ window.addEventListener('load', function() {
   // ===== NAVIGATION =====
   
   window.nextOnboardingStep = function() {
-    console.log('🎓 Next step from', currentStep);
     
     // Collect data from current step before advancing
     collectStepData(currentStep);
@@ -1874,7 +1732,6 @@ window.addEventListener('load', function() {
   };
   
   window.prevOnboardingStep = function() {
-    console.log('🎓 Previous step from', currentStep);
     if (currentStep > 1) {
       currentStep--;
       showStep(currentStep);
@@ -1883,13 +1740,11 @@ window.addEventListener('load', function() {
   };
   
   window.skipOnboarding = function() {
-    console.log('🎓 Skipping onboarding');
     sessionStorage.setItem('onboarding_modal_dismissed', 'true');
     closeOnboardingModal();
   };
   
   function showStep(step) {
-    console.log('🎓 Showing step', step);
     
     // Hide all steps
     document.querySelectorAll('.onboarding-step').forEach(el => {
@@ -1968,7 +1823,6 @@ window.addEventListener('load', function() {
     if (!feature) return;
     
     const props = feature.properties;
-    console.log('🎓 Selected address properties:', props);
     
     // Update input fields
     const searchInput = document.getElementById('onboarding-address-search');
@@ -2018,7 +1872,6 @@ window.addEventListener('load', function() {
     if (zipcodeInput) zipcodeInput.value = props.postcode || '';
     if (cityInput) cityInput.value = props.city || props.town || props.municipality || '';
     
-    console.log('🎓 Parsed address - Street:', street, 'House:', houseNumber, 'Postcode:', props.postcode, 'City:', props.city);
     
     // Hide suggestions
     const suggestionsContainer = document.getElementById('onboarding-address-suggestions');
@@ -2035,7 +1888,6 @@ window.addEventListener('load', function() {
       case 2: // Name only
         formData.firstName = document.getElementById('onboarding-firstname')?.value || '';
         formData.lastName = document.getElementById('onboarding-lastname')?.value || '';
-        console.log('🎓 Collected name:', formData.firstName, formData.lastName);
         break;
         
       case 3: // Contact & Address
@@ -2046,12 +1898,10 @@ window.addEventListener('load', function() {
         formData.addressUnit = document.getElementById('onboarding-unit')?.value || '';
         formData.addressZipcode = document.getElementById('onboarding-zipcode')?.value || '';
         formData.addressCity = document.getElementById('onboarding-city')?.value || '';
-        console.log('🎓 Collected contact/address:', formData.phoneNumber, formData.addressFull);
         break;
         
       case 4: // Birthday
         formData.dateOfBirth = document.getElementById('onboarding-birthday')?.value || '';
-        console.log('🎓 Collected birthday:', formData.dateOfBirth);
         break;
         
       case 5: // Size profile
@@ -2060,19 +1910,16 @@ window.addEventListener('load', function() {
         formData.shirtSize = document.getElementById('onboarding-shirt-size')?.value || '';
         formData.pantsSize = document.getElementById('onboarding-pants-size')?.value || '';
         formData.shoeSize = document.getElementById('onboarding-shoe-size')?.value || '';
-        console.log('🎓 Collected sizes:', formData.heightCm, formData.shirtSize);
         break;
         
       case 6: // Body type
         const selectedBodyType = document.querySelector('.body-type-option.selected');
         formData.bodyType = selectedBodyType?.getAttribute('data-body-type') || '';
-        console.log('🎓 Collected body type:', formData.bodyType);
         break;
         
       case 7: // Referral sources
         formData.referralSources = Array.from(document.querySelectorAll('.checkbox-option input:checked'))
           .map(el => el.value);
-        console.log('🎓 Collected referral sources:', formData.referralSources);
         break;
     }
   }
@@ -2080,7 +1927,6 @@ window.addEventListener('load', function() {
   // ===== SUBMIT =====
   
   window.submitOnboarding = async function() {
-    console.log('🎓 Submitting onboarding data...');
     
     // Collect data from current step
     collectStepData(currentStep);
@@ -2161,7 +2007,6 @@ window.addEventListener('load', function() {
         payload.address_city = formData.addressCity;
       }
       
-      console.log('🎓 Sending payload:', payload);
       
       const response = await fetch(`${window.API_BASE_URL}/users/me`, {
         method: 'PATCH',
@@ -2177,10 +2022,8 @@ window.addEventListener('load', function() {
         console.error('🎓 API error:', errorData);
         // Don't block the user, just log the error and continue
         console.warn('🎓 Profile update failed, but continuing to completion');
-      } else {
-        console.log('🎓 Profile updated successfully');
       }
-      
+
       // Move to completion step regardless
       currentStep = 8;
       showStep(8);
@@ -2201,7 +2044,6 @@ window.addEventListener('load', function() {
   };
   
   window.completeOnboarding = function() {
-    console.log('🎓 Completing onboarding');
     sessionStorage.setItem('onboarding_completed', 'true');
     closeOnboardingModal();
     
@@ -2261,5 +2103,4 @@ window.addEventListener('load', function() {
     setupEventListeners();
   }
   
-  console.log('🎓 Multi-step onboarding ready');
 })();
