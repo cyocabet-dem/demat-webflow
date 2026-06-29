@@ -8,7 +8,6 @@ window.ReservationsManager = {
   _reservationsCache: null,
   
   async fetchReservations() {
-    console.log('📋 Fetching reservations...');
     
     if (!window.auth0Client) {
       console.error('Auth0 not initialized');
@@ -18,7 +17,6 @@ window.ReservationsManager = {
     try {
       const isAuthenticated = await window.auth0Client.isAuthenticated();
       if (!isAuthenticated) {
-        console.log('User not authenticated');
         return null;
       }
       
@@ -37,7 +35,6 @@ window.ReservationsManager = {
       }
       
       const reservations = await response.json();
-      console.log('📋 Reservations loaded:', reservations.length);
       this._reservationsCache = reservations;
       return reservations;
       
@@ -227,13 +224,7 @@ window.ReservationsManager = {
         || modal.querySelector('#detail-modal-content')
         || modal.querySelector('#reservation-modal-content');
     }
-    
-    console.log('📋 Modal elements found:', {
-      modal: !!modal, backdrop: !!backdrop, 
-      modalId: !!modalId, modalContent: !!modalContent,
-      modalClasses: modal?.className
-    });
-    
+
     return { modal: modal, backdrop: backdrop, modalId: modalId, modalContent: modalContent };
   },
   
@@ -280,11 +271,9 @@ window.ReservationsManager = {
       listEl.style.display = 'block';
     }
     
-    console.log('📋 Reservations page rendered');
   },
   
   viewReservation(reservationId) {
-    console.log('📋 View reservation:', reservationId);
     
     const reservation = this._reservationsCache?.find(r => r.id === reservationId);
     
@@ -357,7 +346,6 @@ document.addEventListener('click', function(e) {
   function init() {
     if (!document.getElementById('reservations-container')) return;
     
-    console.log('📋 Reservations page detected, initializing...');
     
     var initReservations = async function() {
       var attempts = 0;

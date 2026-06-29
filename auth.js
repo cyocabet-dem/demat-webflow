@@ -12,7 +12,6 @@ document.addEventListener('DOMContentLoaded', function() {
 
   async function initializeAuth0() {
     try {
-      console.log('Starting Auth0 initialization...');
       window.auth0Client = await auth0.createAuth0Client({
         domain: auth0Config.domain,
         clientId: auth0Config.clientId,
@@ -26,19 +25,16 @@ document.addEventListener('DOMContentLoaded', function() {
         useRefreshTokens: auth0Config.useRefreshTokens
       });
       
-      console.log('Auth0 client created successfully');
       
       // Handle redirect
       const query = window.location.search;
       if (query.includes("code=") && query.includes("state=")) {
-        console.log('📨 Handling Auth0 redirect callback...');
         await window.auth0Client.handleRedirectCallback();
         
         // Get the return path that was stored before login
         const returnPath = sessionStorage.getItem('auth_return_path') || '/';
         sessionStorage.removeItem('auth_return_path');
         
-        console.log('🔙 Returning to:', returnPath);
         
         // Clean up URL and redirect to return path
         window.history.replaceState({}, document.title, returnPath);
@@ -49,7 +45,6 @@ document.addEventListener('DOMContentLoaded', function() {
       
       // Update UI
       const isAuthenticated = await window.auth0Client.isAuthenticated();
-      console.log('Authentication status:', isAuthenticated);
       updateUI(isAuthenticated);
       
       if (isAuthenticated) {
@@ -73,7 +68,6 @@ document.addEventListener('DOMContentLoaded', function() {
       // Pages where we skip the onboarding modal
       const skipPages = ['/onboarding', '/complete-your-profile', '/profile', '/memberships', '/error-membership-signup'];
       if (skipPages.includes(window.location.pathname)) {
-        console.log('⏭️ On excluded page, skipping onboarding check');
         return;
       }
 
@@ -88,7 +82,6 @@ document.addEventListener('DOMContentLoaded', function() {
       }
       
       const userData = await response.json();
-      console.log('User data:', userData);
       
       // Store user data globally for easy access
       window.currentUserData = userData;
@@ -99,7 +92,6 @@ const modalDismissed = sessionStorage.getItem('onboarding_modal_dismissed') === 
 
 // Only show onboarding modal if user HAS a membership but hasn't completed profile
 if (hasActiveMembership && !hasCompletedProfile && !modalDismissed) {
-        console.log('⚠️ User has not completed their profile - showing onboarding modal');
         setTimeout(function() { showOnboardingModal(); }, 500);
       }
       
@@ -117,7 +109,6 @@ if (hasActiveMembership && !hasCompletedProfile && !modalDismissed) {
   // ============================================
   async function checkUserStatusAndRedirect() {
     try {
-      console.log('🔍 Checking user status after login...');
       const token = await window.auth0Client.getTokenSilently();
       const response = await fetch(`${API_URL}/users/me`, {
         headers: { Authorization: `Bearer ${token}` }
@@ -129,7 +120,6 @@ if (hasActiveMembership && !hasCompletedProfile && !modalDismissed) {
       }
       
       const userData = await response.json();
-      console.log('User data after login:', userData);
       
       // Store user data globally
       window.currentUserData = userData;
@@ -137,12 +127,10 @@ if (hasActiveMembership && !hasCompletedProfile && !modalDismissed) {
       const hasActiveMembership = !!userData.stripe_id;
       
       if (!hasActiveMembership) {
-        console.log('🚀 No membership - redirecting to /memberships');
         window.location.href = '/memberships';
         return;
       }
       
-      console.log('✅ User has membership, staying on current page');
       
       // Update display with first name
       displayFirstName();
@@ -199,7 +187,6 @@ if (hasActiveMembership && !hasCompletedProfile && !modalDismissed) {
       document.querySelectorAll('[data-auth="user-name"]').forEach(el => {
         el.textContent = firstName;
       });
-      console.log('👤 Displaying first name:', firstName);
     }
   }
 
@@ -209,7 +196,6 @@ if (hasActiveMembership && !hasCompletedProfile && !modalDismissed) {
     
     // Store current path so we can return here after login
     sessionStorage.setItem('auth_return_path', window.location.pathname);
-    console.log('💾 Stored return path:', window.location.pathname);
     
     await window.auth0Client.loginWithRedirect();
   }
@@ -227,7 +213,6 @@ if (hasActiveMembership && !hasCompletedProfile && !modalDismissed) {
 
   // API Calling Function
   async function callApi() {
-    console.log("Attempting to call API...");
     try {
       const token = await window.auth0Client.getTokenSilently();
       const response = await fetch(`${API_URL}/users/me`, {
@@ -235,7 +220,6 @@ if (hasActiveMembership && !hasCompletedProfile && !modalDismissed) {
       });
       const data = await response.json();
       if (!response.ok) throw new Error(data.detail || "API failed");
-      console.log("API Response:", data);
       alert("API call successful! Check the console.");
     } catch (e) {
       console.error("API call failed", e);
@@ -268,28 +252,20 @@ if (hasActiveMembership && !hasCompletedProfile && !modalDismissed) {
   
   // Debug helper
   window.debugAuth = async function() { 
-    console.log('=== Auth Debug Info ===');
-    console.log('Auth0 Client exists:', !!window.auth0Client);
     if (window.auth0Client) {
       const isAuth = await window.auth0Client.isAuthenticated();
-      console.log('Is authenticated:', isAuth);
       if (isAuth) {
         const user = await window.auth0Client.getUser();
-        console.log('User:', user);
-        console.log('User Data from API:', window.currentUserData);
         try {
           const token = await window.auth0Client.getTokenSilently();
-          console.log('Access Token:', token.substring(0, 20) + "...");
         } catch(e) {
           console.error("Could not get token", e);
         }
       }
     }
-    console.log('Stored return path:', sessionStorage.getItem('auth_return_path'));
   };
   
   // Expose check function globally
   window.checkUserStatus = checkUserStatus;
   
-  console.log('Auth0 script loaded. Type debugAuth() in console for debug info.');
 });
