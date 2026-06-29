@@ -303,7 +303,7 @@ window.DonationsManager = {
     if (loadingEl) loadingEl.style.display = 'none';
     
     if (!data) {
-      console.error('🎁 No data returned from fetchDonations');
+      console.error('No data returned from fetchDonations');
       if (contentEl) {
         contentEl.innerHTML = `
           <div class="donations-error">

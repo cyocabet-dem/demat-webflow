@@ -387,7 +387,7 @@ window.PurchasesManager = {
       if (contentEl) contentEl.style.display = 'block';
 
     } catch (err) {
-      console.error('🛍️ Error rendering purchases page:', err);
+      console.error('Error rendering purchases page:', err);
       if (loadingEl) loadingEl.style.display = 'none';
       if (emptyEl) emptyEl.style.display = 'flex';
     }
@@ -464,7 +464,7 @@ function initPurchasesPage() {
           if (signinEl) signinEl.style.display = 'flex';
         }
       } catch (err) {
-        console.error('🛍️ Error during init:', err);
+        console.error('Error during init:', err);
         const loadingEl = document.getElementById('purchases-loading');
         const emptyEl = document.getElementById('purchases-empty');
         if (loadingEl) loadingEl.style.display = 'none';

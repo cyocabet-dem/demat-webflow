@@ -540,7 +540,7 @@
             await this.syncWithAPI();
           }
         } catch (err) {
-          console.error('💖 [Wishlist] Init error:', err);
+          console.error('[Wishlist] Init error:', err);
         }
       }
 
@@ -557,7 +557,7 @@
           }
         }
       } catch (err) {
-        console.error('💖 [Wishlist] Error loading local:', err);
+        console.error('[Wishlist] Error loading local:', err);
       }
     },
 
@@ -565,7 +565,7 @@
       try {
         localStorage.setItem(this.STORAGE_KEY, JSON.stringify(Array.from(this._wishlistIds)));
       } catch (err) {
-        console.error('💖 [Wishlist] Error saving local:', err);
+        console.error('[Wishlist] Error saving local:', err);
       }
     },
 
@@ -578,7 +578,7 @@
           }
         }
       } catch (err) {
-        console.error('💖 [Wishlist] Token error:', err);
+        console.error('[Wishlist] Token error:', err);
       }
       return null;
     },
@@ -596,7 +596,7 @@
         });
 
         if (!response.ok) {
-          console.error('💖 [Wishlist] API fetch failed:', response.status);
+          console.error('[Wishlist] API fetch failed:', response.status);
           return null;
         }
 
@@ -604,7 +604,7 @@
         const items = Array.isArray(data) ? data : (data.items || data.clothing_items || []);
         return items.map(item => Number(item.id || item.clothing_item_id));
       } catch (err) {
-        console.error('💖 [Wishlist] API fetch error:', err);
+        console.error('[Wishlist] API fetch error:', err);
         return null;
       }
     },
@@ -621,7 +621,7 @@
           this.updateAllUI();
         }
       } catch (err) {
-        console.error('💖 [Wishlist] Sync error:', err);
+        console.error('[Wishlist] Sync error:', err);
       } finally {
         this._syncing = false;
       }
@@ -651,7 +651,7 @@
           });
 
           if (!response.ok) {
-            console.error('💖 [Wishlist] API add failed:', response.status);
+            console.error('[Wishlist] API add failed:', response.status);
             this._wishlistIds.delete(id);
             this._saveLocal();
             this.updateUI(id, false);
@@ -659,7 +659,7 @@
           }
 
         } catch (err) {
-          console.error('💖 [Wishlist] API add error:', err);
+          console.error('[Wishlist] API add error:', err);
           this._wishlistIds.delete(id);
           this._saveLocal();
           this.updateUI(id, false);
@@ -690,7 +690,7 @@
           });
 
           if (!response.ok) {
-            console.error('💖 [Wishlist] API remove failed:', response.status);
+            console.error('[Wishlist] API remove failed:', response.status);
             this._wishlistIds.add(id);
             this._saveLocal();
             this.updateUI(id, true);
@@ -698,7 +698,7 @@
           }
 
         } catch (err) {
-          console.error('💖 [Wishlist] API remove error:', err);
+          console.error('[Wishlist] API remove error:', err);
           this._wishlistIds.add(id);
           this._saveLocal();
           this.updateUI(id, true);
@@ -812,7 +812,7 @@
               if (!nowAuthenticated) return;
               await window.WishlistManager.syncWithAPI();
             } catch (err) {
-              console.error('💖 [Wishlist] Login error:', err);
+              console.error('[Wishlist] Login error:', err);
               return;
             }
           }

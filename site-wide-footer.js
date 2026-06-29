@@ -41,7 +41,7 @@ function openAuthModal() {
   const modal = document.getElementById('authModal');
   
   if (!modal) {
-    console.error("❌ CRITICAL ERROR: Modal element with id 'authModal' NOT FOUND!");
+    console.error("CRITICAL ERROR: Modal element with id 'authModal' NOT FOUND!");
     return;
   }
   
@@ -54,7 +54,7 @@ function closeAuthModal() {
   
   const modal = document.getElementById('authModal');
   if (!modal) {
-    console.error("❌ ERROR: Modal element not found when trying to close!");
+    console.error("ERROR: Modal element not found when trying to close!");
     return;
   }
   
@@ -113,7 +113,7 @@ document.addEventListener('DOMContentLoaded', function() {
         e.preventDefault();
         
         if (!window.auth0Client) {
-          console.error("❌ Auth0 client not initialized yet");
+          console.error("Auth0 client not initialized yet");
           alert("Please wait a moment and try again");
           return;
         }
@@ -125,7 +125,7 @@ document.addEventListener('DOMContentLoaded', function() {
             }
           });
         } catch (error) {
-          console.error("❌ Signup redirect failed:", error);
+          console.error("Signup redirect failed:", error);
           alert("Signup failed. Please try again.");
         }
       });
@@ -151,14 +151,14 @@ window.addEventListener('load', function() {
   const authModal = document.getElementById('authModal');
   
   if (!authModal) {
-    console.error("   ❌ AUTH MODAL NOT FOUND - Make sure your Webflow component with id='authModal' exists!");
+    console.error("AUTH MODAL NOT FOUND - Make sure your Webflow component with id='authModal' exists!");
   }
   
   // Check onboarding modal
   const onboardingModal = document.getElementById('onboardingModal');
   
   if (!onboardingModal) {
-    console.warn("   ⚠️ ONBOARDING MODAL NOT FOUND - You need to add this as a Webflow component!");
+    console.warn("ONBOARDING MODAL NOT FOUND - You need to add this as a Webflow component!");
   }
 });
 
@@ -294,7 +294,7 @@ window.CartManager = {
         await this.syncWithAPI();
       }
     } catch (err) {
-      console.error('🛒 [Cart] Init error:', err);
+      console.error('[Cart] Init error:', err);
     }
     
     this._initialized = true;
@@ -310,7 +310,7 @@ window.CartManager = {
       if (!isAuthenticated) return null;
       return await window.auth0Client.getTokenSilently();
     } catch (err) {
-      console.error('🛒 [Cart] Token error:', err);
+      console.error('[Cart] Token error:', err);
       return null;
     }
   },
@@ -337,7 +337,7 @@ window.CartManager = {
       });
       
       if (!response.ok) {
-        console.error('🛒 [Cart] API fetch failed:', response.status);
+        console.error('[Cart] API fetch failed:', response.status);
         return null;
       }
       
@@ -345,7 +345,7 @@ window.CartManager = {
       
       return Array.isArray(data) ? data : (data.items || data.clothing_items || []);
     } catch (err) {
-      console.error('🛒 [Cart] API fetch error:', err);
+      console.error('[Cart] API fetch error:', err);
       return null;
     }
   },
@@ -364,13 +364,13 @@ window.CartManager = {
       });
       
       if (!response.ok) {
-        console.error('🛒 [Cart] API add failed:', response.status);
+        console.error('[Cart] API add failed:', response.status);
         return false;
       }
       
       return true;
     } catch (err) {
-      console.error('🛒 [Cart] API add error:', err);
+      console.error('[Cart] API add error:', err);
       return false;
     }
   },
@@ -388,13 +388,13 @@ window.CartManager = {
       });
       
       if (!response.ok) {
-        console.error('🛒 [Cart] API remove failed:', response.status);
+        console.error('[Cart] API remove failed:', response.status);
         return false;
       }
       
       return true;
     } catch (err) {
-      console.error('🛒 [Cart] API remove error:', err);
+      console.error('[Cart] API remove error:', err);
       return false;
     }
   },
@@ -443,7 +443,7 @@ window.CartManager = {
       
       for (const item of localOnlyItems) {
         if (mergedMap.size >= this.MAX_ITEMS) {
-          console.warn('🛒 [Cart] Max items reached, skipping upload of:', item.name);
+          console.warn('[Cart] Max items reached, skipping upload of:', item.name);
           break;
         }
         
@@ -459,7 +459,7 @@ window.CartManager = {
       
       
     } catch (err) {
-      console.error('🛒 [Cart] Sync error:', err);
+      console.error('[Cart] Sync error:', err);
     }
     
     this._syncing = false;
@@ -521,7 +521,7 @@ window.CartManager = {
     if (isAuth) {
       const apiSuccess = await this.addToAPI(item.id);
       if (!apiSuccess) {
-        console.error('🛒 [Cart] Failed to add to API');
+        console.error('[Cart] Failed to add to API');
       }
     }
     
@@ -617,7 +617,7 @@ window.UserMembership = {
       });
       
       if (!response.ok) {
-        console.error('👤 Failed to fetch user:', response.status);
+        console.error('Failed to fetch user:', response.status);
         return null;
       }
       
@@ -628,7 +628,7 @@ window.UserMembership = {
       
       return userData;
     } catch (err) {
-      console.error('👤 Error fetching user:', err);
+      console.error('Error fetching user:', err);
       return null;
     }
   },
@@ -689,7 +689,7 @@ async function openCartOverlay() {
   const backdrop = document.getElementById('cart-backdrop');
   
   if (!overlay || !backdrop) {
-    console.error('❌ Cart overlay elements not found!');
+    console.error('Cart overlay elements not found!');
     return;
   }
   
@@ -749,7 +749,7 @@ function renderCartOverlay() {
   const reserveBtn = document.getElementById('cart-reserve-btn');
   
   if (!itemsContainer || !emptyState || !footer) {
-    console.error('❌ Core cart overlay elements not found');
+    console.error('Core cart overlay elements not found');
     return;
   }
   
@@ -878,7 +878,7 @@ async function openReservationModal() {
   const errorEl = document.getElementById('reservation-error');
   
   if (!modal || !backdrop) {
-    console.error('❌ Reservation modal not found');
+    console.error('Reservation modal not found');
     return;
   }
   
@@ -1032,7 +1032,7 @@ async function confirmReservation() {
       
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
-        console.error('❌ Shipment API Error Response:', errorData);
+        console.error('Shipment API Error Response:', errorData);
         
         let errorMessage = `Shipment failed (${response.status})`;
         
@@ -1071,7 +1071,7 @@ async function confirmReservation() {
       
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
-        console.error('❌ Reservation API Error Response:', errorData);
+        console.error('Reservation API Error Response:', errorData);
         
         let errorMessage = `Reservation failed (${response.status})`;
         
@@ -1100,7 +1100,7 @@ async function confirmReservation() {
     showReservationSuccess(result, isRental);
     
   } catch (err) {
-    console.error(`❌ ${actionLabel} error:`, err);
+    console.error(`${actionLabel} error:`, err);
     
     if (errorEl) {
       errorEl.textContent = err.message || `Failed to create ${_currentFlowType}. Please try again.`;
@@ -1208,7 +1208,7 @@ function openUpgradeModal() {
   const backdrop = document.getElementById('upgrade-modal-backdrop');
   
   if (!modal || !backdrop) {
-    console.error('❌ Upgrade modal not found');
+    console.error('Upgrade modal not found');
     return;
   }
   
@@ -1420,7 +1420,7 @@ window.addEventListener('load', function() {
       if (typeof openCartOverlay === 'function') {
         openCartOverlay();
       } else {
-        console.error('🛒 [Site-wide] openCartOverlay not found!');
+        console.error('[Site-wide] openCartOverlay not found!');
       }
     }
   }
@@ -1473,7 +1473,7 @@ window.addEventListener('load', function() {
     const API_BASE = window.API_BASE_URL;
 
     if (!window.auth0Client) {
-      console.error('🎫 Auth0 not initialized');
+      console.error('Auth0 not initialized');
       alert('Please wait a moment and try again');
       return;
     }
@@ -1518,7 +1518,7 @@ window.addEventListener('load', function() {
       
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
-        console.error('🎫 API error:', errorData);
+        console.error('API error:', errorData);
         throw new Error(errorData.detail || `API error: ${response.status}`);
       }
       
@@ -1526,7 +1526,7 @@ window.addEventListener('load', function() {
       window.location.href = data.checkout_url;
       
     } catch (error) {
-      console.error('🎫 Checkout error:', error);
+      console.error('Checkout error:', error);
       alert('Something went wrong: ' + error.message);
       button.innerHTML = originalHTML;
       button.style.pointerEvents = 'auto';
@@ -1557,13 +1557,13 @@ window.addEventListener('load', function() {
               button.dataset.gtmPostLoginReplay = '1';
               button.click();
             } else {
-              console.error('🎫 Button not found for:', parsed.membershipName);
+              console.error('Button not found for:', parsed.membershipName);
             }
           }, 1500);
         }
       }
     } catch (err) {
-      console.error('🎫 Post-login check error:', err);
+      console.error('Post-login check error:', err);
     }
   }
   
@@ -1583,7 +1583,7 @@ window.addEventListener('load', function() {
   function updateNavLinks() {
     const navLinks = document.querySelector('.div-nav-links-wrapper');
     if (!navLinks) {
-      console.warn('🧭 .div-nav-links-wrapper not found');
+      console.warn('.div-nav-links-wrapper not found');
       return;
     }
     
@@ -1813,7 +1813,7 @@ window.addEventListener('load', function() {
           suggestionsContainer.innerHTML = '';
         }
       } catch (error) {
-        console.error('🎓 Address search error:', error);
+        console.error('Address search error:', error);
       }
     }, 300);
   };
@@ -2019,9 +2019,9 @@ window.addEventListener('load', function() {
       
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
-        console.error('🎓 API error:', errorData);
+        console.error('API error:', errorData);
         // Don't block the user, just log the error and continue
-        console.warn('🎓 Profile update failed, but continuing to completion');
+        console.warn('Profile update failed, but continuing to completion');
       }
 
       // Move to completion step regardless
@@ -2030,7 +2030,7 @@ window.addEventListener('load', function() {
       updateProgress();
       
     } catch (error) {
-      console.error('🎓 Submit error:', error);
+      console.error('Submit error:', error);
       // Still show completion - don't block the user
       currentStep = 8;
       showStep(8);
