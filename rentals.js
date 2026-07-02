@@ -458,9 +458,10 @@ renderHistoryGroup(group) {
     if (!titleEl) return;
 
     const allowance = this._returnAllowance;
-    const activeCount = (this._activeRentalsCache || []).length;
-    // Only home-delivery members with something currently rented get controls.
-    const shouldShow = !!(allowance && allowance.applicable && activeCount > 0);
+    // Home-delivery members always get the button (local members are the only
+    // ones who see nothing). It attaches inside #rentals-active, so it's only
+    // visible once that section is — i.e. when the member has any rentals.
+    const shouldShow = !!(allowance && allowance.applicable);
 
     let controls = document.getElementById('rentals-return-controls');
     if (!shouldShow) {
@@ -539,8 +540,12 @@ renderHistoryGroup(group) {
   _returnSelectHTML() {
     const items = this.selectableReturnItems();
     if (items.length === 0) {
+      const hasActive = (this._activeRentalsCache || []).length > 0;
+      const emptyMsg = hasActive
+        ? 'all your current rentals are already on their way back.'
+        : "you don't have any items to return right now.";
       return `
-        <p class="rr-intro">all your current rentals are already on their way back.</p>
+        <p class="rr-intro">${emptyMsg}</p>
         <div class="rr-actions">
           <button type="button" class="rental-card-btn" onclick="closeRentalModal()">close</button>
         </div>`;
