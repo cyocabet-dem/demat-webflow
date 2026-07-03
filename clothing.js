@@ -136,7 +136,7 @@ if (!document.getElementById('filter-panel')) {
   // STATUS DISPLAY MAPPING
   // ============================================================
   
-  const STATUS_DISPLAY = {
+const STATUS_DISPLAY = {
     available: 'Available',
     rented: 'Rented Out',
     reserved: 'Reserved',
@@ -147,11 +147,24 @@ if (!document.getElementById('filter-panel')) {
     retired: 'No Longer Available',
     'in cleaning': 'Being Cleaned'
   };
-  
+
+  const STATUS_DISPLAY_NL = {
+    available: 'Beschikbaar',
+    rented: 'Verhuurd',
+    reserved: 'Gereserveerd',
+    returned: 'Binnenkort terug',
+    purchased: 'Gekocht',
+    sold: 'Verkocht',
+    damaged: 'Niet beschikbaar',
+    retired: 'Niet meer beschikbaar',
+    'in cleaning': 'Wordt gereinigd'
+  };
+
   function formatStatus(status) {
+    const map = isNL() ? STATUS_DISPLAY_NL : STATUS_DISPLAY;
     const s = (status || '').toLowerCase().trim();
-    if (!s) return STATUS_DISPLAY['available'];
-    return STATUS_DISPLAY[s] || (s.charAt(0).toUpperCase() + s.slice(1));
+    if (!s) return map['available'];
+    return map[s] || (s.charAt(0).toUpperCase() + s.slice(1));
   }
 
 // ============================================================
@@ -812,10 +825,11 @@ if (!document.getElementById('filter-panel')) {
     const nameEl = card.querySelector('[data-field="name"]');
     if (nameEl) nameEl.textContent = item.name || item.sku;
     
-    const metaEl = card.querySelector('[data-field="meta"]');
+const metaEl = card.querySelector('[data-field="meta"]');
     if (metaEl) {
+      const size = getItemSize(item);
       const displayStatus = formatStatus(item.status);
-      metaEl.textContent = displayStatus;
+      metaEl.textContent = size ? `${size} | ${displayStatus}` : displayStatus;
       const statusClass = (item.status || 'available').toLowerCase().trim().replace(/\s+/g, '-');
       metaEl.classList.add(`status-${statusClass}`);
     }
