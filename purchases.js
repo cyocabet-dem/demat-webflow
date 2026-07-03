@@ -1,4 +1,47 @@
 // ============================================
+// LOCALIZATION (page content is JS-rendered, so .lang spans can't be used here)
+// ============================================
+function isNL() {
+  if (window.DematI18n && window.DematI18n.isNL) return window.DematI18n.isNL();
+  return (document.documentElement.lang || '').toLowerCase().indexOf('nl') === 0;
+}
+
+var PURCHASES_T = {
+  purchaseDetails:  { en: 'purchase details', nl: 'aankoopdetails' },
+  purchasedOn:      { en: 'purchased on', nl: 'gekocht op' },
+  viewItem:         { en: 'view item', nl: 'bekijk item' },
+  payment:          { en: 'payment', nl: 'betaling' },
+  subtotal:         { en: 'subtotal (50% off)', nl: 'subtotaal (50% korting)' },
+  creditsApplied:   { en: 'store credits applied', nl: 'winkeltegoed toegepast' },
+  totalCharged:     { en: 'total charged incl. VAT', nl: 'totaal in rekening gebracht incl. btw' },
+  storeCreditsWord: { en: 'store credits', nl: 'winkeltegoed' },
+  cardWord:         { en: 'card', nl: 'kaart' },
+  fullyPaidCredits: { en: 'fully paid with store credits', nl: 'volledig betaald met winkeltegoed' },
+  paidWithCard:     { en: 'paid with card', nl: 'betaald met kaart' },
+  orderHasBeen:     { en: 'this order has been', nl: 'deze bestelling is' },
+  orderDetails:     { en: 'order details', nl: 'bestelgegevens' },
+  date:             { en: 'date', nl: 'datum' },
+  items:            { en: 'items', nl: 'items' },
+  itemsPurchased:   { en: 'items purchased', nl: 'gekochte items' },
+  statusPaid:       { en: 'paid', nl: 'betaald' },
+  statusRefunded:   { en: 'refunded', nl: 'terugbetaald' },
+  statusPending:    { en: 'pending', nl: 'in behandeling' },
+  statusFailed:     { en: 'failed', nl: 'mislukt' }
+};
+function t(key) {
+  var e = PURCHASES_T[key];
+  return e ? (isNL() ? e.nl : e.en) : '';
+}
+// 'item' is invariant in both languages
+function itemsWord(n) { return isNL() ? 'items' : (n === 1 ? 'item' : 'items'); }
+// Map a backend payment/order status to a localized word (falls back to raw value)
+function statusLabel(status) {
+  var map = { paid: 'statusPaid', refunded: 'statusRefunded', pending: 'statusPending', failed: 'statusFailed' };
+  var key = map[(status || '').toLowerCase()];
+  return key ? t(key) : (status || '');
+}
+
+// ============================================
 // PURCHASES PAGE — UPDATED
 // Add to Page Body Code (or host on GitHub)
 // ============================================
@@ -57,7 +100,7 @@ window.PurchasesManager = {
   formatDate(dateString) {
     if (!dateString) return 'n/a';
     const date = new Date(dateString);
-    return date.toLocaleDateString('en-GB', {
+    return date.toLocaleDateString(isNL() ? 'nl-NL' : 'en-GB', {
       day: 'numeric',
       month: 'short',
       year: 'numeric'
@@ -92,7 +135,7 @@ window.PurchasesManager = {
     const shortId = typeof orderId === 'string' ? orderId.substring(0, 8) : orderId;
     const items = order.items || [];
     const itemCount = items.length;
-    const itemLabel = itemCount === 1 ? '1 item' : `${itemCount} items`;
+    const itemLabel = itemCount + ' ' + itemsWord(itemCount);
     // Show subtotal (sum of item prices) on the card, not just the card charge
     const calculatedSubtotal = items.reduce((sum, item) => sum + (item.price_in_cents || 0), 0);
     const total = order.subtotal_cents || calculatedSubtotal || order.total_amount_in_cents || 0;
@@ -128,7 +171,7 @@ window.PurchasesManager = {
             ${moreIndicator}
           </div>
           <div class="purchase-group-info">
-            <div class="purchase-group-summary">${itemLabel} purchased on ${orderDate}</div>
+            <div class="purchase-group-summary">${itemLabel} ${t('purchasedOn')} ${orderDate}</div>
             <div class="purchase-group-meta">#${shortId} · ${this.formatPrice(total)}</div>
           </div>
           <div class="purchase-group-arrow">
@@ -174,7 +217,7 @@ window.PurchasesManager = {
     if (headerEl) {
       headerEl.innerHTML = `
         <div class="purchase-modal-header-info">
-          <div class="purchase-modal-title">purchase details</div>
+          <div class="purchase-modal-title">${t('purchaseDetails')}</div>
           <div class="purchase-modal-subtitle">#${shortId}</div>
         </div>
         <button class="purchase-modal-close" onclick="PurchasesManager.closeOrderModal()">&times;</button>
@@ -203,7 +246,7 @@ window.PurchasesManager = {
           <div class="purchase-modal-item-info">
             <div class="purchase-modal-item-name">${name}</div>
             <div class="purchase-modal-item-price">${this.formatPrice(priceCents)}${retailCents ? ` <span class="purchase-modal-item-retail">${this.formatPrice(retailCents)}</span>` : ''}</div>
-            ${sku ? `<a href="/product?sku=${encodeURIComponent(sku)}" class="purchase-modal-item-link">view item →</a>` : ''}
+            ${sku ? `<a href="${isNL() ? '/nl/product' : '/product'}?sku=${encodeURIComponent(sku)}" class="purchase-modal-item-link">${t('viewItem')} →</a>` : ''}
           </div>
         </div>
       `;
@@ -219,9 +262,9 @@ window.PurchasesManager = {
 
     let paymentHtml = `
       <div class="purchase-modal-payment">
-        <div class="purchase-modal-payment-title">payment</div>
+        <div class="purchase-modal-payment-title">${t('payment')}</div>
         <div class="purchase-modal-payment-row">
-          <span>subtotal (50% off)</span>
+          <span>${t('subtotal')}</span>
           <span>${this.formatPrice(subtotal)}</span>
         </div>
     `;
@@ -229,7 +272,7 @@ window.PurchasesManager = {
     if (creditsApplied > 0) {
       paymentHtml += `
         <div class="purchase-modal-payment-row credits">
-          <span>store credits applied</span>
+          <span>${t('creditsApplied')}</span>
           <span>-${this.formatPrice(creditsApplied)}</span>
         </div>
       `;
@@ -237,7 +280,7 @@ window.PurchasesManager = {
 
     paymentHtml += `
         <div class="purchase-modal-payment-row total">
-          <span>total charged incl. VAT</span>
+          <span>${t('totalCharged')}</span>
           <span>${this.formatPrice(totalCharged)}</span>
         </div>
     `;
@@ -251,7 +294,7 @@ window.PurchasesManager = {
             <path d="M16 8h-6a2 2 0 1 0 0 4h4a2 2 0 1 1 0 4H8"/>
             <path d="M12 18V6"/>
           </svg>
-          <span>${this.formatPrice(creditsApplied)} store credits + ${this.formatPrice(totalCharged)} card</span>
+          <span>${this.formatPrice(creditsApplied)} ${t('storeCreditsWord')} + ${this.formatPrice(totalCharged)} ${t('cardWord')}</span>
         </div>
       `;
     } else if (creditsApplied > 0 && totalCharged === 0) {
@@ -262,7 +305,7 @@ window.PurchasesManager = {
             <path d="M16 8h-6a2 2 0 1 0 0 4h4a2 2 0 1 1 0 4H8"/>
             <path d="M12 18V6"/>
           </svg>
-          <span>fully paid with store credits</span>
+          <span>${t('fullyPaidCredits')}</span>
         </div>
       `;
     } else {
@@ -272,7 +315,7 @@ window.PurchasesManager = {
             <rect x="1" y="4" width="22" height="16" rx="2" ry="2"/>
             <line x1="1" y1="10" x2="23" y2="10"/>
           </svg>
-          <span>paid with card</span>
+          <span>${t('paidWithCard')}</span>
         </div>
       `;
     }
@@ -284,23 +327,23 @@ window.PurchasesManager = {
 
     modalContent.innerHTML = `
       <div class="purchase-modal-status-banner">
-        <span class="purchase-modal-status">${status}</span>
-        <span>this order has been ${status}</span>
+        <span class="purchase-modal-status">${statusLabel(status)}</span>
+        <span>${t('orderHasBeen')} ${statusLabel(status)}</span>
       </div>
 
-      <div class="purchase-modal-details-title">order details</div>
+      <div class="purchase-modal-details-title">${t('orderDetails')}</div>
       <div class="purchase-modal-details-grid">
         <div class="purchase-modal-detail-card">
-          <span class="purchase-modal-detail-label">date</span>
+          <span class="purchase-modal-detail-label">${t('date')}</span>
           <span class="purchase-modal-detail-value">${this.formatDate(order.order_date)}</span>
         </div>
         <div class="purchase-modal-detail-card">
-          <span class="purchase-modal-detail-label">items</span>
-          <span class="purchase-modal-detail-value">${items.length} item${items.length !== 1 ? 's' : ''}</span>
+          <span class="purchase-modal-detail-label">${t('items')}</span>
+          <span class="purchase-modal-detail-value">${items.length} ${itemsWord(items.length)}</span>
         </div>
       </div>
 
-      <div class="purchase-modal-items-title">items purchased</div>
+      <div class="purchase-modal-items-title">${t('itemsPurchased')}</div>
       ${itemsHtml}
 
       ${paymentHtml}
