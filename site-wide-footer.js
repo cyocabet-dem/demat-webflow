@@ -16,6 +16,13 @@
   
 })();
 
+// ============================================
+// I18N HELPER - locale detection for custom code embeds
+// ============================================
+window.DematI18n = window.DematI18n || {};
+window.DematI18n.isNL = function () {
+  return (document.documentElement.lang || '').toLowerCase().indexOf('nl') === 0;
+};
 
 document.addEventListener("DOMContentLoaded", function () {
   const body = document.body;
