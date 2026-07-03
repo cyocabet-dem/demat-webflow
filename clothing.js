@@ -153,7 +153,21 @@ if (!document.getElementById('filter-panel')) {
     if (!s) return STATUS_DISPLAY['available'];
     return STATUS_DISPLAY[s] || (s.charAt(0).toUpperCase() + s.slice(1));
   }
-  
+
+// ============================================================
+  // LOCALIZATION - route product links to the right locale
+  // ============================================================
+
+  function isNL() {
+    if (window.DematI18n && window.DematI18n.isNL) return window.DematI18n.isNL();
+    return (document.documentElement.lang || '').toLowerCase().indexOf('nl') === 0;
+  }
+
+  function productPath(sku) {
+    const base = isNL() ? '/nl/product' : '/product';
+    return `${base}?sku=${encodeURIComponent(sku)}`;
+  }
+
   // ============================================================
   // EXTRA FILTER DEFINITIONS
   // ============================================================
@@ -782,7 +796,7 @@ if (!document.getElementById('filter-panel')) {
     card.setAttribute('data-item-id', item.id);
     card.setAttribute('data-status', item.status || 'available');
     
-    const href = `/product?sku=${encodeURIComponent(item.sku)}`;
+    const href = productPath(item.sku);
     const linkEl = card.querySelector('a') || (card.tagName === 'A' ? card : null);
     
     if (linkEl) {
