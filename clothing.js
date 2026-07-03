@@ -828,8 +828,9 @@ const STATUS_DISPLAY = {
 const metaEl = card.querySelector('[data-field="meta"]');
     if (metaEl) {
       const size = getItemSize(item);
-      const displayStatus = formatStatus(item.status);
-      metaEl.textContent = size ? `${size} | ${displayStatus}` : displayStatus;
+      const displayStatus = formatStatus(item.status).toLowerCase();
+      const sizeUpper = size ? size.toUpperCase() : '';
+      metaEl.textContent = sizeUpper ? `${sizeUpper} | ${displayStatus}` : displayStatus;
       const statusClass = (item.status || 'available').toLowerCase().trim().replace(/\s+/g, '-');
       metaEl.classList.add(`status-${statusClass}`);
     }
