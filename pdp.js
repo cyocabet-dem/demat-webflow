@@ -66,41 +66,49 @@
     available: {
       canAddToCart: true,
       buttonText: null,
+      buttonTextNL: null,
       buttonClass: ''
     },
     rented: {
       canAddToCart: false,
       buttonText: 'Rented Out',
+      buttonTextNL: 'Verhuurd',
       buttonClass: 'status-rented'
     },
     reserved: {
       canAddToCart: false,
       buttonText: 'Reserved',
+      buttonTextNL: 'Gereserveerd',
       buttonClass: 'status-reserved'
     },
     returned: {
       canAddToCart: false,
       buttonText: 'Returning Soon',
+      buttonTextNL: 'Binnenkort terug',
       buttonClass: 'status-returned'
     },
     purchased: {
       canAddToCart: false,
       buttonText: 'Purchased',
+      buttonTextNL: 'Gekocht',
       buttonClass: 'status-purchased'
     },
     sold: {
       canAddToCart: false,
       buttonText: 'Sold',
+      buttonTextNL: 'Verkocht',
       buttonClass: 'status-sold'
     },
     damaged: {
       canAddToCart: false,
       buttonText: 'Unavailable',
+      buttonTextNL: 'Niet beschikbaar',
       buttonClass: 'status-unavailable'
     },
     retired: {
       canAddToCart: false,
       buttonText: 'No Longer Available',
+      buttonTextNL: 'Niet meer beschikbaar',
       buttonClass: 'status-retired'
     }
   };
@@ -108,6 +116,7 @@
   const DEFAULT_STATUS_CONFIG = {
     canAddToCart: false,
     buttonText: 'Unavailable',
+    buttonTextNL: 'Niet beschikbaar',
     buttonClass: 'status-unavailable'
   };
 
@@ -120,6 +129,34 @@
     return ITEM_STATUS_CONFIG[normalizedStatus] || DEFAULT_STATUS_CONFIG;
   }
 
+// ============================================================
+  // LOCALIZATION (JS sets button text, so .lang spans can't be used)
+  // ============================================================
+  function isNL() {
+    if (window.DematI18n && window.DematI18n.isNL) return window.DematI18n.isNL();
+    return (document.documentElement.lang || '').toLowerCase().indexOf('nl') === 0;
+  }
+
+  const T = {
+    addToCart:          { en: 'Add To Cart',            nl: 'In winkelmand' },
+    removeFromCart:     { en: 'Remove From Cart',       nl: 'Uit winkelmand' },
+    cartFull:           { en: 'Cart Full',   nl: 'Winkelmand vol' },
+    updating:           { en: 'Updating...',            nl: 'Bijwerken...' },
+    cartFullAlert:      { en: 'Your cart is full! You can reserve up to 10 items at a time.', nl: 'Je winkelmand is vol! Je kunt maximaal 10 items tegelijk reserveren.' },
+    addToWishlist:      { en: 'Add To Wish List',       nl: 'Toevoegen aan wishlist' },
+    removeFromWishlist: { en: 'Remove From Wish List',  nl: 'Verwijderen uit wishlist' }
+  };
+
+  function t(key) {
+    const e = T[key];
+    return e ? (isNL() ? e.nl : e.en) : '';
+  }
+
+  // Resolves a status config's button label to the active locale
+  function statusText(config) {
+    return (isNL() && config.buttonTextNL) ? config.buttonTextNL : config.buttonText;
+  }
+  
   // ============================================================
   // UTILITIES
   // ============================================================
@@ -755,7 +792,7 @@ function formatDonatedBy(raw) {
     }
 
     function updateBtn() {
-      btn.textContent = isInWishlist ? 'Remove From Wish List' : 'Add To Wish List';
+      btn.textContent = isInWishlist ? t('removeFromWishlist') : t('addToWishlist');
     }
 
     async function toggle() {
@@ -824,7 +861,7 @@ function formatDonatedBy(raw) {
     function updateBtn() {
       // First check if item status allows cart operations
       if (!statusConfig.canAddToCart) {
-        btn.textContent = statusConfig.buttonText;
+        btn.textContent = statusText(statusConfig);
         btn.classList.remove('in-cart');
         btn.classList.add('status-disabled', statusConfig.buttonClass);
         btn.disabled = true;
@@ -845,19 +882,19 @@ function formatDonatedBy(raw) {
       const cartCount = CartManager.getCartCount();
 
       if (isInCart) {
-        btn.textContent = 'Remove From Cart';
+        btn.textContent = t('removeFromCart');
         btn.classList.add('in-cart');
         btn.disabled = false;
         btn.style.opacity = '1';
         btn.style.cursor = 'pointer';
       } else if (cartCount >= CartManager.MAX_ITEMS) {
-        btn.textContent = 'Cart Full (10 Items)';
+        btn.textContent = t('cartFull');
         btn.classList.remove('in-cart');
         btn.disabled = true;
         btn.style.opacity = '0.5';
         btn.style.cursor = 'not-allowed';
       } else {
-        btn.textContent = 'Add To Cart';
+        btn.textContent = t('addToCart');
         btn.classList.remove('in-cart');
         btn.disabled = false;
         btn.style.opacity = '1';
@@ -874,7 +911,7 @@ function formatDonatedBy(raw) {
 
       const originalText = btn.textContent;
       btn.disabled = true;
-      btn.textContent = 'Updating...';
+      btn.textContent = t('updating');
       btn.style.opacity = '0.7';
 
       try {
@@ -884,7 +921,7 @@ function formatDonatedBy(raw) {
         } else {
           const result = await CartManager.addToCart(itemData);
           if (!result.success && result.reason === 'max_items') {
-            alert('Your cart is full! You can reserve up to 10 items at a time.');
+            alert(t('cartFullAlert'));
           }
         }
       } catch (e) {
@@ -921,7 +958,7 @@ function formatDonatedBy(raw) {
       const config = getStatusConfig(itemStatus);
 
       if (!config.canAddToCart) {
-        btn.textContent = config.buttonText;
+        btn.textContent = statusText(config);
         btn.classList.remove('in-cart');
         btn.classList.add('status-disabled', config.buttonClass);
         btn.disabled = true;
@@ -935,7 +972,7 @@ function formatDonatedBy(raw) {
                            'status-unavailable', 'status-retired');
 
       if (!window.CartManager) {
-        btn.textContent = 'Add To Cart';
+        btn.textContent = t('addToCart');
         btn.disabled = false;
         btn.style.opacity = '1';
         btn.style.cursor = 'pointer';
@@ -946,19 +983,19 @@ function formatDonatedBy(raw) {
       const cartCount = CartManager.getCartCount();
 
       if (isInCart) {
-        btn.textContent = 'Remove From Cart';
+        btn.textContent = t('removeFromCart');
         btn.classList.add('in-cart');
         btn.disabled = false;
         btn.style.opacity = '1';
         btn.style.cursor = 'pointer';
       } else if (cartCount >= CartManager.MAX_ITEMS) {
-        btn.textContent = 'Cart Full (10 Items)';
+        btn.textContent = t('cartFull');
         btn.classList.remove('in-cart');
         btn.disabled = true;
         btn.style.opacity = '0.5';
         btn.style.cursor = 'not-allowed';
       } else {
-        btn.textContent = 'Add To Cart';
+        btn.textContent = t('addToCart');
         btn.classList.remove('in-cart');
         btn.disabled = false;
         btn.style.opacity = '1';
@@ -979,7 +1016,7 @@ function formatDonatedBy(raw) {
       if (!config.canAddToCart || !window.CartManager) return;
 
       btn.disabled = true;
-      btn.textContent = 'Updating...';
+      btn.textContent = t('updating');
       btn.style.opacity = '0.7';
 
       try {
@@ -989,7 +1026,7 @@ function formatDonatedBy(raw) {
         } else {
           const result = await CartManager.addToCart(item);
           if (!result.success && result.reason === 'max_items') {
-            alert('Your cart is full! You can reserve up to 10 items at a time.');
+            alert(t('cartFullAlert'));
           }
         }
       } catch (e) {
