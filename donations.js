@@ -1,4 +1,56 @@
 // ============================================
+// LOCALIZATION (page content is JS-rendered, so .lang spans can't be used here)
+// ============================================
+function isNL() {
+  if (window.DematI18n && window.DematI18n.isNL) return window.DematI18n.isNL();
+  return (document.documentElement.lang || '').toLowerCase().indexOf('nl') === 0;
+}
+
+var DONATIONS_T = {
+  availableStoreCredit:   { en: 'available store credit', nl: 'beschikbaar winkeltegoed' },
+  earnCreditsLine:        { en: 'earn credits by donating your pre-loved clothing.', nl: 'verdien tegoed door je pre-loved kleding te doneren.' },
+  useCreditsLine:         { en: 'use credits towards eligible purchases in store and online.', nl: 'gebruik je tegoed voor in aanmerking komende aankopen in de winkel en online.' },
+  donationLabel:          { en: 'donation', nl: 'donatie' },
+  badgeComplete:          { en: 'complete', nl: 'voltooid' },
+  badgeProcessing:        { en: 'processing', nl: 'in behandeling' },
+  date:                   { en: 'date', nl: 'datum' },
+  items:                  { en: 'items', nl: 'items' },
+  creditsEarned:          { en: 'credits earned', nl: 'tegoed verdiend' },
+  notesFrom:              { en: 'notes from dematerialized', nl: 'opmerkingen van dematerialized' },
+  viewDetails:            { en: 'view details', nl: 'details bekijken' },
+  donatedItemFallback:    { en: 'donated item', nl: 'gedoneerd item' },
+  creditWord:             { en: 'credit', nl: 'tegoed' },
+  viewItem:               { en: 'view item', nl: 'bekijk item' },
+  itemDetailsUnavailable: { en: 'item details not available', nl: 'itemgegevens niet beschikbaar' },
+  creditsAdded:           { en: 'credits have been added to your account', nl: 'tegoed is toegevoegd aan je account' },
+  reviewingItems:         { en: "we're reviewing your donated items", nl: 'we beoordelen je gedoneerde items' },
+  donationSummary:        { en: 'donation summary', nl: 'donatieoverzicht' },
+  donationDate:           { en: 'donation date', nl: 'donatiedatum' },
+  location:               { en: 'location', nl: 'locatie' },
+  inStoreFallback:        { en: 'in-store', nl: 'in de winkel' },
+  itemsAccepted:          { en: 'items accepted', nl: 'items geaccepteerd' },
+  totalCredits:           { en: 'total credits', nl: 'totaal tegoed' },
+  donatedItems:           { en: 'donated items', nl: 'gedoneerde items' },
+  howCreditsWorkTitle:    { en: 'how store credits work', nl: 'hoe winkeltegoed werkt' },
+  howCreditsWorkText:     { en: "store credits can be used towards any material purchase at dematerialized. credits don't expire and can be combined with other payment methods.", nl: 'winkeltegoed kan worden gebruikt voor elke materiële aankoop bij dematerialized. tegoed verloopt niet en kan worden gecombineerd met andere betaalmethoden.' },
+  loadError:              { en: 'unable to load donations. please try again later.', nl: 'kan donaties niet laden. probeer het later opnieuw.' },
+  noDonationsTitle:       { en: 'no donations yet', nl: 'nog geen donaties' },
+  noDonationsText:        { en: 'bring your pre-loved clothing to dematerialized to earn store credit', nl: 'breng je pre-loved kleding naar dematerialized om winkeltegoed te verdienen' },
+  learnMore:              { en: 'learn more', nl: 'meer weten' },
+  yourDonations:          { en: 'your donations', nl: 'jouw donaties' },
+  signinTitle:            { en: 'sign in to view your donations', nl: 'log in om je donaties te bekijken' },
+  signinText:             { en: 'you need to be logged in to see your donation history and store credits.', nl: 'je moet ingelogd zijn om je donatiegeschiedenis en winkeltegoed te zien.' },
+  signin:                 { en: 'sign in', nl: 'inloggen' }
+};
+function t(key) {
+  var e = DONATIONS_T[key];
+  return e ? (isNL() ? e.nl : e.en) : '';
+}
+// Pluralization helpers ('item' is invariant in both langs; 'donatie' -> 'donaties')
+function itemsWord(n) { return isNL() ? 'items' : (n === 1 ? 'item' : 'items'); }
+function donationsWord(n) { return isNL() ? (n === 1 ? 'donatie' : 'donaties') : (n === 1 ? 'donation' : 'donations'); }
+
+// ============================================
 // DONATIONS & STORE CREDIT PAGE FUNCTIONS
 // Updated to match rentals page design system
 // ============================================
@@ -81,7 +133,7 @@ window.DonationsManager = {
   formatDate(dateString) {
     if (!dateString) return 'n/a';
     const date = new Date(dateString);
-    return date.toLocaleDateString('en-GB', { 
+    return date.toLocaleDateString(isNL() ? 'nl-NL' : 'en-GB', { 
       day: 'numeric', 
       month: 'short', 
       year: 'numeric' 
@@ -98,11 +150,11 @@ window.DonationsManager = {
     
     return `
       <div class="donations-balance-card">
-        <div class="donations-balance-label">available store credit</div>
+        <div class="donations-balance-label">${t('availableStoreCredit')}</div>
         <div class="donations-balance-amount">${this.formatCredits(balance)}</div>
         <div class="donations-balance-desc">
-          earn credits by donating your pre-loved clothing.<br>
-          use credits towards eligible purchases in store and online.
+          ${t('earnCreditsLine')}<br>
+          ${t('useCreditsLine')}
         </div>
       </div>
     `;
@@ -120,27 +172,27 @@ window.DonationsManager = {
         <!-- Header -->
         <div class="donation-card-header">
           <div>
-            <div class="donation-card-id-label">donation</div>
+            <div class="donation-card-id-label">${t('donationLabel')}</div>
             <div class="donation-card-id">#${session.hash_id?.substring(0, 8) || session.id}</div>
           </div>
           ${isComplete 
-            ? `<span class="donation-badge donation-badge-complete">complete</span>`
-            : `<span class="donation-badge donation-badge-processing">processing</span>`
+            ? `<span class="donation-badge donation-badge-complete">${t('badgeComplete')}</span>`
+            : `<span class="donation-badge donation-badge-processing">${t('badgeProcessing')}</span>`
           }
         </div>
         
         <!-- Stats Grid -->
         <div class="donation-card-stats">
           <div>
-            <div class="donation-card-stat-label">date</div>
+            <div class="donation-card-stat-label">${t('date')}</div>
             <div class="donation-card-stat-value">${this.formatDate(session.donated_date || session.started_at)}</div>
           </div>
           <div>
-            <div class="donation-card-stat-label">items</div>
-            <div class="donation-card-stat-value">${itemCount} item${itemCount !== 1 ? 's' : ''}</div>
+            <div class="donation-card-stat-label">${t('items')}</div>
+            <div class="donation-card-stat-value">${itemCount} ${itemsWord(itemCount)}</div>
           </div>
           <div>
-            <div class="donation-card-stat-label">credits earned</div>
+            <div class="donation-card-stat-label">${t('creditsEarned')}</div>
             <div class="donation-card-stat-value donation-card-stat-value--credits">${this.formatCredits(credits)}</div>
           </div>
         </div>
@@ -148,14 +200,14 @@ window.DonationsManager = {
         <!-- Notes Section (if present) -->
         ${notes ? `
           <div class="donation-card-notes">
-            <div class="donation-card-notes-label">notes from dematerialized</div>
+            <div class="donation-card-notes-label">${t('notesFrom')}</div>
             <div class="donation-card-notes-text">${this.escapeHtml(notes)}</div>
           </div>
         ` : ''}
         
         <!-- Actions -->
         <button onclick="DonationsManager.viewDonation(${session.id})" class="donation-card-btn">
-          view details
+          ${t('viewDetails')}
         </button>
         
       </div>
@@ -195,10 +247,10 @@ window.DonationsManager = {
     
     const itemsHtml = items.length > 0 ? items.map(item => {
       const imgUrl = this.getItemImage(item);
-      const name = (item.name || 'donated item').toLowerCase();
+      const name = (item.name || t('donatedItemFallback')).toLowerCase();
       const credits = this.getItemCredits(item);
       const sku = item.sku || '';
-      const itemUrl = sku ? `/product?sku=${encodeURIComponent(sku)}` : '';
+      const itemUrl = sku ? `${isNL() ? '/nl/product' : '/product'}?sku=${encodeURIComponent(sku)}` : '';
       
       return `
         <${itemUrl ? `a href="${itemUrl}"` : 'div'} class="donation-modal-item"${!itemUrl ? ' style="cursor: default;"' : ''}>
@@ -211,44 +263,44 @@ window.DonationsManager = {
             <div class="donation-modal-item-name">${name}</div>
             ${credits !== null ? `
               <div class="donation-modal-item-credits">
-                +${this.formatCredits(credits)} credit
+                +${this.formatCredits(credits)} ${t('creditWord')}
               </div>
             ` : ''}
-            ${itemUrl ? `<span class="donation-modal-item-link">view item →</span>` : ''}
+            ${itemUrl ? `<span class="donation-modal-item-link">${t('viewItem')} →</span>` : ''}
           </div>
         </${itemUrl ? 'a' : 'div'}>
       `;
-    }).join('') : '<div style="padding: 20px; text-align: center; color: var(--gray-medium);">item details not available</div>';
+    }).join('') : '<div style="padding: 20px; text-align: center; color: var(--gray-medium);">' + t('itemDetailsUnavailable') + '</div>';
     
     return `
       <!-- Status Banner -->
       <div class="donation-modal-status">
         ${isComplete 
-          ? `<span class="donation-badge donation-badge-complete">complete</span>
-             <span class="donation-modal-status-text">credits have been added to your account</span>`
-          : `<span class="donation-badge donation-badge-processing">processing</span>
-             <span class="donation-modal-status-text">we're reviewing your donated items</span>`
+          ? `<span class="donation-badge donation-badge-complete">${t('badgeComplete')}</span>
+             <span class="donation-modal-status-text">${t('creditsAdded')}</span>`
+          : `<span class="donation-badge donation-badge-processing">${t('badgeProcessing')}</span>
+             <span class="donation-modal-status-text">${t('reviewingItems')}</span>`
         }
       </div>
       
       <!-- Summary -->
       <div>
-        <div class="donation-modal-summary-title">donation summary</div>
+        <div class="donation-modal-summary-title">${t('donationSummary')}</div>
         <div class="donation-modal-summary-grid">
           <div class="donation-modal-summary-item">
-            <div class="donation-modal-summary-label">donation date</div>
+            <div class="donation-modal-summary-label">${t('donationDate')}</div>
             <div class="donation-modal-summary-value">${this.formatDate(session.donated_date || session.started_at)}</div>
           </div>
           <div class="donation-modal-summary-item">
-            <div class="donation-modal-summary-label">location</div>
-            <div class="donation-modal-summary-value">${(session.location || 'in-store').toLowerCase()}</div>
+            <div class="donation-modal-summary-label">${t('location')}</div>
+            <div class="donation-modal-summary-value">${(session.location || t('inStoreFallback')).toLowerCase()}</div>
           </div>
           <div class="donation-modal-summary-item">
-            <div class="donation-modal-summary-label">items accepted</div>
-            <div class="donation-modal-summary-value">${session.item_count || 0} item${(session.item_count || 0) !== 1 ? 's' : ''}</div>
+            <div class="donation-modal-summary-label">${t('itemsAccepted')}</div>
+            <div class="donation-modal-summary-value">${session.item_count || 0} ${itemsWord(session.item_count || 0)}</div>
           </div>
           <div class="donation-modal-summary-item donation-modal-summary-item--highlight">
-            <div class="donation-modal-summary-label">total credits</div>
+            <div class="donation-modal-summary-label">${t('totalCredits')}</div>
             <div class="donation-modal-summary-value donation-modal-summary-value--credits">${this.formatCredits(session.total_credits_cents)}</div>
           </div>
         </div>
@@ -257,22 +309,22 @@ window.DonationsManager = {
       <!-- Notes (if present) -->
       ${notes ? `
         <div class="donation-modal-notes">
-          <div class="donation-modal-notes-label">notes from dematerialized</div>
+          <div class="donation-modal-notes-label">${t('notesFrom')}</div>
           <div class="donation-modal-notes-text">${this.escapeHtml(notes)}</div>
         </div>
       ` : ''}
       
       <!-- Items -->
       <div>
-        <div class="donation-modal-items-title">donated items</div>
+        <div class="donation-modal-items-title">${t('donatedItems')}</div>
         ${itemsHtml}
       </div>
       
       <!-- How Credits Work -->
       <div class="donation-modal-info">
-        <div class="donation-modal-info-title">how store credits work</div>
+        <div class="donation-modal-info-title">${t('howCreditsWorkTitle')}</div>
         <div class="donation-modal-info-text">
-          store credits can be used towards any material purchase at dematerialized. credits don't expire and can be combined with other payment methods.
+          ${t('howCreditsWorkText')}
         </div>
       </div>
     `;
@@ -308,7 +360,7 @@ window.DonationsManager = {
         contentEl.innerHTML = `
           <div class="donations-error">
             <div class="donations-error-icon">⚠️</div>
-            <p class="donations-error-text">unable to load donations. please try again later.</p>
+            <p class="donations-error-text">${t('loadError')}</p>
           </div>
         `;
         contentEl.style.display = 'block';
@@ -324,11 +376,11 @@ window.DonationsManager = {
       if (sessions.length === 0) {
         html += `
           <div class="donations-empty">
-            <h3 class="donations-empty-title">no donations yet</h3>
+            <h3 class="donations-empty-title">${t('noDonationsTitle')}</h3>
             <p class="donations-empty-text">
-              bring your pre-loved clothing to dematerialized to earn store credit
+              ${t('noDonationsText')}
             </p>
-            <a href="/donations" class="donations-empty-btn">learn more</a>
+            <a href="/donations" class="donations-empty-btn">${t('learnMore')}</a>
           </div>
         `;
       } else {
@@ -342,8 +394,8 @@ window.DonationsManager = {
         // Section header
         html += `
           <div class="donations-section-header">
-            <div class="donations-section-title">your donations</div>
-            <div class="donations-section-count">${sessions.length} donation${sessions.length !== 1 ? 's' : ''}</div>
+            <div class="donations-section-title">${t('yourDonations')}</div>
+            <div class="donations-section-count">${sessions.length} ${donationsWord(sessions.length)}</div>
           </div>
         `;
         
@@ -488,9 +540,9 @@ document.addEventListener('click', function(e) {
           if (container) {
             container.innerHTML = `
               <div class="donations-signin">
-                <h2 class="donations-signin-title">sign in to view your donations</h2>
-                <p class="donations-signin-text">you need to be logged in to see your donation history and store credits.</p>
-                <button onclick="openAuthModal()" class="donations-signin-btn">sign in</button>
+                <h2 class="donations-signin-title">${t('signinTitle')}</h2>
+                <p class="donations-signin-text">${t('signinText')}</p>
+                <button onclick="openAuthModal()" class="donations-signin-btn">${t('signin')}</button>
               </div>
             `;
           }
