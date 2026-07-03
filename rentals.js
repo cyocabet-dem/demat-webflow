@@ -1,4 +1,39 @@
 // ============================================
+// LOCALIZATION (page content is JS-rendered, so .lang spans can't be used here)
+// ============================================
+function isNL() {
+  if (window.DematI18n && window.DematI18n.isNL) return window.DematI18n.isNL();
+  return (document.documentElement.lang || '').toLowerCase().indexOf('nl') === 0;
+}
+
+var RENTALS_T = {
+  unknownItem:    { en: 'unknown item', nl: 'onbekend item' },
+  rentedOn:       { en: 'rented on', nl: 'gehuurd op' },
+  wantToKeep:     { en: 'want to keep it?', nl: 'wil je het houden?' },
+  percentOff:     { en: '50% off', nl: '50% korting' },
+  inCart:         { en: 'in cart', nl: 'in winkelmand' },
+  addToCartLabel: { en: 'add to cart', nl: 'toevoegen aan winkelmand' },
+  viewItem:       { en: 'view item', nl: 'bekijk item' },
+  purchasedOn:    { en: 'purchased on', nl: 'gekocht op' },
+  returnedOn:     { en: 'returned on', nl: 'geretourneerd op' },
+  returnedWord:   { en: 'returned', nl: 'geretourneerd' },
+  purchasedWord:  { en: 'purchased', nl: 'gekocht' },
+  onWord:         { en: 'on', nl: 'op' },
+  rentalDetails:  { en: 'rental details', nl: 'huurgegevens' },
+  priceError:     { en: 'Unable to determine price for this item. Please try again later.', nl: 'kan de prijs van dit item niet bepalen. probeer het later opnieuw.' },
+  addError:       { en: 'Unable to add to cart. Please refresh the page and try again.', nl: 'kan niet aan winkelmand toevoegen. ververs de pagina en probeer opnieuw.' },
+  signinTitle:    { en: 'sign in to view your rentals', nl: 'log in om je verhuur te bekijken' },
+  signinText:     { en: 'you need to be logged in to see your rentals.', nl: 'je moet ingelogd zijn om je verhuur te zien.' },
+  signin:         { en: 'sign in', nl: 'inloggen' }
+};
+function t(key) {
+  var e = RENTALS_T[key];
+  return e ? (isNL() ? e.nl : e.en) : '';
+}
+// Pluralization helper ('item' is invariant in both languages)
+function itemsWord(n) { return isNL() ? 'items' : (n === 1 ? 'item' : 'items'); }
+
+// ============================================
 // MY RENTALS PAGE - WITH PURCHASE FUNCTIONALITY
 // Host on GitHub or add to Page Body Code
 // ============================================
@@ -98,7 +133,7 @@ window.RentalsManager = {
   formatDate(dateString) {
     if (!dateString) return 'N/A';
     const date = new Date(dateString);
-    return date.toLocaleDateString('en-GB', {
+    return date.toLocaleDateString(isNL() ? 'nl-NL' : 'en-GB', {
       day: 'numeric',
       month: 'short',
       year: 'numeric'
@@ -124,7 +159,7 @@ window.RentalsManager = {
   goToProduct(sku, event) {
     if (event) event.stopPropagation();
     if (sku) {
-      window.location.href = '/product?sku=' + encodeURIComponent(sku);
+      window.location.href = (isNL() ? '/nl/product' : '/product') + '?sku=' + encodeURIComponent(sku);
     }
   },
 
@@ -153,7 +188,7 @@ window.RentalsManager = {
 
     if (!retailPrice) {
       console.error('Could not determine price for item:', ci.sku);
-      alert('Unable to determine price for this item. Please try again later.');
+      alert(t('priceError'));
       return;
     }
 
@@ -176,7 +211,7 @@ window.RentalsManager = {
       this.renderRentalsPage();
     } else {
       console.error('PurchaseCart not available');
-      alert('Unable to add to cart. Please refresh the page and try again.');
+      alert(t('addError'));
     }
   },
 
@@ -192,7 +227,7 @@ window.RentalsManager = {
   renderActiveRentalCard(rental) {
     const ci = rental.clothing_item;
     const imgUrl = this.getItemImage(rental);
-    const name = ci?.name?.toLowerCase() || 'unknown item';
+    const name = ci?.name?.toLowerCase() || t('unknownItem');
     const sku = ci?.sku || '';
     
     // Pricing
@@ -205,20 +240,20 @@ window.RentalsManager = {
 
     return `
       <div class="rental-card">
-        <a href="/product?sku=${encodeURIComponent(sku)}" class="rental-card-image">
+        <a href="${isNL() ? '/nl/product' : '/product'}?sku=${encodeURIComponent(sku)}" class="rental-card-image">
           ${imgUrl ? `<img src="${imgUrl}" alt="${name}" loading="lazy">` : ''}
         </a>
         <div class="rental-card-content">
           <div class="rental-card-name">${name}</div>
-          <div class="rental-card-date">rented on ${this.formatDate(rental.rental_start_date)}</div>
+          <div class="rental-card-date">${t('rentedOn')} ${this.formatDate(rental.rental_start_date)}</div>
           
           ${hasPrice ? `
             <div class="rental-card-purchase-section">
-              <div class="rental-card-purchase-label">want to keep it?</div>
+              <div class="rental-card-purchase-label">${t('wantToKeep')}</div>
               <div class="rental-card-purchase-prices">
                 <span class="price-original">${this.formatPrice(retailPrice)}</span>
                 <span class="price-discount">${this.formatPrice(purchasePrice)}</span>
-                <span class="price-badge">50% off</span>
+                <span class="price-badge">${t('percentOff')}</span>
               </div>
             </div>
           ` : ''}
@@ -230,7 +265,7 @@ window.RentalsManager = {
                   <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                     <polyline points="20 6 9 17 4 12"></polyline>
                   </svg>
-                  in cart
+                  ${t('inCart')}
                 </button>
               ` : `
                 <button onclick="RentalsManager.addToCart(${rental.id})" class="rental-card-btn">
@@ -239,11 +274,11 @@ window.RentalsManager = {
                     <circle cx="20" cy="21" r="1"/>
                     <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/>
                   </svg>
-                  add to cart
+                  ${t('addToCartLabel')}
                 </button>
               `}
             ` : ''}
-            <a href="/product?sku=${encodeURIComponent(sku)}" class="rental-card-link">view item</a>
+            <a href="${isNL() ? '/nl/product' : '/product'}?sku=${encodeURIComponent(sku)}" class="rental-card-link">${t('viewItem')}</a>
           </div>
         </div>
       </div>
@@ -253,11 +288,11 @@ window.RentalsManager = {
   renderHistoryItem(rental) {
     const ci = rental.clothing_item;
     const imgUrl = this.getItemImage(rental);
-    const name = ci?.name?.toLowerCase() || 'unknown item';
+    const name = ci?.name?.toLowerCase() || t('unknownItem');
     const sku = ci?.sku || '';
 
     return `
-      <a href="/product?sku=${encodeURIComponent(sku)}" class="history-modal-item">
+      <a href="${isNL() ? '/nl/product' : '/product'}?sku=${encodeURIComponent(sku)}" class="history-modal-item">
         <div class="history-modal-item-image">
           ${imgUrl ? `<img src="${imgUrl}" alt="${name}">` : ''}
         </div>
@@ -307,14 +342,14 @@ renderHistoryGroup(group) {
     // Build the date label
     let dateLabel;
     if (purchasedCount === count) {
-      dateLabel = `purchased on ${group.displayDate}`;
+      dateLabel = t('purchasedOn') + ' ' + group.displayDate;
     } else if (returnedCount === count) {
-      dateLabel = `returned on ${group.displayDate}`;
+      dateLabel = t('returnedOn') + ' ' + group.displayDate;
     } else {
-      dateLabel = `${returnedCount} returned & ${purchasedCount} purchased on ${group.displayDate}`;
+      dateLabel = returnedCount + ' ' + t('returnedWord') + ' & ' + purchasedCount + ' ' + t('purchasedWord') + ' ' + t('onWord') + ' ' + group.displayDate;
     }
 
-    const itemLabel = count === 1 ? '1 item' : `${count} items`;
+    const itemLabel = count + ' ' + itemsWord(count);
 
     const thumbs = group.rentals.slice(0, maxThumbs).map((r, index) => {
       const imgUrl = this.getItemImage(r);
@@ -385,13 +420,13 @@ renderHistoryGroup(group) {
       const returnedCount = rentals.length - purchasedCount;
 
       if (purchasedCount === rentals.length) {
-        modalTitle.textContent = `${rentals.length} item${rentals.length !== 1 ? 's' : ''} purchased`;
+        modalTitle.textContent = rentals.length + ' ' + itemsWord(rentals.length) + ' ' + t('purchasedWord');
       } else if (returnedCount === rentals.length) {
         modalTitle.textContent = rentals.length === 1 
-          ? 'rental details' 
-          : `${rentals.length} items returned`;
+          ? t('rentalDetails') 
+          : rentals.length + ' ' + itemsWord(rentals.length) + ' ' + t('returnedWord');
       } else {
-        modalTitle.textContent = `${returnedCount} returned & ${purchasedCount} purchased`;
+        modalTitle.textContent = returnedCount + ' ' + t('returnedWord') + ' & ' + purchasedCount + ' ' + t('purchasedWord');
       }
     }
 
@@ -546,9 +581,9 @@ document.addEventListener('DOMContentLoaded', function() {
           if (container) {
             container.innerHTML = `
               <div class="rentals-signin">
-                <h2 class="rentals-signin-title">sign in to view your rentals</h2>
-                <p class="rentals-signin-text">you need to be logged in to see your rentals.</p>
-                <button onclick="openAuthModal()" class="rentals-signin-btn">sign in</button>
+                <h2 class="rentals-signin-title">${t('signinTitle')}</h2>
+                <p class="rentals-signin-text">${t('signinText')}</p>
+                <button onclick="openAuthModal()" class="rentals-signin-btn">${t('signin')}</button>
               </div>
             `;
           }
