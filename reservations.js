@@ -8,12 +8,12 @@ function isNL() {
 
 var RESERVATIONS_T = {
   badgePending:         { en: 'pending', nl: 'in behandeling' },
-  badgeReady:           { en: 'ready for pickup', nl: 'klaar om op te halen' },
+  badgeReady:           { en: 'ready for pickup', nl: 'ligt klaar' },
   badgeCompleted:       { en: 'completed', nl: 'voltooid' },
   badgeCancelled:       { en: 'cancelled', nl: 'geannuleerd' },
   badgeExpired:         { en: 'expired', nl: 'verlopen' },
   statusPending:        { en: 'your items are being prepared', nl: 'je items worden klaargemaakt' },
-  statusReady:          { en: 'your items are ready for pickup!', nl: 'je items liggen klaar om op te halen!' },
+  statusReady:          { en: 'your items are ready for pickup!', nl: 'je items liggen klaar!' },
   statusCompleted:      { en: 'this reservation has been completed', nl: 'deze reservering is voltooid' },
   statusCancelled:      { en: 'this reservation was cancelled', nl: 'deze reservering is geannuleerd' },
   statusExpired:        { en: 'this reservation has expired', nl: 'deze reservering is verlopen' },
