@@ -72,43 +72,43 @@
     rented: {
       canAddToCart: false,
       buttonText: 'Rented Out',
-      buttonTextNL: 'Verhuurd',
+      buttonTextNL: 'verhuurd',
       buttonClass: 'status-rented'
     },
     reserved: {
       canAddToCart: false,
       buttonText: 'Reserved',
-      buttonTextNL: 'Gereserveerd',
+      buttonTextNL: 'gereserveerd',
       buttonClass: 'status-reserved'
     },
     returned: {
       canAddToCart: false,
       buttonText: 'Returning Soon',
-      buttonTextNL: 'Binnenkort terug',
+      buttonTextNL: 'binnenkort terug',
       buttonClass: 'status-returned'
     },
     purchased: {
       canAddToCart: false,
       buttonText: 'Purchased',
-      buttonTextNL: 'Gekocht',
+      buttonTextNL: 'gekocht',
       buttonClass: 'status-purchased'
     },
     sold: {
       canAddToCart: false,
       buttonText: 'Sold',
-      buttonTextNL: 'Verkocht',
+      buttonTextNL: 'verkocht',
       buttonClass: 'status-sold'
     },
     damaged: {
       canAddToCart: false,
       buttonText: 'Unavailable',
-      buttonTextNL: 'Niet beschikbaar',
+      buttonTextNL: 'niet beschikbaar',
       buttonClass: 'status-unavailable'
     },
     retired: {
       canAddToCart: false,
       buttonText: 'No Longer Available',
-      buttonTextNL: 'Niet meer beschikbaar',
+      buttonTextNL: 'niet meer beschikbaar',
       buttonClass: 'status-retired'
     }
   };
@@ -138,13 +138,13 @@
   }
 
   const T = {
-    addToCart:          { en: 'Add To Cart',            nl: 'In winkelmand' },
-    removeFromCart:     { en: 'Remove From Cart',       nl: 'Uit winkelmand' },
-    cartFull:           { en: 'Cart Full',   nl: 'Winkelmand vol' },
-    updating:           { en: 'Updating...',            nl: 'Bijwerken...' },
-    cartFullAlert:      { en: 'Your cart is full! You can reserve up to 10 items at a time.', nl: 'Je winkelmand is vol! Je kunt maximaal 10 items tegelijk reserveren.' },
-    addToWishlist:      { en: 'Add To Wish List',       nl: 'Toevoegen aan wishlist' },
-    removeFromWishlist: { en: 'Remove From Wish List',  nl: 'Verwijderen uit wishlist' }
+    addToCart:          { en: 'Add To Cart',            nl: 'in winkelmand' },
+    removeFromCart:     { en: 'Remove From Cart',       nl: 'uit winkelmand' },
+    cartFull:           { en: 'Cart Full',              nl: 'winkelmand vol' },
+    updating:           { en: 'Updating...',            nl: 'bijwerken...' },
+    cartFullAlert:      { en: 'Your cart is full! You can reserve up to 10 items at a time.', nl: 'je winkelmand is vol! je kunt maximaal 10 items tegelijk reserveren.' },
+    addToWishlist:      { en: 'Add To Wish List',       nl: 'toevoegen aan wishlist' },
+    removeFromWishlist: { en: 'Remove From Wish List',  nl: 'verwijderen uit wishlist' }
   };
 
   function t(key) {
