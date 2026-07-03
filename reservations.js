@@ -1,4 +1,52 @@
 // ============================================
+// LOCALIZATION (page content is JS-rendered, so .lang spans can't be used here)
+// ============================================
+function isNL() {
+  if (window.DematI18n && window.DematI18n.isNL) return window.DematI18n.isNL();
+  return (document.documentElement.lang || '').toLowerCase().indexOf('nl') === 0;
+}
+
+var RESERVATIONS_T = {
+  badgePending:         { en: 'pending', nl: 'in behandeling' },
+  badgeReady:           { en: 'ready for pickup', nl: 'klaar om op te halen' },
+  badgeCompleted:       { en: 'completed', nl: 'voltooid' },
+  badgeCancelled:       { en: 'cancelled', nl: 'geannuleerd' },
+  badgeExpired:         { en: 'expired', nl: 'verlopen' },
+  statusPending:        { en: 'your items are being prepared', nl: 'je items worden klaargemaakt' },
+  statusReady:          { en: 'your items are ready for pickup!', nl: 'je items liggen klaar om op te halen!' },
+  statusCompleted:      { en: 'this reservation has been completed', nl: 'deze reservering is voltooid' },
+  statusCancelled:      { en: 'this reservation was cancelled', nl: 'deze reservering is geannuleerd' },
+  statusExpired:        { en: 'this reservation has expired', nl: 'deze reservering is verlopen' },
+  reservationLabel:     { en: 'reservation', nl: 'reservering' },
+  requested:            { en: 'requested', nl: 'aangevraagd' },
+  readyBy:              { en: 'ready by', nl: 'klaar op' },
+  pickupBy:             { en: 'pickup by', nl: 'ophalen voor' },
+  noItemsInReservation: { en: 'no items in this reservation', nl: 'geen items in deze reservering' },
+  viewDetails:          { en: 'view details', nl: 'details bekijken' },
+  unknownItemFallback:  { en: 'unknown item', nl: 'onbekend item' },
+  pickedUp:             { en: '\u2713 picked up', nl: '\u2713 opgehaald' },
+  awaitingPickup:       { en: 'awaiting pickup', nl: 'wacht op ophalen' },
+  viewItem:             { en: 'view item', nl: 'bekijk item' },
+  reservationDetails:   { en: 'reservation details', nl: 'reserveringsgegevens' },
+  readyForPickup:       { en: 'ready for pickup', nl: 'ligt klaar' },
+  pickupDeadline:       { en: 'pickup deadline', nl: 'ophaaldeadline' },
+  items:                { en: 'items', nl: 'items' },
+  reservedItems:        { en: 'reserved items', nl: 'gereserveerde items' },
+  pickupLocation:       { en: 'pickup location', nl: 'ophaallocatie' },
+  yourReservations:     { en: 'your reservations', nl: 'jouw reserveringen' },
+  signinTitle:          { en: 'sign in to view your reservations', nl: 'log in om je reserveringen te bekijken' },
+  signinText:           { en: 'you need to be logged in to see your reservations.', nl: 'je moet ingelogd zijn om je reserveringen te zien.' },
+  signin:               { en: 'sign in', nl: 'inloggen' }
+};
+function t(key) {
+  var e = RESERVATIONS_T[key];
+  return e ? (isNL() ? e.nl : e.en) : '';
+}
+// Pluralization helpers ('item' invariant; 'reservering' -> 'reserveringen')
+function itemsWord(n) { return isNL() ? 'items' : (n === 1 ? 'item' : 'items'); }
+function reservationsWord(n) { return isNL() ? (n === 1 ? 'reservering' : 'reserveringen') : (n === 1 ? 'reservation' : 'reservations'); }
+
+// ============================================
 // RESERVATIONS PAGE FUNCTIONS
 // Updated to match design system
 // ============================================
@@ -47,7 +95,7 @@ window.ReservationsManager = {
   formatDate(dateString) {
     if (!dateString) return 'n/a';
     const date = new Date(dateString);
-    return date.toLocaleDateString('en-GB', { 
+    return date.toLocaleDateString(isNL() ? 'nl-NL' : 'en-GB', { 
       day: 'numeric', 
       month: 'short', 
       year: 'numeric' 
@@ -56,11 +104,11 @@ window.ReservationsManager = {
   
   getStatusBadge(status) {
     const styles = {
-      'pending':   { cls: 'reservation-badge-pending', label: 'pending' },
-      'ready':     { cls: 'reservation-badge-ready', label: 'ready for pickup' },
-      'completed': { cls: 'reservation-badge-completed', label: 'completed' },
-      'cancelled': { cls: 'reservation-badge-cancelled', label: 'cancelled' },
-      'expired':   { cls: 'reservation-badge-expired', label: 'expired' }
+      'pending':   { cls: 'reservation-badge-pending', label: t('badgePending') },
+      'ready':     { cls: 'reservation-badge-ready', label: t('badgeReady') },
+      'completed': { cls: 'reservation-badge-completed', label: t('badgeCompleted') },
+      'cancelled': { cls: 'reservation-badge-cancelled', label: t('badgeCancelled') },
+      'expired':   { cls: 'reservation-badge-expired', label: t('badgeExpired') }
     };
     const s = styles[status] || styles['pending'];
     return '<span class="reservation-badge ' + s.cls + '">' + s.label + '</span>';
@@ -68,11 +116,11 @@ window.ReservationsManager = {
   
   getStatusText(status) {
     const texts = {
-      'pending': 'your items are being prepared',
-      'ready': 'your items are ready for pickup!',
-      'completed': 'this reservation has been completed',
-      'cancelled': 'this reservation was cancelled',
-      'expired': 'this reservation has expired'
+      'pending': t('statusPending'),
+      'ready': t('statusReady'),
+      'completed': t('statusCompleted'),
+      'cancelled': t('statusCancelled'),
+      'expired': t('statusExpired')
     };
     return texts[status] || '';
   },
@@ -113,32 +161,32 @@ window.ReservationsManager = {
     return '<div class="reservation-card">' +
       '<div class="reservation-card-header">' +
         '<div>' +
-          '<div class="reservation-card-id-label">reservation</div>' +
+          '<div class="reservation-card-id-label">' + t('reservationLabel') + '</div>' +
           '<div class="reservation-card-id">#' + (reservation.hash_id?.substring(0, 8) || reservation.id) + '</div>' +
         '</div>' +
         this.getStatusBadge(reservation.status) +
       '</div>' +
       '<div class="reservation-card-stats">' +
         '<div>' +
-          '<div class="reservation-card-stat-label">requested</div>' +
+          '<div class="reservation-card-stat-label">' + t('requested') + '</div>' +
           '<div class="reservation-card-stat-value">' + this.formatDate(reservation.request_date) + '</div>' +
         '</div>' +
         '<div>' +
-          '<div class="reservation-card-stat-label">ready by</div>' +
+          '<div class="reservation-card-stat-label">' + t('readyBy') + '</div>' +
           '<div class="reservation-card-stat-value">' + this.formatDate(reservation.ready_for_pickup_date) + '</div>' +
         '</div>' +
         '<div>' +
-          '<div class="reservation-card-stat-label">pickup by</div>' +
+          '<div class="reservation-card-stat-label">' + t('pickupBy') + '</div>' +
           '<div class="reservation-card-stat-value reservation-card-stat-value--highlight">' + this.formatDate(reservation.reservation_due_date) + '</div>' +
         '</div>' +
       '</div>' +
       (hasItems ? 
-        '<div class="reservation-card-items-label">' + itemCount + ' item' + (itemCount !== 1 ? 's' : '') + '</div>' +
+        '<div class="reservation-card-items-label">' + itemCount + ' ' + itemsWord(itemCount) + '</div>' +
         '<div class="reservation-card-items-preview">' + previewImages + moreCount + '</div>'
         :
-        '<div class="reservation-card-no-items">no items in this reservation</div>'
+        '<div class="reservation-card-no-items">' + t('noItemsInReservation') + '</div>'
       ) +
-      '<button onclick="ReservationsManager.viewReservation(' + reservation.id + ')" class="reservation-card-btn">view details</button>' +
+      '<button onclick="ReservationsManager.viewReservation(' + reservation.id + ')" class="reservation-card-btn">' + t('viewDetails') + '</button>' +
     '</div>';
   },
   
@@ -148,9 +196,9 @@ window.ReservationsManager = {
     const itemsHtml = items.map(item => {
       const ci = item.clothing_item;
       const imgUrl = this.getItemImage(item);
-      const name = (ci?.name || 'unknown item').toLowerCase();
+      const name = (ci?.name || t('unknownItemFallback')).toLowerCase();
       const sku = ci?.sku || '';
-      const itemUrl = sku ? '/product?sku=' + encodeURIComponent(sku) : '';
+      const itemUrl = sku ? (isNL() ? '/nl/product' : '/product') + '?sku=' + encodeURIComponent(sku) : '';
       
       const tag = itemUrl ? 'a' : 'div';
       const hrefAttr = itemUrl ? ' href="' + itemUrl + '"' : ' style="cursor: default;"';
@@ -162,9 +210,9 @@ window.ReservationsManager = {
         '<div class="reservation-modal-item-details">' +
           '<div class="reservation-modal-item-name">' + name + '</div>' +
           '<div class="reservation-modal-item-status ' + (item.picked_up ? 'reservation-modal-item-status--picked-up' : 'reservation-modal-item-status--awaiting') + '">' +
-            (item.picked_up ? '✓ picked up' : 'awaiting pickup') +
+            (item.picked_up ? t('pickedUp') : t('awaitingPickup')) +
           '</div>' +
-          (itemUrl ? '<span class="reservation-modal-item-link">view item →</span>' : '') +
+          (itemUrl ? '<span class="reservation-modal-item-link">' + t('viewItem') + ' →</span>' : '') +
         '</div>' +
       '</' + tag + '>';
     }).join('');
@@ -174,32 +222,32 @@ window.ReservationsManager = {
         '<span class="reservation-modal-status-text">' + this.getStatusText(reservation.status) + '</span>' +
       '</div>' +
       '<div>' +
-        '<div class="reservation-modal-summary-title">reservation details</div>' +
+        '<div class="reservation-modal-summary-title">' + t('reservationDetails') + '</div>' +
         '<div class="reservation-modal-summary-grid">' +
           '<div class="reservation-modal-summary-item">' +
-            '<div class="reservation-modal-summary-label">requested</div>' +
+            '<div class="reservation-modal-summary-label">' + t('requested') + '</div>' +
             '<div class="reservation-modal-summary-value">' + this.formatDate(reservation.request_date) + '</div>' +
           '</div>' +
           '<div class="reservation-modal-summary-item">' +
-            '<div class="reservation-modal-summary-label">ready for pickup</div>' +
+            '<div class="reservation-modal-summary-label">' + t('readyForPickup') + '</div>' +
             '<div class="reservation-modal-summary-value">' + this.formatDate(reservation.ready_for_pickup_date) + '</div>' +
           '</div>' +
           '<div class="reservation-modal-summary-item reservation-modal-summary-item--highlight">' +
-            '<div class="reservation-modal-summary-label">pickup deadline</div>' +
+            '<div class="reservation-modal-summary-label">' + t('pickupDeadline') + '</div>' +
             '<div class="reservation-modal-summary-value reservation-modal-summary-value--highlight">' + this.formatDate(reservation.reservation_due_date) + '</div>' +
           '</div>' +
           '<div class="reservation-modal-summary-item">' +
-            '<div class="reservation-modal-summary-label">items</div>' +
-            '<div class="reservation-modal-summary-value">' + items.length + ' item' + (items.length !== 1 ? 's' : '') + '</div>' +
+            '<div class="reservation-modal-summary-label">' + t('items') + '</div>' +
+            '<div class="reservation-modal-summary-value">' + items.length + ' ' + itemsWord(items.length) + '</div>' +
           '</div>' +
         '</div>' +
       '</div>' +
       '<div>' +
-        '<div class="reservation-modal-items-title">reserved items</div>' +
-        (itemsHtml || '<div style="padding: 20px; text-align: center; color: #46535e;">no items in this reservation</div>') +
+        '<div class="reservation-modal-items-title">' + t('reservedItems') + '</div>' +
+        (itemsHtml || '<div style="padding: 20px; text-align: center; color: #46535e;">' + t('noItemsInReservation') + '</div>') +
       '</div>' +
       '<div class="reservation-modal-location">' +
-        '<div class="reservation-modal-location-title">pickup location</div>' +
+        '<div class="reservation-modal-location-title">' + t('pickupLocation') + '</div>' +
         '<div class="reservation-modal-location-text">' +
           'dematerialized<br>' +
           'lange putstraat 4<br>' +
@@ -263,8 +311,8 @@ window.ReservationsManager = {
     
     if (listEl) {
       let html = '<div class="reservations-section-header">' +
-          '<div class="reservations-section-title">your reservations</div>' +
-          '<div class="reservations-section-count">' + validReservations.length + ' reservation' + (validReservations.length !== 1 ? 's' : '') + '</div>' +
+          '<div class="reservations-section-title">' + t('yourReservations') + '</div>' +
+          '<div class="reservations-section-count">' + validReservations.length + ' ' + reservationsWord(validReservations.length) + '</div>' +
         '</div>';
       html += validReservations.map(r => this.renderReservationCard(r)).join('');
       listEl.innerHTML = html;
@@ -306,7 +354,7 @@ window.ReservationsManager = {
     
     // Update old label if it exists
     const oldLabel = modal.querySelector('.modal-label');
-    if (oldLabel) oldLabel.textContent = 'reservation details';
+    if (oldLabel) oldLabel.textContent = t('reservationDetails');
     
     backdrop.style.display = 'block';
     modal.style.display = 'flex';
@@ -390,9 +438,9 @@ document.addEventListener('click', function(e) {
           var container = document.getElementById('reservations-container');
           if (container) {
             container.innerHTML = '<div class="reservations-signin">' +
-              '<h2 class="reservations-signin-title">sign in to view your reservations</h2>' +
-              '<p class="reservations-signin-text">you need to be logged in to see your reservations.</p>' +
-              '<button onclick="openAuthModal()" class="reservations-signin-btn">sign in</button>' +
+              '<h2 class="reservations-signin-title">' + t('signinTitle') + '</h2>' +
+              '<p class="reservations-signin-text">' + t('signinText') + '</p>' +
+              '<button onclick="openAuthModal()" class="reservations-signin-btn">' + t('signin') + '</button>' +
             '</div>';
           }
         }
