@@ -36,7 +36,8 @@ var RESERVATIONS_T = {
   yourReservations:     { en: 'your reservations', nl: 'jouw reserveringen' },
   signinTitle:          { en: 'sign in to view your reservations', nl: 'log in om je reserveringen te bekijken' },
   signinText:           { en: 'you need to be logged in to see your reservations.', nl: 'je moet ingelogd zijn om je reserveringen te zien.' },
-  signin:               { en: 'sign in', nl: 'inloggen' }
+  signin:               { en: 'sign in', nl: 'inloggen' },
+  tbd:                  { en: 'tbd', nl: 'n.t.b.' }
 };
 function t(key) {
   var e = RESERVATIONS_T[key];
@@ -100,6 +101,20 @@ window.ReservationsManager = {
       month: 'short', 
       year: 'numeric' 
     }).toLowerCase();
+  },
+
+  // Pickup deadline: 'tbd' until ready, then ready_for_pickup_date + 7 days.
+  // When status is set to 'ready', the backend stamps ready_for_pickup_date to
+  // that moment (it matches updated_at to the millisecond in the API response).
+  pickupByValue(reservation) {
+    const status = (reservation.status || '').toLowerCase();
+    if (status !== 'ready') return t('tbd');
+    const readyRaw = reservation.ready_for_pickup_date;
+    if (!readyRaw) return t('tbd');
+    const d = new Date(readyRaw);
+    if (isNaN(d.getTime())) return t('tbd');
+    d.setDate(d.getDate() + 7);
+    return this.formatDate(d);
   },
   
   getStatusBadge(status) {
@@ -172,12 +187,8 @@ window.ReservationsManager = {
           '<div class="reservation-card-stat-value">' + this.formatDate(reservation.request_date) + '</div>' +
         '</div>' +
         '<div>' +
-          '<div class="reservation-card-stat-label">' + t('readyBy') + '</div>' +
-          '<div class="reservation-card-stat-value">' + this.formatDate(reservation.ready_for_pickup_date) + '</div>' +
-        '</div>' +
-        '<div>' +
           '<div class="reservation-card-stat-label">' + t('pickupBy') + '</div>' +
-          '<div class="reservation-card-stat-value reservation-card-stat-value--highlight">' + this.formatDate(reservation.reservation_due_date) + '</div>' +
+          '<div class="reservation-card-stat-value reservation-card-stat-value--highlight">' + this.pickupByValue(reservation) + '</div>' +
         '</div>' +
       '</div>' +
       (hasItems ? 
@@ -228,13 +239,9 @@ window.ReservationsManager = {
             '<div class="reservation-modal-summary-label">' + t('requested') + '</div>' +
             '<div class="reservation-modal-summary-value">' + this.formatDate(reservation.request_date) + '</div>' +
           '</div>' +
-          '<div class="reservation-modal-summary-item">' +
-            '<div class="reservation-modal-summary-label">' + t('readyForPickup') + '</div>' +
-            '<div class="reservation-modal-summary-value">' + this.formatDate(reservation.ready_for_pickup_date) + '</div>' +
-          '</div>' +
           '<div class="reservation-modal-summary-item reservation-modal-summary-item--highlight">' +
             '<div class="reservation-modal-summary-label">' + t('pickupDeadline') + '</div>' +
-            '<div class="reservation-modal-summary-value reservation-modal-summary-value--highlight">' + this.formatDate(reservation.reservation_due_date) + '</div>' +
+            '<div class="reservation-modal-summary-value reservation-modal-summary-value--highlight">' + this.pickupByValue(reservation) + '</div>' +
           '</div>' +
           '<div class="reservation-modal-summary-item">' +
             '<div class="reservation-modal-summary-label">' + t('items') + '</div>' +
