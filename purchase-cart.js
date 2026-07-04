@@ -1,15 +1,52 @@
 // ============================================
+// LOCALIZATION (cart is fully JS-rendered, so .lang spans can't be used here)
+// ============================================
+function isNL() {
+  if (window.DematI18n && window.DematI18n.isNL) return window.DematI18n.isNL();
+  return (document.documentElement.lang || '').toLowerCase().indexOf('nl') === 0;
+}
+var PCART_T = {
+  addedToCart:           { en: 'Added to cart', nl: 'toegevoegd aan winkelmand' },
+  yourCart:              { en: 'your cart', nl: 'je winkelmand' },
+  cartEmpty:             { en: 'your cart is empty', nl: 'je winkelmand is leeg' },
+  total:                 { en: 'total', nl: 'totaal' },
+  checkout:              { en: 'checkout', nl: 'afrekenen' },
+  items:                 { en: 'items', nl: 'items' },
+  subtotal:              { en: 'subtotal (50% off)', nl: 'subtotaal (50% korting)' },
+  yourStoreCredits:      { en: 'your store credits', nl: 'jouw winkeltegoed' },
+  creditsApplied:        { en: 'credits applied', nl: 'tegoed toegepast' },
+  redirectInfo:          { en: "by clicking 'complete purchase' you will be redirected to our payment provider.", nl: "door op 'aankoop voltooien' te klikken word je doorgestuurd naar onze betaalprovider." },
+  creditsCover:          { en: 'your credits cover this purchase!', nl: 'je tegoed dekt deze aankoop!' },
+  completePurchase:      { en: 'complete purchase', nl: 'aankoop voltooien' },
+  processing:            { en: 'processing...', nl: 'verwerken...' },
+  purchaseSuccess:       { en: 'purchase successful!', nl: 'aankoop gelukt!' },
+  viewHistoryInfo:       { en: 'you can view your purchase history in your account.', nl: 'je kunt je aankoopgeschiedenis in je account bekijken.' },
+  inStoreCreditsApplied: { en: 'in store credits applied', nl: 'aan winkeltegoed toegepast' },
+  viewPurchases:         { en: 'view my purchases', nl: 'bekijk mijn aankopen' },
+  continueBrowsing:      { en: 'continue browsing', nl: 'verder winkelen' },
+  authRequired:          { en: 'Authentication required', nl: 'authenticatie vereist' },
+  signInRequired:        { en: 'Please sign in to complete your purchase', nl: 'log in om je aankoop te voltooien' },
+  cartEmptyError:        { en: 'Your cart is empty', nl: 'je winkelmand is leeg' },
+  createOrderFailed:     { en: 'Failed to create order', nl: 'bestelling aanmaken mislukt' },
+  checkoutFailed:        { en: 'Failed to create checkout session', nl: 'afrekensessie aanmaken mislukt' },
+  noCheckoutUrl:         { en: 'No checkout URL received', nl: 'geen afreken-URL ontvangen' },
+  genericError:          { en: 'Something went wrong. Please try again.', nl: 'er ging iets mis. probeer het opnieuw.' },
+  connectionError:       { en: 'Connection error \u2014 please check your internet and try again.', nl: 'verbindingsfout. controleer je internet en probeer opnieuw.' }
+};
+function t(key) {
+  var e = PCART_T[key];
+  return e ? (isNL() ? e.nl : e.en) : '';
+}
+
+// ============================================
 // PURCHASE CART - SITE-WIDE
 // Add to Site Footer Code (or host on GitHub)
 // ============================================
-
 window.PurchaseCart = {
   API_BASE: window.API_BASE_URL,
   _items: [],
   _isCheckingOut: false,
-
   init() {
-    // Load cart from localStorage
     const saved = localStorage.getItem('demat_purchase_cart');
     if (saved) {
       try {
@@ -21,18 +58,13 @@ window.PurchaseCart = {
     this.updateCartBadge();
     this.injectCartStyles();
   },
-
   save() {
     localStorage.setItem('demat_purchase_cart', JSON.stringify(this._items));
     this.updateCartBadge();
   },
-
-  // Check if item is in cart
   hasItem(clothingItemId) {
     return this._items.some(item => item.clothing_item_id === clothingItemId);
   },
-
-  // Add item to cart
   addItem(item) {
     if (this.hasItem(item.clothing_item_id)) {
       return;
@@ -41,8 +73,6 @@ window.PurchaseCart = {
     this.save();
     this.showAddedToast(item.name);
   },
-
-  // Remove item from cart
   removeItem(clothingItemId) {
     const index = this._items.findIndex(item => item.clothing_item_id === clothingItemId);
     if (index > -1) {
@@ -50,49 +80,33 @@ window.PurchaseCart = {
       this.save();
     }
   },
-
-  // Clear cart
   clear() {
     this._items = [];
     this.save();
   },
-
-  // Get cart items
   getItems() {
     return [...this._items];
   },
-
-  // Get cart total (purchase prices)
   getTotal() {
     return this._items.reduce((sum, item) => sum + (item.purchase_price_cents || 0), 0);
   },
-
-  // Format price
   formatPrice(cents) {
     if (cents === null || cents === undefined) return '€0,00';
     return `€${(cents / 100).toFixed(2).replace('.', ',')}`;
   },
-
-  // Update cart badge in navbar
-updateCartBadge() {
+  updateCartBadge() {
     const count = this._items.length;
-    
     document.querySelectorAll('.purchase-cart-badge').forEach(badge => {
       badge.textContent = count;
       badge.style.display = count > 0 ? 'flex' : 'none';
     });
-    
     document.querySelectorAll('.purchase-cart-nav').forEach(navItem => {
       navItem.style.display = count > 0 ? 'flex' : 'none';
     });
   },
-
-  // Show toast notification
   showAddedToast(itemName) {
-    // Remove existing toast
     const existing = document.getElementById('cart-toast');
     if (existing) existing.remove();
-
     const toast = document.createElement('div');
     toast.id = 'cart-toast';
     toast.className = 'cart-toast';
@@ -100,30 +114,22 @@ updateCartBadge() {
       <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
         <polyline points="20 6 9 17 4 12"></polyline>
       </svg>
-      <span>Added to cart</span>
+      <span>${t('addedToCart')}</span>
     `;
     document.body.appendChild(toast);
-
-    // Animate in
     setTimeout(() => toast.classList.add('cart-toast-visible'), 10);
-
-    // Remove after delay
     setTimeout(() => {
       toast.classList.remove('cart-toast-visible');
       setTimeout(() => toast.remove(), 300);
     }, 2500);
   },
-
-  // Toggle cart panel (slide in from left)
   toggleCartDropdown() {
     const panel = document.getElementById('purchase-cart-panel');
     const backdrop = document.getElementById('purchase-cart-backdrop');
-    
     if (!panel || !backdrop) {
       this.createCartPanel();
       return;
     }
-
     const isOpen = panel.classList.contains('cart-panel-open');
     if (isOpen) {
       this.closeCartPanel();
@@ -131,9 +137,7 @@ updateCartBadge() {
       this.openCartPanel();
     }
   },
-
   createCartPanel() {
-    // Create backdrop
     let backdrop = document.getElementById('purchase-cart-backdrop');
     if (!backdrop) {
       backdrop = document.createElement('div');
@@ -142,8 +146,6 @@ updateCartBadge() {
       backdrop.onclick = () => this.closeCartPanel();
       document.body.appendChild(backdrop);
     }
-
-    // Create panel
     let panel = document.getElementById('purchase-cart-panel');
     if (!panel) {
       panel = document.createElement('div');
@@ -151,49 +153,39 @@ updateCartBadge() {
       panel.className = 'cart-panel';
       document.body.appendChild(panel);
     }
-
     this.renderCartPanel();
     this.openCartPanel();
   },
-
   openCartPanel() {
     const panel = document.getElementById('purchase-cart-panel');
     const backdrop = document.getElementById('purchase-cart-backdrop');
-    
     this.renderCartPanel();
-    
     if (backdrop) backdrop.classList.add('cart-panel-backdrop-open');
     if (panel) panel.classList.add('cart-panel-open');
     document.body.style.overflow = 'hidden';
   },
-
   closeCartPanel() {
     const panel = document.getElementById('purchase-cart-panel');
     const backdrop = document.getElementById('purchase-cart-backdrop');
-    
     if (panel) panel.classList.remove('cart-panel-open');
     if (backdrop) backdrop.classList.remove('cart-panel-backdrop-open');
     document.body.style.overflow = '';
   },
-
-  // Render cart panel content
   renderCartPanel() {
     const panel = document.getElementById('purchase-cart-panel');
     if (!panel) return;
-
     if (this._items.length === 0) {
       panel.innerHTML = `
         <div class="cart-panel-header">
-          <span class="cart-panel-title">your cart</span>
+          <span class="cart-panel-title">${t('yourCart')}</span>
           <button onclick="PurchaseCart.closeCartPanel()" class="cart-panel-close">&times;</button>
         </div>
         <div class="cart-panel-empty">
-          <p>your cart is empty</p>
+          <p>${t('cartEmpty')}</p>
         </div>
       `;
       return;
     }
-
     const itemsHtml = this._items.map(item => `
       <div class="cart-panel-item">
         <div class="cart-panel-item-image">
@@ -211,10 +203,9 @@ updateCartBadge() {
         </button>
       </div>
     `).join('');
-
     panel.innerHTML = `
       <div class="cart-panel-header">
-        <span class="cart-panel-title">your cart (${this._items.length})</span>
+        <span class="cart-panel-title">${t('yourCart')} (${this._items.length})</span>
         <button onclick="PurchaseCart.closeCartPanel()" class="cart-panel-close">&times;</button>
       </div>
       <div class="cart-panel-items">
@@ -222,87 +213,63 @@ updateCartBadge() {
       </div>
       <div class="cart-panel-footer">
         <div class="cart-panel-total">
-          <span>total</span>
+          <span>${t('total')}</span>
           <span>${this.formatPrice(this.getTotal())}</span>
         </div>
         <button onclick="PurchaseCart.openCheckoutModal()" class="cart-panel-checkout-btn">
-          checkout
+          ${t('checkout')}
         </button>
       </div>
     `;
   },
-
-  // Render cart dropdown (legacy - redirect to panel)
   renderDropdown() {
     this.renderCartPanel();
   },
-
-  // Open checkout modal
   async openCheckoutModal() {
-    // Close cart panel
     this.closeCartPanel();
-
-    // Create modal if it doesn't exist
     let modal = document.getElementById('checkout-modal');
     let backdrop = document.getElementById('checkout-modal-backdrop');
-
     if (!modal) {
       backdrop = document.createElement('div');
       backdrop.id = 'checkout-modal-backdrop';
       backdrop.className = 'checkout-modal-backdrop';
       backdrop.onclick = () => this.closeCheckoutModal();
       document.body.appendChild(backdrop);
-
       modal = document.createElement('div');
       modal.id = 'checkout-modal';
       modal.className = 'checkout-modal';
       document.body.appendChild(modal);
     }
-
-    // Show modal first with loading state
     backdrop.classList.add('checkout-modal-backdrop-open');
     modal.classList.add('checkout-modal-open');
     document.body.style.overflow = 'hidden';
-
-    // Render content (fetches credit balance)
     await this.renderCheckoutModal();
   },
-
-  // Close checkout modal
   closeCheckoutModal() {
     const modal = document.getElementById('checkout-modal');
     const backdrop = document.getElementById('checkout-modal-backdrop');
-
     if (modal) modal.classList.remove('checkout-modal-open');
     if (backdrop) backdrop.classList.remove('checkout-modal-backdrop-open');
     document.body.style.overflow = '';
   },
-
-  // Fetch user's store credit balance
   async fetchCreditBalance() {
     try {
       if (!window.auth0Client) {
         return 0;
       }
-      
       const isAuthenticated = await window.auth0Client.isAuthenticated();
       if (!isAuthenticated) {
         return 0;
       }
-      
       const token = await window.auth0Client.getTokenSilently();
       const apiBase = this.getApiBase();
       const url = `${apiBase}/private_clothing_items/donation_session/`;
-      
-      // Credit balance comes from the donation sessions endpoint
       const response = await fetch(url, {
         headers: {
           'Authorization': `Bearer ${token}`,
           'Accept': 'application/json'
         }
       });
-      
-      
       if (response.ok) {
         const data = await response.json();
         return data.credit_balance_cents || 0;
@@ -314,19 +281,14 @@ updateCartBadge() {
     }
     return 0;
   },
-
   async renderCheckoutModal() {
     const modal = document.getElementById('checkout-modal');
     if (!modal) return;
-
     const items = this.getItems();
     const subtotal = this.getTotal();
-    
-    // Fetch credit balance
     const creditBalance = await this.fetchCreditBalance();
     const creditsToApply = Math.min(creditBalance, subtotal);
     const finalTotal = Math.max(0, subtotal - creditsToApply);
-
     const itemsHtml = items.map(item => `
       <div class="checkout-item">
         <div class="checkout-item-image">
@@ -341,17 +303,16 @@ updateCartBadge() {
         </div>
       </div>
     `).join('');
-
     modal.innerHTML = `
       <div class="checkout-modal-container">
         <div class="checkout-modal-header">
-          <h2>checkout</h2>
+          <h2>${t('checkout')}</h2>
           <button onclick="PurchaseCart.closeCheckoutModal()" class="checkout-modal-close">&times;</button>
         </div>
         
         <div class="checkout-modal-body">
           <div class="checkout-section">
-            <div class="checkout-section-title">items (${items.length})</div>
+            <div class="checkout-section-title">${t('items')} (${items.length})</div>
             <div class="checkout-items">
               ${itemsHtml}
             </div>
@@ -359,21 +320,21 @@ updateCartBadge() {
           
           <div class="checkout-summary">
             <div class="checkout-summary-row">
-              <span>subtotal (50% off)</span>
+              <span>${t('subtotal')}</span>
               <span>${this.formatPrice(subtotal)}</span>
             </div>
             <div class="checkout-summary-row">
-              <span>your store credits</span>
+              <span>${t('yourStoreCredits')}</span>
               <span>${this.formatPrice(creditBalance)}</span>
             </div>
             ${creditsToApply > 0 ? `
               <div class="checkout-summary-row checkout-credits-applied">
-                <span>credits applied</span>
+                <span>${t('creditsApplied')}</span>
                 <span>-${this.formatPrice(creditsToApply)}</span>
               </div>
             ` : ''}
             <div class="checkout-summary-row checkout-summary-total">
-              <span>total</span>
+              <span>${t('total')}</span>
               <span>${this.formatPrice(finalTotal)}</span>
             </div>
           </div>
@@ -381,62 +342,48 @@ updateCartBadge() {
         
         <div class="checkout-modal-footer">
           <p id="checkout-error-msg" class="checkout-error-msg" style="display:none;"></p>
-          <p class="checkout-info">${finalTotal > 0 ? "by clicking 'complete purchase' you will be redirected to our payment provider." : 'your credits cover this purchase!'}</p>
+          <p class="checkout-info">${finalTotal > 0 ? t('redirectInfo') : t('creditsCover')}</p>
           <button onclick="PurchaseCart.processCheckout()" class="checkout-submit-btn" id="checkout-submit-btn">
-            complete purchase
+            ${t('completePurchase')}
           </button>
         </div>
       </div>
     `;
   },
-
-  // Get API base URL with fallback
   getApiBase() {
     if (window.API_BASE_URL) return window.API_BASE_URL;
     if (this.API_BASE) return this.API_BASE;
-    
-    // Fallback based on hostname
     const hostname = window.location.hostname;
     const isProduction = hostname === 'dematerialized.nl' || hostname === 'www.dematerialized.nl';
     return isProduction ? 'https://api.dematerialized.nl' : 'https://test-api.dematerialized.nl';
   },
-
-  // Process checkout
   async processCheckout() {
     if (this._isCheckingOut) return;
     this._isCheckingOut = true;
-
     const submitBtn = document.getElementById('checkout-submit-btn');
     if (submitBtn) {
       submitBtn.disabled = true;
-      submitBtn.innerHTML = '<span class="checkout-spinner"></span> processing...';
+      submitBtn.innerHTML = '<span class="checkout-spinner"></span> ' + t('processing');
     }
-
     const errorEl = document.getElementById('checkout-error-msg');
     if (errorEl) {
       errorEl.style.display = 'none';
       errorEl.textContent = '';
     }
-
     try {
       if (!window.auth0Client) {
-        throw new Error('Authentication required');
+        throw new Error(t('authRequired'));
       }
-
       const isAuthenticated = await window.auth0Client.isAuthenticated();
       if (!isAuthenticated) {
-        throw new Error('Please sign in to complete your purchase');
+        throw new Error(t('signInRequired'));
       }
-
       const token = await window.auth0Client.getTokenSilently();
       const items = this.getItems();
       const apiBase = this.getApiBase();
-
       if (items.length === 0) {
-        throw new Error('Your cart is empty');
+        throw new Error(t('cartEmptyError'));
       }
-
-      // Step 1: Create the order
       const orderResponse = await fetch(`${apiBase}/private_clothing_items/orders`, {
         method: 'POST',
         headers: {
@@ -446,42 +393,31 @@ updateCartBadge() {
         },
         body: JSON.stringify({
           clothing_item_ids: items.map(item => item.clothing_item_id),
-          shipping_address: '',  // Not needed for rental purchases (pickup)
+          shipping_address: '',
           order_type: 'purchase'
         })
       });
-
       if (!orderResponse.ok) {
         const errorText = await orderResponse.text();
         console.error('Order creation error response:', errorText);
-        let errorDetail = 'Failed to create order';
+        let errorDetail = t('createOrderFailed');
         try {
           const errorData = JSON.parse(errorText);
           errorDetail = errorData.detail || errorDetail;
         } catch (e) {
-          // Response wasn't JSON
         }
         throw new Error(errorDetail);
       }
-
       const order = await orderResponse.json();
-
-      // Check if fully paid by credits
       if (order.total_amount_in_cents === 0 || order.payment_status === 'paid') {
-        // Order complete! Clear cart and show success
         this.clear();
         this.closeCheckoutModal();
         this.showSuccessMessage(order);
         return;
       }
-
-      // Step 2: Need to pay remaining balance via Stripe
-      
-      // Build success and cancel URLs
       const currentUrl = window.location.origin;
       const successUrl = `${currentUrl}/purchases?payment=success`;
       const cancelUrl = `${currentUrl}/purchases?payment=cancelled`;
-      
       const checkoutResponse = await fetch(`${apiBase}/private_clothing_items/orders/${order.id}/checkout`, {
         method: 'POST',
         headers: {
@@ -494,22 +430,15 @@ updateCartBadge() {
           cancel_url: cancelUrl
         })
       });
-
       if (!checkoutResponse.ok) {
         const errorText = await checkoutResponse.text();
         console.error('Checkout error response (raw):', errorText);
-        let errorDetail = 'Failed to create checkout session';
+        let errorDetail = t('checkoutFailed');
         try {
           const errorData = JSON.parse(errorText);
-          console.error('Parsed error data:', errorData);
-          console.error('Error detail type:', typeof errorData.detail);
-          console.error('Error detail value:', errorData.detail);
-          
-          // Handle various error formats
           if (typeof errorData.detail === 'string') {
             errorDetail = errorData.detail;
           } else if (Array.isArray(errorData.detail) && errorData.detail.length > 0) {
-            // FastAPI validation errors come as array
             errorDetail = errorData.detail.map(e => e.msg || e.message || JSON.stringify(e)).join(', ');
           } else if (errorData.detail?.message) {
             errorDetail = errorData.detail.message;
@@ -522,65 +451,49 @@ updateCartBadge() {
           } else if (errorData.error) {
             errorDetail = typeof errorData.error === 'string' ? errorData.error : JSON.stringify(errorData.error);
           }
-          console.error('Final error message:', errorDetail);
         } catch (e) {
-          console.error('Could not parse error response as JSON');
-          errorDetail = errorText || 'Failed to create checkout session';
+          errorDetail = errorText || t('checkoutFailed');
         }
         throw new Error(String(errorDetail));
       }
-
       const checkoutData = await checkoutResponse.json();
-
-      // Clear cart before redirecting
       this.clear();
-
-      // Redirect to Stripe - check multiple possible field names
       const redirectUrl = checkoutData.checkout_url || checkoutData.url || checkoutData.session_url;
       if (redirectUrl) {
         window.location.href = redirectUrl;
       } else {
         console.error('No checkout URL in response. Full response:', checkoutData);
-        throw new Error('No checkout URL received');
+        throw new Error(t('noCheckoutUrl'));
       }
-
     } catch (error) {
       console.error('Checkout error:', error);
-
-      // Extract error message properly
-      let errorMessage = 'Something went wrong. Please try again.';
+      let errorMessage = t('genericError');
       if (typeof error === 'string') {
         errorMessage = error;
       } else if (error?.message) {
         const msg = error.message;
         errorMessage = (msg === 'Failed to fetch' || msg === 'NetworkError when attempting to fetch resource.')
-          ? 'Connection error — please check your internet and try again.'
+          ? t('connectionError')
           : msg;
       } else if (error?.detail) {
         errorMessage = error.detail;
       }
-
       if (errorEl) {
         errorEl.textContent = errorMessage;
         errorEl.style.display = 'block';
       }
-
       if (submitBtn) {
         submitBtn.disabled = false;
-        submitBtn.innerHTML = 'complete purchase';
+        submitBtn.innerHTML = t('completePurchase');
       }
     } finally {
       this._isCheckingOut = false;
     }
   },
-
-  // Show success message
   showSuccessMessage(order) {
     const modal = document.getElementById('checkout-modal');
     if (!modal) return;
-
     const creditsApplied = order.credits_applied_cents || 0;
-
     modal.innerHTML = `
       <div class="checkout-modal-container">
         <div class="checkout-success">
@@ -590,30 +503,26 @@ updateCartBadge() {
               <polyline points="16 10 10.5 15.5 8 13"></polyline>
             </svg>
           </div>
-          <h2>purchase successful!</h2>
-          <p>you can view your purchase history in your account.</p>
+          <h2>${t('purchaseSuccess')}</h2>
+          <p>${t('viewHistoryInfo')}</p>
           ${creditsApplied > 0 ? `
             <div class="checkout-success-credits">
-              <span>${this.formatPrice(creditsApplied)} in store credits applied</span>
+              <span>${this.formatPrice(creditsApplied)} ${t('inStoreCreditsApplied')}</span>
             </div>
           ` : ''}
           <div class="checkout-success-actions">
-            <a href="/purchases" class="checkout-success-btn">view my purchases</a>
-            <button onclick="PurchaseCart.closeCheckoutModal(); window.location.reload();" class="checkout-success-btn-secondary">continue browsing</button>
+            <a href="${isNL() ? '/nl/purchases' : '/purchases'}" class="checkout-success-btn">${t('viewPurchases')}</a>
+            <button onclick="PurchaseCart.closeCheckoutModal(); window.location.reload();" class="checkout-success-btn-secondary">${t('continueBrowsing')}</button>
           </div>
         </div>
       </div>
     `;
   },
-
-  // Inject CSS styles
   injectCartStyles() {
     if (document.getElementById('purchase-cart-styles')) return;
-
     const styles = document.createElement('style');
     styles.id = 'purchase-cart-styles';
-    styles.textContent = `
-      :root {
+    styles.textContent = `      :root {
         --cart-purple: #4b073f;
         --cart-purple-dark: #3a052f;
         --cart-pink: #a92296;
@@ -624,7 +533,6 @@ updateCartBadge() {
         --cart-pink-light: #fff4fe;
         --cart-navy: #04314d;
       }
-
       /* Toast */
       .cart-toast {
         position: fixed;
@@ -649,7 +557,6 @@ updateCartBadge() {
         transform: translateX(-50%) translateY(0);
         opacity: 1;
       }
-
       /* Cart Nav */
     #purchase-cart-nav,
 .purchase-cart-nav {
@@ -688,7 +595,6 @@ updateCartBadge() {
     justify-content: center;
     padding: 0 4px;
 }
-
       /* Cart Panel Backdrop */
       .cart-panel-backdrop {
         position: fixed;
@@ -706,7 +612,6 @@ updateCartBadge() {
         opacity: 1;
         visibility: visible;
       }
-
       /* Cart Panel - Slide from Right */
       .cart-panel {
         position: fixed;
@@ -726,7 +631,6 @@ updateCartBadge() {
       .cart-panel-open {
         transform: translateX(0);
       }
-
       .cart-panel-header {
         display: flex;
         justify-content: space-between;
@@ -751,7 +655,6 @@ updateCartBadge() {
       .cart-panel-close:hover {
         color: var(--cart-gray-dark);
       }
-
       .cart-panel-items {
         flex: 1;
         overflow-y: auto;
@@ -812,7 +715,6 @@ updateCartBadge() {
         opacity: 1;
         color: var(--cart-gray-dark);
       }
-
       .cart-panel-footer {
         padding: 20px 24px;
         background: var(--cart-gray-bg);
@@ -841,7 +743,6 @@ updateCartBadge() {
       .cart-panel-checkout-btn:hover {
         background: var(--cart-purple-dark);
       }
-
       .cart-panel-empty {
         flex: 1;
         display: flex;
@@ -851,15 +752,12 @@ updateCartBadge() {
         color: var(--cart-gray-medium);
         font-size: 18px;
       }
-
       /* Mobile - Full screen cart */
       @media (max-width: 600px) {
         .cart-panel {
           width: 100%;
         }
       }
-
-
       /* Checkout Modal */
       .checkout-modal-backdrop {
         position: fixed;
@@ -1067,7 +965,6 @@ updateCartBadge() {
       @keyframes spin {
         to { transform: rotate(360deg); }
       }
-
       /* Success State */
       .checkout-success {
         padding: 48px 24px;
@@ -1130,25 +1027,19 @@ updateCartBadge() {
       }
       .checkout-success-btn-secondary:hover {
         color: var(--cart-purple);
-      }
-    `;
+      }`;
     document.head.appendChild(styles);
   }
 };
-
-// Close dropdown when clicking outside
 document.addEventListener('click', (e) => {
   const dropdown = document.getElementById('purchase-cart-dropdown');
   const navItem = document.getElementById('purchase-cart-nav');
-  
   if (dropdown && dropdown.style.display === 'block') {
     if (!navItem?.contains(e.target)) {
       dropdown.style.display = 'none';
     }
   }
 });
-
-// Auto-initialize when DOM is ready
 document.addEventListener('DOMContentLoaded', () => {
   PurchaseCart.init();
 });
