@@ -24,6 +24,34 @@ window.DematI18n.isNL = function () {
   return (document.documentElement.lang || '').toLowerCase().indexOf('nl') === 0;
 };
 
+// Prefix an internal path with /nl on the Dutch locale (for JS-driven navigation)
+window.DematI18n.localizePath = function (path) {
+  if (!path || typeof path !== 'string') return path;
+  if (!window.DematI18n.isNL()) return path;
+  if (path.charAt(0) !== '/') return path;                   // only internal absolute paths
+  if (path.charAt(1) === '/') return path;                   // protocol-relative //cdn...
+  if (path === '/nl' || path.indexOf('/nl/') === 0) return path; // already localized
+  return '/nl' + path;
+};
+// Localize static internal links inside custom embeds (Webflow only rewrites its own native links)
+window.DematI18n.localizeHrefs = function (root) {
+  if (!window.DematI18n.isNL()) return;
+  var scope = root || document;
+  scope.querySelectorAll('a[href^="/"]').forEach(function (a) {
+    var href = a.getAttribute('href');
+    var localized = window.DematI18n.localizePath(href);
+    if (localized !== href) a.setAttribute('href', localized);
+  });
+};
+(function () {
+  function run() { window.DematI18n.localizeHrefs(document); }
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', run);
+  } else {
+    run();
+  }
+})();
+
 document.addEventListener("DOMContentLoaded", function () {
   const body = document.body;
   const openers = document.querySelectorAll("[data-filter-open]");
@@ -838,7 +866,7 @@ function renderCartOverlay() {
 
 function goToCartItem(sku) {
   closeCartOverlay();
-  window.location.href = `/product?sku=${encodeURIComponent(sku)}`;
+  window.location.href = window.DematI18n.localizePath('/product?sku=' + encodeURIComponent(sku));
 }
 
 async function removeCartOverlayItem(event, itemId) {
@@ -974,6 +1002,10 @@ async function openReservationModal() {
     errorEl.style.display = 'none';
     errorEl.textContent = '';
   }
+  
+if (window.DematI18n) window.DematI18n.localizeHrefs(modal);
+  backdrop.style.display = 'block';
+  modal.style.display = 'block';
   
   backdrop.style.display = 'block';
   modal.style.display = 'block';
@@ -1147,7 +1179,7 @@ function showReservationSuccess(result, isRental) {
     if (subtext) subtext.textContent = 'happy borrowing!';
     if (viewLink) {
       viewLink.textContent = 'view my rentals';
-      viewLink.setAttribute('href', '/my-rentals');
+      viewLink.setAttribute('href', window.DematI18n.localizePath('/my-rentals'));
     }
   } else {
     if (successTitle) successTitle.textContent = 'reservation confirmed!';
@@ -1156,7 +1188,7 @@ function showReservationSuccess(result, isRental) {
     if (subtext) subtext.textContent = 'see you soon!';
     if (viewLink) {
       viewLink.textContent = 'view my reservations';
-      viewLink.setAttribute('href', '/reservations');
+      viewLink.setAttribute('href', window.DematI18n.localizePath('/reservations'));
     }
   }
   
@@ -2055,7 +2087,7 @@ window.addEventListener('load', function() {
     closeOnboardingModal();
     
     // Redirect to clothing page
-    window.location.href = '/clothing';
+   window.location.href = window.DematI18n.localizePath('/clothing');
   };
   
   // ===== EVENT LISTENERS =====
